@@ -1,0 +1,21 @@
+pl_PL:
+  CookieConsent:
+    CookieConsentTitle: 'Ta strona korzysta z plików cookie'
+    CookieConsentContent: '<p>Używamy plików cookie, aby personalizować treści i reklamy, udostępniać funkcje mediów społecznościowych oraz analizować ruch na naszej stronie. Udostępniamy również informacje o korzystaniu z naszej witryny naszym partnerom z zakresu mediów społecznościowych i analityki, którzy mogą łączyć je z innymi informacjami przekazanymi im przez Ciebie lub zebranymi podczas korzystania z ich usług. Wyrażasz zgodę na pliki cookie, jeśli nadal korzystasz z naszej strony internetowej.</p>'
+    PreferencesModalTitle: 'Zarządzaj preferencjami plików cookie'
+    ButtonsAcceptAll: 'Akceptuj wszystkie'
+    ButtonsRejectAll: 'Odrzuć wszystkie'
+    ButtonsManagePreferences: 'Zarządzaj preferencjami'
+    ButtonsSavePreferences: 'Zapisz preferencje'
+    PreferencesCloseIconLabel: 'Zamknij'
+    CookieTableName: 'Nazwa'
+    CookieTableProvider: 'Dostawca'
+    CookieTableDescription: 'Opis'
+    CookieTableExpiration: 'Czas wygaśnięcia'
+    Category:
+      necessary: 'Niezbedne'
+      analytics: 'Analityczne'
+      advertisement: 'Reklamowe'
+      functionality: 'Funkcjonalne'
+      preferences: 'Preferencje'
+      statistics: 'Statystyczne'

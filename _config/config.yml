@@ -1,0 +1,18 @@
+---
+Name: cookie-consent--config
+---
+CookieConsent:
+  disable_default_css: false
+  disable_default_js: false
+  enable_google_consent_mode: false
+  enable_consent_logging: true
+  categories:
+    necessary:
+      enabled: true
+      readOnly: true
+    analytics:
+      enabled: false
+    advertisement:
+      enabled: false
+    functionality:
+      enabled: false
