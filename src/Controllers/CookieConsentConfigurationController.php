@@ -1,12 +1,18 @@
 <?php
 
+namespace Mouseketeers\CookieConsent\Controllers;
+
+use Mouseketeers\CookieConsent\Services\CookieConsentConfigBuilder;
+use SilverStripe\Control\Controller;
+use SilverStripe\Control\HTTPResponse;
+
 class CookieConsentConfigurationController extends Controller
 {
-    private static $allowed_actions = array(
+    private static $allowed_actions = [
         'configuration'
-    );
+    ];
 
-    public function configuration()
+    public function configuration(): HTTPResponse
     {
         $config = (new CookieConsentConfigBuilder())->build();
         $json = json_encode(
@@ -18,7 +24,7 @@ class CookieConsentConfigurationController extends Controller
             $json = '{}';
         }
 
-        $response = new SS_HTTPResponse($json, 200);
+        $response = HTTPResponse::create($json, 200);
         $response->addHeader('Content-Type', 'application/json; charset=utf-8');
         $response->addHeader('Cache-Control', 'public, max-age=3600');
         $response->addHeader('Vary', 'Accept-Language');

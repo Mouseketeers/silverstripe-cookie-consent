@@ -1,8 +1,14 @@
 <?php
 
+namespace Mouseketeers\CookieConsent;
+
+use SilverStripe\Control\Cookie;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\i18n\i18n;
+use SilverStripe\Subsites\Model\Subsite;
+
 class CookieConsent
 {
-
     private static $disable_default_js = false;
     private static $disable_default_css = false;
     private static $enable_google_consent_mode = false;
@@ -16,7 +22,7 @@ class CookieConsent
 
     public static function getSubsitesEnabled()
     {
-        return class_exists('Subsite');
+        return class_exists(Subsite::class);
     }
 
     public static function getCurrentSubsite()
@@ -24,6 +30,7 @@ class CookieConsent
         if (self::getSubsitesEnabled()) {
             return Subsite::currentSubsite();
         }
+
         return null;
     }
 
@@ -32,27 +39,28 @@ class CookieConsent
         if (self::getSubsitesEnabled()) {
             return (int) Subsite::currentSubsiteID();
         }
+
         return 0;
     }
 
     public static function isDefaultJsDisabled()
     {
-        return Config::inst()->get('CookieConsent', 'disable_default_js');
+        return Config::inst()->get(self::class, 'disable_default_js');
     }
 
     public static function isDefaultCssDisabled()
     {
-        return Config::inst()->get('CookieConsent', 'disable_default_css');
+        return Config::inst()->get(self::class, 'disable_default_css');
     }
     
     public static function isGoogleConsentModeEnabled()
     {
-        return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
+        return Config::inst()->get(self::class, 'enable_google_consent_mode');
     }
 
     public static function getCategoriesConfig()
     {
-        $categories = Config::inst()->get('CookieConsent', 'categories');
+        $categories = Config::inst()->get(self::class, 'categories');
 
         return is_array($categories) ? $categories : [];
     }
@@ -77,7 +85,7 @@ class CookieConsent
 
     public static function isConsentRegistrationEnabled()
     {
-        return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
+        return class_exists('ConsentRecord') && (bool) Config::inst()->get(self::class, 'enable_consent_logging');
     }
 
     public static function getCookie()

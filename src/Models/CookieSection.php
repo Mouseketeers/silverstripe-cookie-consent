@@ -1,10 +1,23 @@
 <?php
 
+namespace Mouseketeers\CookieConsent\Models;
+
+use Mouseketeers\CookieConsent\CookieConsent;
+use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
+use SilverStripe\Forms\TextAreaField;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\SiteConfig\SiteConfig;
+
 class CookieSection extends DataObject
 {
-    private static $singular_name = 'Cookie section';
+    private static $table_name = 'CookieConsentSection';
 
-    private static $plural_name = 'Cookie sections';
+    private static $singular_name = 'Cookie Section';
+
+    private static $plural_name = 'Cookie Sections';
 
     private static $db = [
         'Title' => 'Varchar(255)',
@@ -14,11 +27,11 @@ class CookieSection extends DataObject
     ];
 
     private static $has_one = [
-        'SiteConfig' => 'SiteConfig'
+        'SiteConfig' => SiteConfig::class
     ];    
 
     private static $many_many = [
-        'CookieDescriptions' => 'CookieDescription'
+        'CookieDescriptions' => CookieDescription::class
     ];
 
     private static $summary_fields = [
@@ -41,7 +54,7 @@ class CookieSection extends DataObject
 
         $cookiesGrid = $fields->dataFieldByName('CookieDescriptions');
         if ($cookiesGrid instanceof GridField) {
-            $linkExisting = $cookiesGrid->getConfig()->getComponentByType('GridFieldAddExistingAutocompleter');
+            $linkExisting = $cookiesGrid->getConfig()->getComponentByType(GridFieldAddExistingAutocompleter::class);
             if ($linkExisting instanceof GridFieldAddExistingAutocompleter) {
                 $linkExisting->setSearchFields(['Title']);
                 $linkExisting->setResultsFormat('$ListTitle');
@@ -82,7 +95,7 @@ class CookieSection extends DataObject
             }
         }
 
-        return $unusedCategories;
+        return $allCategories;
     }
 
     public function onAfterWrite()
@@ -96,7 +109,9 @@ class CookieSection extends DataObject
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
     }
-    public function canCreate($member = null) {
+
+    public function canCreate($member = null, $context = [])
+    {
         return !empty($this->getUnusedConsentCategoriesMap());
     }
 

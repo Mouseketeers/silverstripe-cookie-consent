@@ -1,3 +1,5 @@
 <?php
 
-CookieDeclarationShortcode::register();
+use Mouseketeers\CookieConsent\Shortcode\CookieDescriptionsShortcode;
+
+CookieDescriptionsShortcode::register();

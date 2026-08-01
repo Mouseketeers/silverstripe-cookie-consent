@@ -1,14 +1,20 @@
 <?php
 
+namespace Mouseketeers\CookieConsent\Services;
+
+use Mouseketeers\CookieConsent\CookieConsent;
+use SilverStripe\i18n\i18n;
+use SilverStripe\SiteConfig\SiteConfig;
+
 class CookieConsentConfigBuilder
 {
     public function build()
     {
         $cache = CookieConsentConfigCache::getCache();
         $cacheKey = CookieConsentConfigCache::getCacheKey();
-        $cachedConfig = $cache->load($cacheKey);
+        $cachedConfig = $cache->get($cacheKey);
 
-        if ($cachedConfig !== false) {
+        if (is_string($cachedConfig) && $cachedConfig !== '') {
             $decodedConfig = json_decode($cachedConfig, true);
             if (is_array($decodedConfig)) {
                 return $decodedConfig;
@@ -32,7 +38,7 @@ class CookieConsentConfigBuilder
             ]
         ];
 
-        $cache->save(json_encode($config), $cacheKey);
+        $cache->set($cacheKey, json_encode($config));
 
         return $config;
     }
@@ -108,6 +114,10 @@ class CookieConsentConfigBuilder
     protected function buildCategorySections($siteConfig)
     {
         $sections = [];
+        if (!$siteConfig) {
+            return $sections;
+        }
+
         $cookieCategories = $siteConfig->CookieSections();
         $categoryTitles = $this->buildCategoryTitles($cookieCategories);
         $categoryDescriptions = $this->buildCategoryDescriptions($cookieCategories);

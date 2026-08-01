@@ -1,22 +1,29 @@
 <?php
 
-class CookieDeclarationShortcode
+namespace Mouseketeers\CookieConsent\Shortcode;
+
+use Mouseketeers\CookieConsent\CookieConsent;
+use SilverStripe\Model\ArrayData;
+use SilverStripe\SiteConfig\SiteConfig;
+use SilverStripe\View\Parsers\ShortcodeParser;
+
+class CookieDescriptionsShortcode
 {
     public static function register()
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
             
-            $categories = new ArrayList();
+            $categories = [];
 
             $siteConfig = SiteConfig::current_site_config();
 
             foreach ($siteConfig->CookieSections() as $category) {
                 if ($category->CookieDescriptions()->exists()) {
-                    $categories->push($category);
+                    $categories[] = $category;
                 }
             }
 
-            if (!$categories->exists()) {
+            if (empty($categories)) {
                 return '';
             }
 

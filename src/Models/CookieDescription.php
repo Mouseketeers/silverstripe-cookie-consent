@@ -1,11 +1,23 @@
 <?php
 
+namespace Mouseketeers\CookieConsent\Models;
+
+use Mouseketeers\CookieConsent\CookieConsent;
+use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\TextAreaField;
+use SilverStripe\Forms\TextField;
+use SilverStripe\i18n\i18n;
+use SilverStripe\ORM\DataObject;
+
 class CookieDescription extends DataObject
 {
+    private static $table_name = 'CookieConsentDescription';
 
-    private static $singular_name = 'Cookie description';
 
-    private static $plural_name = 'Cookie descriptions';
+    private static $singular_name = 'Cookie Description';
+
+    private static $plural_name = 'Cookie Descriptions';
 
     private static $db = [
         'Title' => 'Varchar(255)',
@@ -16,7 +28,7 @@ class CookieDescription extends DataObject
     ];
 
     private static $belongs_many_many = [
-        'CookieSections' => 'CookieSection'
+        'CookieSections' => CookieSection::class
     ];
 
     private static $summary_fields = [
@@ -42,7 +54,7 @@ class CookieDescription extends DataObject
             return '';
         }
 
-        $locales = i18n::get_common_locales();
+        $locales = $this->getLocaleOptions();
         if (isset($locales[$this->Locale])) {
             return $locales[$this->Locale];
         }
@@ -52,13 +64,12 @@ class CookieDescription extends DataObject
 
     public function populateDefaults()
     {
-      
-    parent::populateDefaults();
-        $subsite = CookieConsent::getCurrentSubsite(); 
+        parent::populateDefaults();
+
+        $subsite = CookieConsent::getCurrentSubsite();
         if ($subsite) {
             $this->Locale = $subsite->Language;
-        }
-        else {
+        } else {
             $this->Locale = i18n::get_locale();
         }
     }
@@ -74,7 +85,7 @@ class CookieDescription extends DataObject
             TextField::create('Provider', $this->fieldLabel('Provider')),
             TextAreaField::create('Description', $this->fieldLabel('Description')),
             TextField::create('Expiration', $this->fieldLabel('Expiration')),
-            DropdownField::create('Locale', $this->fieldLabel('Locale'), i18n::get_common_locales())
+            DropdownField::create('Locale', $this->fieldLabel('Locale'), $this->getLocaleOptions())
                 ->setEmptyString('Select...')
         ]);
 
@@ -91,5 +102,15 @@ class CookieDescription extends DataObject
     {
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
+    }
+
+    protected function getLocaleOptions(): array
+    {
+        $locales = i18n::getSources()->getKnownLocales();
+        if (!empty($locales)) {
+            return $locales;
+        }
+
+        return i18n::getData()->getLocales();
     }
 }

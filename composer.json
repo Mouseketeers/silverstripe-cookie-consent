@@ -1,7 +1,7 @@
 {
   "name": "mouseketeers/silverstripe-cookie-consent",
   "description": "GDPR compliant cookie consent checker",
-  "type": "silverstripe-module",
+  "type": "silverstripe-vendormodule",
   "keywords": ["Silverstripe", "GDPR", "Cookie", "Consent", "Privacy", "CMP"],
   "license": "BSD-3-Clause",
     "authors": [
@@ -12,10 +12,21 @@
       }
   ],
   "require": {
-    "silverstripe/framework": "^3.7",
-    "silverstripe/cms": "^3.7"
+    "silverstripe/framework": "^4.0",
+    "silverstripe/cms": "^4.0",
+    "silverstripe/admin": "^1.0",
+    "silverstripe/siteconfig": "^4.0",
+    "symbiote/silverstripe-gridfieldextensions": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Mouseketeers\\CookieConsent\\": "src/"
+    }
   },
   "extra": {
-    "installer-name": "cookie-consent"
+    "expose": [
+      "client",
+      "images"
+    ]
   }
 }

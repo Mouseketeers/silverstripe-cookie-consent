@@ -1,7 +1,23 @@
 <?php
 
+namespace Mouseketeers\CookieConsent\Extensions;
 
-class CookieConsentSiteConfigExtension extends DataExtension
+use Mouseketeers\CookieConsent\Models\CookieSection;
+use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
+use SilverStripe\Core\Extension;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
+use SilverStripe\Forms\GridField\GridFieldPaginator;
+use SilverStripe\Forms\GridField\GridFieldPageCount;
+use SilverStripe\Forms\HTMLEditor\HtmlEditorField;
+use SilverStripe\Forms\TextField;
+use SilverStripe\SiteConfig\SiteConfig;
+use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
+use SilverStripe\i18n\i18n;
+use SilverStripe\Subsites\Model\Subsite;
+
+class CookieConsentSiteConfigExtension extends Extension
 {
     private static $db = [
         'CookieConsentTitle' => 'Varchar(255)',
@@ -9,7 +25,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
     ];
 
     private static $has_many = [
-        'CookieSections' => 'CookieSection'
+        'CookieSections' => CookieSection::class
     ];
 
     public function updateCMSFields(FieldList $fields)
@@ -22,8 +38,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
         );
 
         $cookieCategoriesGrid->getConfig()
-            ->removeComponentsByType('GridFieldPaginator')
-            ->removeComponentsByType('GridFieldPageCount')
+            ->removeComponentsByType(GridFieldPaginator::class)
+            ->removeComponentsByType(GridFieldPageCount::class)
             ->addComponent(new GridFieldOrderableRows('SortOrder'));
 
         $fields->addFieldsToTab('Root.CookieConsent', [
@@ -32,21 +48,50 @@ class CookieConsentSiteConfigExtension extends DataExtension
             $cookieCategoriesGrid
         ]);
     }
-
     public function requireDefaultRecords()
     {
-        if ($config = SiteConfig::current_site_config()) {
-            if (empty($config->CookieConsentTitle)) {
-                $config->CookieConsentTitle = _t('CookieConsent.CookieConsentTitle', 'This website uses cookies');
+        // parent::requireDefaultRecords();
+
+        // Define the record-updating logic inside a reusable callback function
+        $updateConfigs = function () {
+            $originalLocale = i18n::get_locale();
+            $configs = SiteConfig::get();
+
+            foreach ($configs as $config) {
+                $changed = false;
+
+                // Switch the i18n locale to match the current SiteConfig language
+                $configLocale = !empty($config->Language) ? $config->Language : $originalLocale;
+                i18n::set_locale($configLocale);
+
+                if (empty($config->CookieConsentTitle)) {
+                    $config->CookieConsentTitle = _t('CookieConsent.CookieConsentTitle', 'This website uses cookies');
+                    $changed = true;
+                }
+
+                if (empty($config->CookieConsentContent)) {
+                    $config->CookieConsentContent = _t('CookieConsent.CookieConsentContent', '<p>We use cookies to personalise content, to provide social media features and to analyse our traffic. We also share information about your use of our site with our social media and analytics partners who may combine it with other information that you’ve provided to them or that they’ve collected from your use of their services. You consent to our cookies if you continue to use our website.</p>');
+                    $changed = true;
+                }
+
+                if ($changed) {
+                    $config->write();
+                }
             }
 
-            if (empty($config->CookieConsentContent)) {
-                $config->CookieConsentContent = _t('CookieConsent.CookieConsentContent', '<p>We use cookies to personalise content, to provide social media features and to analyse our traffic. We also share information about your use of our site with our social media and analytics partners who may combine it with other information that you’ve provided to them or that they’ve collected from your use of their services. You consent to our cookies if you continue to use our website.</p>');
-            }
+            // Restore the original system locale context
+            i18n::set_locale($originalLocale);
+        };
 
-            $config->write();
+        // Execute using the safest workflow depending on if Subsites module is installed
+        if (class_exists(Subsite::class)) {
+            Subsite::withDisabledSubsiteFilter($updateConfigs);
+        } else {
+            $updateConfigs();
         }
     }
+
+
 
     public function onAfterWrite()
     {

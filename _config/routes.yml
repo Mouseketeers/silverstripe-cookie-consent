@@ -2,6 +2,6 @@
 Name: cookieconsent--routes
 After: framework/routes#coreroutes
 ---
-Director:
+SilverStripe\Control\Director:
   rules:
-    'cookie-consent//$Action': 'CookieConsentConfigurationController'
+    'cookie-consent//$Action': 'Mouseketeers\CookieConsent\Controllers\CookieConsentConfigurationController'

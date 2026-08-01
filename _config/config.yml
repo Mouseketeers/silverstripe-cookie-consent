@@ -1,7 +1,8 @@
 ---
 Name: cookie-consent--config
 ---
-CookieConsent:
+Mouseketeers\CookieConsent\CookieConsent:
+  enable_cookie_consent: true
   disable_default_css: false
   disable_default_js: false
   enable_google_consent_mode: false
@@ -16,3 +17,10 @@ CookieConsent:
       enabled: false
     functionality:
       enabled: false
+
+SilverStripe\Core\Injector\Injector:
+  Psr\SimpleCache\CacheInterface.cookie_consent_config:
+    factory: SilverStripe\Core\Cache\CacheFactory
+    constructor:
+      namespace: cookie_consent_config
+      defaultLifetime: 0
