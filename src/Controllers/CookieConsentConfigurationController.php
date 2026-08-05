@@ -19,9 +19,8 @@ class CookieConsentConfigurationController extends Controller
         }
 
         $response = new SS_HTTPResponse($json, 200);
-        $response->addHeader('Content-Type', 'application/json; charset=utf-8');
-        $response->addHeader('Cache-Control', 'public, max-age=3600');
-        $response->addHeader('Vary', 'Accept-Language');
+        // HTTPCacheControl::singleton()->setMaxAge(60);
+        // HTTPCacheControl::singleton()->publicCache();
 
         return $response;
     }
