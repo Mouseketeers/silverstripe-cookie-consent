@@ -6,7 +6,9 @@ class CookieConsentAdmin extends ModelAdmin {
 	private static $dealersGroupID = 77;
 	
 	private static $managed_models = [
-		'CookieDescription'
+		'SiteConfig',
+		'CookieDescription',
+		'CookieService'
 	];
 	private static $url_segment = 'cookie-consent';
 

@@ -3,9 +3,9 @@
 class CookieDescription extends DataObject
 {
 
-    private static $singular_name = 'Cookie description';
+    private static $singular_name = 'Cookie';
 
-    private static $plural_name = 'Cookie descriptions';
+    private static $plural_name = 'Cookies';
 
     private static $db = [
         'Title' => 'Varchar(255)',
@@ -13,6 +13,10 @@ class CookieDescription extends DataObject
         'Description' => 'Varchar(255)',
         'Expiration' => 'Varchar(255)',
         'Locale' => 'Varchar(5)'
+    ];
+
+    private static $has_one = [
+        'CookieService' => 'CookieService'
     ];
 
     private static $belongs_many_many = [

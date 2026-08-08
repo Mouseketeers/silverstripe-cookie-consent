@@ -18,7 +18,8 @@ class CookieSection extends DataObject
     ];    
 
     private static $many_many = [
-        'CookieDescriptions' => 'CookieDescription'
+        'CookieDescriptions' => 'CookieDescription',
+        'CookieServices' => 'CookieService'
     ];
 
     private static $summary_fields = [
