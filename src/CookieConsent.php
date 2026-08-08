@@ -3,6 +3,7 @@
 class CookieConsent
 {
 
+    private static $disable_cookie_consent = false;
     private static $disable_default_js = false;
     private static $disable_default_css = false;
     private static $enable_google_consent_mode = false;
@@ -14,14 +15,10 @@ class CookieConsent
     ];
     private static $cookie_info_cache = null;
 
-    public static function getSubsitesEnabled()
-    {
-        return class_exists('Subsite');
-    }
 
     public static function getCurrentSubsite()
     {
-        if (self::getSubsitesEnabled()) {
+        if (self::isSubsitesEnabled()) {
             return Subsite::currentSubsite();
         }
         return null;
@@ -29,11 +26,16 @@ class CookieConsent
 
     public static function getCurrentSubsiteId()
     {
-        if (self::getSubsitesEnabled()) {
+        if (self::isSubsitesEnabled()) {
             return (int) Subsite::currentSubsiteID();
         }
         return 0;
     }
+
+    public static function isCookieConsentDisabled()
+    {
+        return Config::inst()->get('CookieConsent', 'disable_cookie_consent');
+    }    
 
     public static function isDefaultJsDisabled()
     {
@@ -49,6 +51,11 @@ class CookieConsent
     {
         return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
     }
+
+    public static function isSubsitesEnabled()
+    {
+        return class_exists('Subsite');
+    }    
 
     public static function getCategoriesConfig()
     {

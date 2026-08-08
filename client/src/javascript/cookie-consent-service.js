@@ -52,12 +52,12 @@ export const cookieConsentService = {
         }
 
         window.gtag('consent', 'update', {
-            analytics_storage: CookieConsent.acceptedCategory('analytics') ? 'granted' : 'denied',
-            ad_storage: CookieConsent.acceptedCategory('advertisement') ? 'granted' : 'denied',
-            ad_user_data: CookieConsent.acceptedCategory('advertisement') ? 'granted' : 'denied',
-            ad_personalization: CookieConsent.acceptedCategory('advertisement') ? 'granted' : 'denied',
             functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
-            personalization_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
+            personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
+            analytics_storage: CookieConsent.acceptedCategory('analytics') ? 'granted' : 'denied',
+            ad_storage: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
+            ad_user_data: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
+            ad_personalization: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
             security_storage: 'granted'
         });
     },

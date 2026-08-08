@@ -45,7 +45,7 @@ async function initCookieConsent() {
 
     const translations = serverSideConfig?.translations || {};
     const categories = serverSideConfig?.categories || {
-        necessary: {
+        functional: {
             readOnly: true
         }
     };

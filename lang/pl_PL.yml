@@ -13,9 +13,8 @@ pl_PL:
     CookieTableDescription: 'Opis'
     CookieTableExpiration: 'Czas wygaśnięcia'
     Category:
-      necessary: 'Niezbedne'
+      functional: 'Niezbędne'
       analytics: 'Analityczne'
-      advertisement: 'Reklamowe'
+      marketing: 'Marketingowe'
       functionality: 'Funkcjonalne'
-      preferences: 'Preferencje'
-      statistics: 'Statystyczne'
+      personalization: 'Preferencje'

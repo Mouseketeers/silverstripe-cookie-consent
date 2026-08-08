@@ -10,9 +10,9 @@ CookieConsent:
     necessary:
       enabled: true
       readOnly: true
+    personalization:
+      enabled: false
     analytics:
       enabled: false
-    advertisement:
-      enabled: false
-    functionality:
+    marketing:
       enabled: false
