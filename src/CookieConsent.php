@@ -8,6 +8,7 @@ class CookieConsent
     private static $disable_default_css = false;
     private static $enable_google_consent_mode = false;
     private static $enable_consent_logging = false;
+    private static $cookie_registry_path = 'cookie-consent/open-cookie-database.json';
     private static $categories = [
         'functional' => [
             'readOnly' => true
@@ -85,6 +86,26 @@ class CookieConsent
     public static function isConsentRegistrationEnabled()
     {
         return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
+    }
+
+    public static function getCookieRegistryPath()
+    {
+        $path = Config::inst()->get('CookieConsent', 'cookie_registry_path');
+        if (!is_string($path) || trim($path) === '') {
+            $path = self::$cookie_registry_path;
+        }
+
+        return $path;
+    }
+
+    public static function resolveCookieRegistryPath()
+    {
+        $path = self::getCookieRegistryPath();
+        if (!is_string($path) || trim($path) === '') {
+            return null;
+        }
+
+        return BASE_PATH . '/' . ltrim($path, '/');
     }
 
     public static function getCookie()

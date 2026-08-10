@@ -42,8 +42,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
     protected function getAvailableServiceOptions()
     {
-        $jsonPath = BASE_PATH . '/cookie-consent/open-cookie-database.json';
-        if (!file_exists($jsonPath)) {
+        $jsonPath = CookieConsent::resolveCookieRegistryPath();
+        if ($jsonPath === null || !file_exists($jsonPath)) {
             return [];
         }
 

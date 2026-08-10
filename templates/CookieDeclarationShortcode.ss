@@ -20,7 +20,7 @@
                 <thead class="cookie-consent__table-head">
                     <tr>
                         <th><%t CookieConsent.Name 'Name' %></th>
-                        <th><%t CookieConsent.Vendor  'Service' %></th>
+                        <th><%t CookieConsent.Provider  'Provider' %></th>
                         <th><%t CookieConsent.Description 'Description' %></th>
                         <th><%t CookieConsent.Expiration 'Expiry' %></th>
                     </tr>

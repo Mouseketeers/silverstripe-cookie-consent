@@ -14,6 +14,8 @@ class CookieService extends DataObject
     private static $has_many = [
         'CookieDescriptions' => 'CookieDescription'
     ];
+
+    private static $default_sort = 'Title ASC';
     
     public function getCMSFields()
     {
@@ -132,8 +134,8 @@ class CookieService extends DataObject
 
     public static function importFromJSON(array $selectedServices)
     {
-        $jsonPath = BASE_PATH . '/cookie-consent/open-cookie-database.json';
-        if (!file_exists($jsonPath)) {
+        $jsonPath = CookieConsent::resolveCookieRegistryPath();
+        if ($jsonPath === null || !file_exists($jsonPath)) {
             return [];
         }
 
@@ -215,8 +217,8 @@ class CookieService extends DataObject
 
     protected function importCookieDescriptionsFromJSON()
     {
-        $jsonPath = BASE_PATH . '/cookie-consent/open-cookie-database.json';
-        if (!file_exists($jsonPath)) {
+        $jsonPath = CookieConsent::resolveCookieRegistryPath();
+        if ($jsonPath === null || !file_exists($jsonPath)) {
             return;
         }
 
