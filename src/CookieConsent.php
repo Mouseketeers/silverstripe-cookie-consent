@@ -57,16 +57,16 @@ class CookieConsent
         return class_exists('Subsite');
     }    
 
-    public static function getCategoriesConfig()
+    public static function getCategoryLabelsConfig()
     {
         $categories = Config::inst()->get('CookieConsent', 'categories');
         return is_array($categories) ? $categories : [];
     }
 
-    public static function getCategoryOptionMap()
+    public static function getCategoryTranslationsMap()
     {
         $options = [];
-        $categories = self::getCategoriesConfig();
+        $categories = self::getCategoryLabelsConfig();
 
         foreach ($categories as $categoryId => $categoryConfig) {
             if (!is_string($categoryId) || $categoryId === '') {
@@ -74,8 +74,9 @@ class CookieConsent
             }
 
             $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
-            $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
-            $options[$categoryId] = _t($translationKey, $defaultLabel);
+            // $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
+            // $options[$categoryId] = _t($translationKey, $defaultLabel);
+            $options[$categoryId] = _t($translationKey);
         }
 
         return $options;
@@ -132,14 +133,17 @@ class CookieConsent
         return self::getConsentCookieValue('consentId');
     }
 
-    public static function getCategories()
+    public static function getCategoryLabels()
     {
         $categories = self::getConsentCookieValue('categories');
 
         if (is_array($categories)) {
-            return implode(', ', $categories);
+            $translationsMap = self::getCategoryTranslationsMap();
+            $translated = array_map(function ($key) use ($translationsMap) {
+                return isset($translationsMap[$key]) ? $translationsMap[$key] : $key;
+            }, $categories);
+            return implode(', ', $translated);
         }
-
         return $categories;
     }
 }

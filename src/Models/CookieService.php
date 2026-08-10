@@ -3,9 +3,9 @@
 class CookieService extends DataObject
 {
 
-    private static $singular_name = 'Cookie Service';
+    private static $singular_name = 'Service';
 
-    private static $plural_name = 'Cookie Services';
+    private static $plural_name = 'Services';
 
     private static $db = [
         'Title' => 'Varchar(255)'
@@ -14,37 +14,39 @@ class CookieService extends DataObject
     private static $has_many = [
         'CookieDescriptions' => 'CookieDescription'
     ];
-
     
+    public function getCMSFields()
+    {
+        $fields = parent::getCMSFields();
 
+        $fields->removeByName('CookieDescriptions');
+
+        $cookieDescriptionsGrid = GridField::create(
+            'CookieDescriptions',
+            'Cookie Descriptions',
+            $this->CookieDescriptions(),
+            GridFieldConfig_RecordEditor::create()
+        );
+
+        $fields->addFieldsToTab('Root.CookieDescriptions', [
+            $cookieDescriptionsGrid
+        ]);
+
+        return $fields;
+    }
+
+
+    // public function populateDefaults()
     // {
-    //     $fields = parent::getCMSFields();
-
-    //     $fields->removeByName('CookieSections');
-
-    //     $fields->addFieldsToTab('Root.Main', [
-    //         TextField::create('Title', $this->fieldLabel('Title')),
-    //         TextField::create('Provider', $this->fieldLabel('Provider')),
-    //         TextAreaField::create('Description', $this->fieldLabel('Description')),
-    //         TextField::create('Expiration', $this->fieldLabel('Expiration')),
-    //         DropdownField::create('Locale', $this->fieldLabel('Locale'), i18n::get_common_locales())
-    //             ->setEmptyString('Select...')
-    //     ]);
-
-    //     return $fields;
+    //     parent::populateDefaults();
+    //     // $this->syncCookieServicesFromDescriptions();
     // }
 
-    public function populateDefaults()
-    {
-        parent::populateDefaults();
-        // $this->syncCookieServicesFromDescriptions();
-    }
-
-    public function requireDefaultRecords()
-    {
-        parent::requireDefaultRecords();
-        $this->syncCookieServicesFromDescriptions();
-    }
+    // public function requireDefaultRecords()
+    // {
+    //     parent::requireDefaultRecords();
+    //     $this->syncCookieServicesFromDescriptions();
+    // }
 
     protected function syncCookieServicesFromDescriptions()
     {
@@ -258,6 +260,7 @@ class CookieService extends DataObject
             $description->Expiration = isset($cookieData['retentionPeriod']) ? $cookieData['retentionPeriod'] : '';
             $description->PrivacyPolicyURL = isset($cookieData['privacyLink']) ? $cookieData['privacyLink'] : '';
             $description->Wildcard = (bool)(int)(isset($cookieData['wildcardMatch']) ? $cookieData['wildcardMatch'] : 0);
+            $description->CookieRegistryID = isset($cookieData['id']) ? $cookieData['id'] : '';
             $description->write();
         }
     }

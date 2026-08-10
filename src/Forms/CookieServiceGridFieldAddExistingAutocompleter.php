@@ -40,18 +40,14 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
             }
 
             $service = CookieService::get()->filter('Title', $value)->first();
-            if (!$service) {
-                $service = CookieService::create();
-                $service->Title = $value;
-                $service->write();
+            if ($service) {
+                $existingRelationIds = $gridField->getList()->column('ID');
+                if (in_array($service->ID, $existingRelationIds, true)) {
+                    continue;
+                }
             }
 
-            $existingRelationIds = $gridField->getList()->column('ID');
-            if (in_array($service->ID, $existingRelationIds, true)) {
-                continue;
-            }
-
-            $json[$service->ID] = $service->Title;
+            $json[$value] = $value;
         }
 
         return Convert::array2json($json);
@@ -64,12 +60,32 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
             return $dataList;
         }
 
-        $dataClass = $gridField->getModelClass();
-        $object = DataObject::get_by_id($dataClass, $objectID);
-        if ($object && $object instanceof CookieService) {
-            CookieService::importFromJSON(array($object->Title));
+        $object = null;
+        if (is_numeric($objectID)) {
+            $dataClass = $gridField->getModelClass();
+            $object = DataObject::get_by_id($dataClass, (int) $objectID);
+        } else {
+            $object = CookieService::get()->filter('Title', $objectID)->first();
+            if (!$object) {
+                $object = CookieService::create();
+                $object->Title = $objectID;
+                $object->write();
+            }
         }
 
-        return parent::getManipulatedData($gridField, $dataList);
+        if ($object && $object instanceof CookieService) {
+            CookieService::importFromJSON(array($object->Title));
+
+            $existingRelationIds = array();
+            foreach ($dataList as $existingObject) {
+                $existingRelationIds[] = (int) $existingObject->ID;
+            }
+
+            if (!in_array((int) $object->ID, $existingRelationIds, true)) {
+                $dataList->add($object);
+            }
+        }
+
+        return $dataList;
     }
 }

@@ -9,7 +9,7 @@ en:
     ButtonsSavePreferences: 'Save preferences'
     PreferencesCloseIconLabel: 'Close'
     CookieTableName: 'Name'
-    CookieTableVendor : 'Vendor'
+    CookieTableProvider: 'Provider'
     CookieTableDescription: 'Description'
     CookieTableExpiration: 'Expiration'
     Category:

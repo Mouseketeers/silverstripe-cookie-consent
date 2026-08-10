@@ -9,15 +9,16 @@ class CookieDescription extends DataObject
 
     private static $db = [
         'Title' => 'Varchar(255)',
-        'Vendor' => 'Varchar(255)',
-        'Service' => 'Varchar(255)',
         'Category' => 'Varchar(100)',
+        'Service' => 'Varchar(255)',
+        'Vendor' => 'Varchar(255)',
         'Description' => 'Text',
         'Domain' => 'Varchar(255)',
         'Expiration' => 'Varchar(255)',
         'PrivacyPolicyURL' => 'Varchar(255)',
         'Wildcard' => 'Boolean',
-        'Locale' => 'Varchar(5)'
+        'Locale' => 'Varchar(5)',
+        'CookieRegistryID' => 'Varchar(255)'
     ];
 
     private static $has_one = [
@@ -56,26 +57,26 @@ class CookieDescription extends DataObject
         return $this->Locale;
     }
 
-    public function populateDefaults()
-    {
+    // public function populateDefaults()
+    // {
       
-    parent::populateDefaults();
-        $subsite = CookieConsent::getCurrentSubsite(); 
-        if ($subsite) {
-            $this->Locale = $subsite->Language;
-        }
-        else {
-            $this->Locale = i18n::get_locale();
-        }
-    }
+    // parent::populateDefaults();
+    //     $subsite = CookieConsent::getCurrentSubsite(); 
+    //     if ($subsite) {
+    //         $this->Locale = $subsite->Language;
+    //     }
+    //     else {
+    //         $this->Locale = i18n::get_locale();
+    //     }
+    // }
 
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
 
-        $fields->removeByName('CookieSections');
+        $fields->removeByName(['CookieRegistryID', 'CookieServiceID']);
 
-        $categoryOptions = CookieConsent::getCategoryOptionMap();
+        $categoryOptions = CookieConsent::getCategoryTranslationsMap();
         if ($this->Category && !isset($categoryOptions[$this->Category])) {
             $categoryOptions[$this->Category] = $this->Category;
         }
@@ -93,6 +94,11 @@ class CookieDescription extends DataObject
         ]);
 
         return $fields;
+    }
+
+    public function getCMSValidator()
+    {
+        return RequiredFields::create(['Category']);
     }
 
     public function onAfterWrite()

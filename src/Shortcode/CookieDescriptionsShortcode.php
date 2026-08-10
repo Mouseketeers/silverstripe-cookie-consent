@@ -12,7 +12,7 @@ class CookieDeclarationShortcode
                 return '';
             }
 
-            foreach (CookieConsent::getCategoriesConfig() as $categoryId => $categoryConfig) {
+            foreach (CookieConsent::getCategoryLabelsConfig() as $categoryId => $categoryConfig) {
                 $normalizedCategory = strtolower(trim((string) $categoryId));
                 if ($normalizedCategory === '') {
                     continue;
@@ -43,7 +43,7 @@ class CookieDeclarationShortcode
             $data = ArrayData::create([
                 'ConsentID' => CookieConsent::getConsentId(),
                 'ConsentDate' => CookieConsent::getLastConsentTimestamp(),
-                'AcceptedCategories' => CookieConsent::getCategories(),
+                'AcceptedCategories' => CookieConsent::getCategoryLabels(),
                 'Categories' => $categories
             ]);
 

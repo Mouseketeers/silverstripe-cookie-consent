@@ -68,7 +68,7 @@ class CookieConsentConfigBuilder
 
     protected function buildCategories($siteConfig)
     {
-        $configCategories = CookieConsent::getCategoriesConfig();
+        $configCategories = CookieConsent::getCategoryLabelsConfig();
         if (!is_array($configCategories)) {
             return [];
         }
@@ -79,12 +79,12 @@ class CookieConsentConfigBuilder
     protected function buildCategorySections($siteConfig)
     {
         $sections = [];
-        $configCategories = CookieConsent::getCategoriesConfig();
+        $configCategories = CookieConsent::getCategoryLabelsConfig();
         $cookieDescriptions = $this->buildCookieDescriptions($siteConfig);
 
         $cookieTableHeaders = [
             'name' => _t('CookieConsent.CookieTableName', 'Name'),
-            'domain' => _t('CookieConsent.CookieTableVendor ', 'Vendor'),
+            'provider' => _t('CookieConsent.CookieTableProvider', 'Provider'),
             'description' => _t('CookieConsent.CookieTableDescription', 'Description'),
             'expiration' => _t('CookieConsent.CookieTableExpiration', 'Expiration')
         ];
@@ -149,7 +149,7 @@ class CookieConsentConfigBuilder
         $services = $siteConfig->CookieServices();
         $validCategories = [];
 
-        foreach (CookieConsent::getCategoriesConfig() as $categoryId => $categoryConfig) {
+        foreach (CookieConsent::getCategoryLabelsConfig() as $categoryId => $categoryConfig) {
             $validCategories[$this->normalizeCategoryKey($categoryId)] = true;
         }
 
@@ -168,7 +168,7 @@ class CookieConsentConfigBuilder
 
                     $cookieDescriptions[$targetCategory][] = [
                         'name' => $cookie->Title,
-                        'domain' => $cookie->Vendor,
+                        'provider' => $cookie->Service,
                         'description' => $cookie->Description,
                         'expiration' => $cookie->Expiration
                     ];

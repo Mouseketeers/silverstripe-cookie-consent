@@ -53,7 +53,7 @@ class CookieSection extends DataObject
 
     public function getUnusedConsentCategoriesMap()
     {
-        $allCategories = CookieConsent::getCategoryOptionMap();
+        $allCategories = CookieConsent::getCategoryTranslationsMap();
         if (empty($allCategories)) {
             return [];
         }
