@@ -8,23 +8,14 @@ class CookieService extends DataObject
     private static $plural_name = 'Cookie Services';
 
     private static $db = [
-        'Title' => 'Varchar(255)',
-        'Description' => 'Text'
+        'Title' => 'Varchar(255)'
     ];
 
     private static $has_many = [
         'CookieDescriptions' => 'CookieDescription'
     ];
 
-    private static $belongs_many = [
-        'CookieSections' => 'CookieSection'
-    ];
-
     
-
-    // private static $belongs_many_many = [
-    //     'CookieSections' => 'CookieSection'
-    // ];
 
     // {
     //     $fields = parent::getCMSFields();
@@ -104,10 +95,171 @@ class CookieService extends DataObject
         }
     }
 
+    public function getCookieDescriptionsForCategory($category)
+    {
+        if (!$this->ID) {
+            return new ArrayList();
+        }
+
+        $normalizedCategory = strtolower(trim((string) $category));
+        if ($normalizedCategory === '') {
+            return new ArrayList();
+        }
+
+        return CookieDescription::get()
+            ->filter('CookieServiceID', $this->ID)
+            ->filter('Category', $normalizedCategory);
+    }
+
+    protected static function resolveJsonServiceData(array $data, $serviceName)
+    {
+        $serviceName = trim((string) $serviceName);
+        if ($serviceName === '') {
+            return null;
+        }
+
+        $normalizedServiceName = strtolower($serviceName);
+        foreach ($data as $jsonServiceName => $cookieEntries) {
+            if (strtolower(trim((string) $jsonServiceName)) === $normalizedServiceName) {
+                return $cookieEntries;
+            }
+        }
+
+        return null;
+    }
+
+    public static function importFromJSON(array $selectedServices)
+    {
+        $jsonPath = BASE_PATH . '/cookie-consent/open-cookie-database.json';
+        if (!file_exists($jsonPath)) {
+            return [];
+        }
+
+        $raw = file_get_contents($jsonPath);
+        if ($raw === false) {
+            return [];
+        }
+
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            return [];
+        }
+
+        $importedServices = [];
+
+        foreach ($selectedServices as $serviceName) {
+            $serviceName = trim((string) $serviceName);
+            if ($serviceName === '') {
+                continue;
+            }
+
+            $serviceCookies = self::resolveJsonServiceData($data, $serviceName);
+            if ($serviceCookies === null) {
+                continue;
+            }
+
+            $service = CookieService::get()->filter('Title', $serviceName)->first();
+            if (!$service) {
+                $service = CookieService::create();
+                $service->Title = $serviceName;
+                $service->write();
+            }
+
+            foreach ($serviceCookies as $cookieData) {
+                $cookieName = isset($cookieData['cookie']) ? trim($cookieData['cookie']) : '';
+                if ($cookieName === '') {
+                    continue;
+                }
+
+                $description = CookieDescription::get()
+                    ->filter('Title', $cookieName)
+                    ->filter('CookieServiceID', $service->ID)
+                    ->first();
+
+                if (!$description) {
+                    $description = CookieDescription::create();
+                }
+
+                $description->Title = $cookieName;
+                $description->CookieServiceID = $service->ID;
+                $description->Service = $serviceName;
+                $description->Category = strtolower(isset($cookieData['category']) ? $cookieData['category'] : '');
+                $description->Vendor = isset($cookieData['dataController']) ? $cookieData['dataController'] : '';
+                $description->Domain = isset($cookieData['domain']) ? $cookieData['domain'] : '';
+                $description->Description = isset($cookieData['description']) ? $cookieData['description'] : '';
+                $description->Expiration = isset($cookieData['retentionPeriod']) ? $cookieData['retentionPeriod'] : '';
+                $description->PrivacyPolicyURL = isset($cookieData['privacyLink']) ? $cookieData['privacyLink'] : '';
+                $description->Wildcard = (bool)(int)(isset($cookieData['wildcardMatch']) ? $cookieData['wildcardMatch'] : 0);
+                $description->write();
+            }
+
+            $importedServices[] = $service;
+        }
+
+        return $importedServices;
+    }
+
     public function onAfterWrite()
     {
         parent::onAfterWrite();
         CookieConsentConfigCache::clear();
+
+        if (!$this->ID || !$this->Title) {
+            return;
+        }
+
+        $this->importCookieDescriptionsFromJSON();
+    }
+
+    protected function importCookieDescriptionsFromJSON()
+    {
+        $jsonPath = BASE_PATH . '/cookie-consent/open-cookie-database.json';
+        if (!file_exists($jsonPath)) {
+            return;
+        }
+
+        $raw = file_get_contents($jsonPath);
+        if ($raw === false) {
+            return;
+        }
+
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            return;
+        }
+
+        $serviceCookies = self::resolveJsonServiceData($data, $this->Title);
+        if ($serviceCookies === null) {
+            return;
+        }
+
+        foreach ($serviceCookies as $cookieData) {
+            $cookieName = isset($cookieData['cookie']) ? trim($cookieData['cookie']) : '';
+            if ($cookieName === '') {
+                continue;
+            }
+
+            $description = CookieDescription::get()
+                ->filter('Title', $cookieName)
+                ->filter('CookieServiceID', $this->ID)
+                ->first();
+
+            if (!$description) {
+                $description = CookieDescription::create();
+            }
+
+            $description->Title = $cookieName;
+            $description->CookieServiceID = $this->ID;
+            $description->Service = $this->Title;
+            $description->Category = strtolower(isset($cookieData['category']) ? $cookieData['category'] : '');
+            $description->Vendor = isset($cookieData['dataController']) ? $cookieData['dataController'] : '';
+            $description->Domain = isset($cookieData['domain']) ? $cookieData['domain'] : '';
+            $description->Description = isset($cookieData['description']) ? $cookieData['description'] : '';
+            $description->Expiration = isset($cookieData['retentionPeriod']) ? $cookieData['retentionPeriod'] : '';
+            $description->PrivacyPolicyURL = isset($cookieData['privacyLink']) ? $cookieData['privacyLink'] : '';
+            $description->Wildcard = (bool)(int)(isset($cookieData['wildcardMatch']) ? $cookieData['wildcardMatch'] : 0);
+            $description->write();
+        }
     }
 
     public function onAfterDelete()

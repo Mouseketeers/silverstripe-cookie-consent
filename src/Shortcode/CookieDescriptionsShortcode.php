@@ -12,8 +12,8 @@ class CookieDeclarationShortcode
                 return '';
             }
 
-            foreach ($siteConfig->CookieSections() as $category) {
-                $normalizedCategory = strtolower(trim((string) $category->ConsentCategory));
+            foreach (CookieConsent::getCategoriesConfig() as $categoryId => $categoryConfig) {
+                $normalizedCategory = strtolower(trim((string) $categoryId));
                 if ($normalizedCategory === '') {
                     continue;
                 }
@@ -25,16 +25,14 @@ class CookieDeclarationShortcode
                     }
                 }
 
-                if (!$cookieDescriptions->exists() && !$category->CookieDescriptions()->exists()) {
+                if (!$cookieDescriptions->exists()) {
                     continue;
                 }
 
                 $categories->push(ArrayData::create([
-                    'Title' => $category->Title,
-                    'Content' => $category->Description,
-                    'CookieDescriptions' => $cookieDescriptions->exists()
-                        ? $cookieDescriptions
-                        : $category->CookieDescriptions()
+                    'Title' => self::getCategoryTitle($categoryId),
+                    'Content' => self::getCategoryDescription($categoryId),
+                    'CookieDescriptions' => $cookieDescriptions
                 ]));
             }
 
@@ -51,5 +49,20 @@ class CookieDeclarationShortcode
 
             return $data->renderWith('CookieDeclarationShortcode')->getValue();
         });
+    }
+
+    protected static function getCategoryTitle($categoryId)
+    {
+        $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
+        $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
+
+        return _t($translationKey, $defaultLabel);
+    }
+
+    protected static function getCategoryDescription($categoryId)
+    {
+        $translationKey = sprintf('CookieConsent.Category.%s.Description', $categoryId);
+
+        return _t($translationKey, '');
     }
 }

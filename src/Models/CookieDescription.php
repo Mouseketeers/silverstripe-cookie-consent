@@ -24,10 +24,6 @@ class CookieDescription extends DataObject
         'CookieService' => 'CookieService'
     ];
 
-    private static $belongs_many_many = [
-        'CookieSections' => 'CookieSection'
-    ];
-
     private static $summary_fields = [
         'Title',
         'Vendor',
@@ -79,13 +75,21 @@ class CookieDescription extends DataObject
 
         $fields->removeByName('CookieSections');
 
+        $categoryOptions = CookieConsent::getCategoryOptionMap();
+        if ($this->Category && !isset($categoryOptions[$this->Category])) {
+            $categoryOptions[$this->Category] = $this->Category;
+        }
+
         $fields->addFieldsToTab('Root.Main', [
             TextField::create('Title', $this->fieldLabel('Title')),
             TextField::create('Vendor', $this->fieldLabel('Vendor')),
             TextAreaField::create('Description', $this->fieldLabel('Description')),
+            DropdownField::create('Category', $this->fieldLabel('Category'), $categoryOptions)
+                ->setEmptyString(_t('CookieConsent.SelectCategory', 'Select...'))
+                ->setAttribute('required', 'required'),
             TextField::create('Expiration', $this->fieldLabel('Expiration')),
             DropdownField::create('Locale', $this->fieldLabel('Locale'), i18n::get_common_locales())
-                ->setEmptyString('Select...')
+                ->setEmptyString(_t('CookieConsent.SelectLanguage', 'Select...'))
         ]);
 
         return $fields;

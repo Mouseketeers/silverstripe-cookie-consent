@@ -68,52 +68,19 @@ class CookieConsentConfigBuilder
 
     protected function buildCategories($siteConfig)
     {
-        /*
-         * Return configured categories from config.yml, but only include
-         * categories that are actually added as sections in CMS.
-         * This avoids collecting consent for categories not used on a site.
-         */
-
         $configCategories = CookieConsent::getCategoriesConfig();
         if (!is_array($configCategories)) {
-            $configCategories = [];
+            return [];
         }
 
-        $includedCategories = [];
-
-        $sections = $this->buildCategorySections($siteConfig);
-        foreach ($sections as $section) {
-            $linkedCategory = isset($section['linkedCategory']) ? $section['linkedCategory'] : null;
-            $normalizedLinkedCategory = $this->normalizeCategoryKey($linkedCategory);
-
-            if (empty($normalizedLinkedCategory)) {
-                continue;
-            }
-
-            $includedCategories[$normalizedLinkedCategory] = true;
-        }
-
-        $categories = [];
-
-        foreach ($configCategories as $categoryId => $categoryConfig) {
-            $normalizedCategoryId = $this->normalizeCategoryKey($categoryId);
-            if (!isset($includedCategories[$normalizedCategoryId])) {
-                continue;
-            }
-
-            $categories[$categoryId] = $categoryConfig;
-        }
-
-        return $categories;
+        return $configCategories;
     }
 
     protected function buildCategorySections($siteConfig)
     {
         $sections = [];
-        $cookieCategories = $siteConfig->CookieSections();
-        $categoryTitles = $this->buildCategoryTitles($cookieCategories);
-        $categoryDescriptions = $this->buildCategoryDescriptions($cookieCategories);
-        $cookieDescriptions = $this->buildCookieDescriptions($cookieCategories, $siteConfig);
+        $configCategories = CookieConsent::getCategoriesConfig();
+        $cookieDescriptions = $this->buildCookieDescriptions($siteConfig);
 
         $cookieTableHeaders = [
             'name' => _t('CookieConsent.CookieTableName', 'Name'),
@@ -122,15 +89,19 @@ class CookieConsentConfigBuilder
             'expiration' => _t('CookieConsent.CookieTableExpiration', 'Expiration')
         ];
 
-        foreach ($cookieCategories as $cookieCategory) {
-            $normalizedCategoryName = $this->normalizeCategoryKey($cookieCategory->ConsentCategory);
+        foreach ($configCategories as $categoryId => $categoryConfig) {
+            $normalizedCategoryName = $this->normalizeCategoryKey($categoryId);
+            if (empty($normalizedCategoryName)) {
+                continue;
+            }
+
             $cookies = isset($cookieDescriptions[$normalizedCategoryName])
                 ? $cookieDescriptions[$normalizedCategoryName]
                 : [];
-            $title = isset($categoryTitles[$normalizedCategoryName]) ? $categoryTitles[$normalizedCategoryName] : '';
-            $description = isset($categoryDescriptions[$normalizedCategoryName]) ? $categoryDescriptions[$normalizedCategoryName] : '';
+            $title = $this->getCategoryTitle($categoryId);
+            $description = $this->getCategoryDescription($categoryId);
 
-            if (empty($title) || (empty($description) && empty($cookies))) {
+            if (empty($cookies)) {
                 continue;
             }
 
@@ -148,16 +119,19 @@ class CookieConsentConfigBuilder
         return $sections;
     }
 
-    protected function buildCategoryTitles($cookieCategories)
+    protected function getCategoryTitle($categoryId)
     {
-        $titles = [];
+        $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
+        $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
 
-        foreach ($cookieCategories as $group) {
-            $ConsentCategory = $this->normalizeCategoryKey($group->ConsentCategory);
-            $titles[$ConsentCategory] = $group->Title;
-        }
+        return _t($translationKey, $defaultLabel);
+    }
 
-        return $titles;
+    protected function getCategoryDescription($categoryId)
+    {
+        $translationKey = sprintf('CookieConsent.Category.%s.Description', $categoryId);
+
+        return _t($translationKey, '');
     }
 
     protected function normalizeCategoryKey($category)
@@ -169,14 +143,14 @@ class CookieConsentConfigBuilder
         return strtolower(trim($category));
     }
 
-    protected function buildCookieDescriptions($cookieCategories, $siteConfig)
+    protected function buildCookieDescriptions($siteConfig)
     {
         $cookieDescriptions = [];
         $services = $siteConfig->CookieServices();
         $validCategories = [];
 
-        foreach ($cookieCategories as $cookieCategory) {
-            $validCategories[$this->normalizeCategoryKey($cookieCategory->ConsentCategory)] = true;
+        foreach (CookieConsent::getCategoriesConfig() as $categoryId => $categoryConfig) {
+            $validCategories[$this->normalizeCategoryKey($categoryId)] = true;
         }
 
         foreach ($services as $service) {
@@ -203,19 +177,5 @@ class CookieConsentConfigBuilder
         }
 
         return $cookieDescriptions;
-    }
-
-    protected function buildCategoryDescriptions($cookieCategories)
-    {
-        $descriptions = [];
-
-        foreach ($cookieCategories as $group) {
-            $ConsentCategory = $this->normalizeCategoryKey($group->ConsentCategory);
-            $descriptions[$ConsentCategory] = empty($descriptions[$ConsentCategory])
-                ? $group->Description
-                : $descriptions[$ConsentCategory] . "\n\n" . $group->Description;
-        }
-
-        return $descriptions;
     }
 }

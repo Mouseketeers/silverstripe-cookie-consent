@@ -13,7 +13,7 @@ en:
     CookieTableDescription: 'Description'
     CookieTableExpiration: 'Expiration'
     Category:
-      functional: 'Functional'
+      functional: 'Necessary'
       analytics: 'Analytics'
       marketing: 'Marketing'
       personalization: 'Personalization'
