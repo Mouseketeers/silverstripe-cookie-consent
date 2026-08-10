@@ -19,27 +19,37 @@ async function initCookieConsent() {
         }
     }
 
-    function updateCookieConsentDeclaration() {
-        // console.log(cookieConsentApi.getUserPreferences());
-        const cookie = cookieConsentApi.getCookie();
-        // console.log(cookie);
 
+
+    function updateCookieConsentDeclaration() {
+
+        const cookie = cookieConsentApi.getCookie();
         const consentIdElement = document.getElementById('cookie-consent-id');
         const consentTimestampElement = document.getElementById('cookie-consent-timestamp');
         const acceptedCategoriesElement = document.getElementById('cookie-consent-accepted-categories');
 
-        if(consentIdElement) {
+        if (consentIdElement) {
             consentIdElement.textContent = cookie?.consentId || '';
         }
-        if(consentTimestampElement) {
+        if (consentTimestampElement) {
             consentTimestampElement.textContent = cookie?.consentTimestamp || '';
         }
-        if(acceptedCategoriesElement) {
-            acceptedCategoriesElement.textContent = cookie?.categories?.join(', ') || '';
-        }
-    }        
 
-    if(isGoogleConsentModeEnabled) {
+        if (acceptedCategoriesElement) {
+            const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
+            const translations = serverSideConfig?.translations || {};
+            const sections = translations?.[defaultLanguage]?.preferencesModal?.sections || [];
+            const getSectionTitleByCategory = (category) =>
+                sections.find((item) => item.linkedCategory === category)?.title || category;
+            const acceptedCategoryTitles = (cookie?.categories || [])
+                .map((category) => getSectionTitleByCategory(category))
+                .filter(Boolean);
+
+            acceptedCategoriesElement.textContent = acceptedCategoryTitles.join(', ') || '';
+        }
+    }
+
+    if (isGoogleConsentModeEnabled) {
         cookieConsentService.initializeGtagConsent();
     }
 

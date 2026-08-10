@@ -73,10 +73,7 @@ class CookieConsent
             if (!is_string($categoryId) || $categoryId === '') {
                 continue;
             }
-
             $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
-            // $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
-            // $options[$categoryId] = _t($translationKey, $defaultLabel);
             $options[$categoryId] = _t($translationKey);
         }
 
