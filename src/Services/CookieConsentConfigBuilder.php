@@ -84,18 +84,20 @@ class CookieConsentConfigBuilder
         $sections = $this->buildCategorySections($siteConfig);
         foreach ($sections as $section) {
             $linkedCategory = isset($section['linkedCategory']) ? $section['linkedCategory'] : null;
+            $normalizedLinkedCategory = $this->normalizeCategoryKey($linkedCategory);
 
-            if (empty($linkedCategory)) {
+            if (empty($normalizedLinkedCategory)) {
                 continue;
             }
 
-            $includedCategories[$linkedCategory] = true;
+            $includedCategories[$normalizedLinkedCategory] = true;
         }
 
         $categories = [];
 
         foreach ($configCategories as $categoryId => $categoryConfig) {
-            if (!isset($includedCategories[$categoryId])) {
+            $normalizedCategoryId = $this->normalizeCategoryKey($categoryId);
+            if (!isset($includedCategories[$normalizedCategoryId])) {
                 continue;
             }
 
@@ -111,18 +113,22 @@ class CookieConsentConfigBuilder
         $cookieCategories = $siteConfig->CookieSections();
         $categoryTitles = $this->buildCategoryTitles($cookieCategories);
         $categoryDescriptions = $this->buildCategoryDescriptions($cookieCategories);
-        $cookieDescriptions = $this->buildCookieDescriptions($cookieCategories);
+        $cookieDescriptions = $this->buildCookieDescriptions($cookieCategories, $siteConfig);
 
         $cookieTableHeaders = [
             'name' => _t('CookieConsent.CookieTableName', 'Name'),
-            'domain' => _t('CookieConsent.CookieTableProvider', 'Provider'),
+            'domain' => _t('CookieConsent.CookieTableVendor ', 'Vendor'),
             'description' => _t('CookieConsent.CookieTableDescription', 'Description'),
             'expiration' => _t('CookieConsent.CookieTableExpiration', 'Expiration')
         ];
 
-        foreach ($cookieDescriptions as $categoryName => $cookies) {
-            $title = isset($categoryTitles[$categoryName]) ? $categoryTitles[$categoryName] : '';
-            $description = isset($categoryDescriptions[$categoryName]) ? $categoryDescriptions[$categoryName] : '';
+        foreach ($cookieCategories as $cookieCategory) {
+            $normalizedCategoryName = $this->normalizeCategoryKey($cookieCategory->ConsentCategory);
+            $cookies = isset($cookieDescriptions[$normalizedCategoryName])
+                ? $cookieDescriptions[$normalizedCategoryName]
+                : [];
+            $title = isset($categoryTitles[$normalizedCategoryName]) ? $categoryTitles[$normalizedCategoryName] : '';
+            $description = isset($categoryDescriptions[$normalizedCategoryName]) ? $categoryDescriptions[$normalizedCategoryName] : '';
 
             if (empty($title) || (empty($description) && empty($cookies))) {
                 continue;
@@ -131,7 +137,7 @@ class CookieConsentConfigBuilder
             $sections[] = [
                 'title' => $title,
                 'description' => $description,
-                'linkedCategory' => $categoryName,
+                'linkedCategory' => $normalizedCategoryName,
                 'cookieTable' => [
                     'headers' => $cookieTableHeaders,
                     'body' => $cookies
@@ -147,31 +153,52 @@ class CookieConsentConfigBuilder
         $titles = [];
 
         foreach ($cookieCategories as $group) {
-            $ConsentCategory = $group->ConsentCategory;
+            $ConsentCategory = $this->normalizeCategoryKey($group->ConsentCategory);
             $titles[$ConsentCategory] = $group->Title;
         }
 
         return $titles;
     }
 
-    protected function buildCookieDescriptions($cookieCategories)
+    protected function normalizeCategoryKey($category)
+    {
+        if (!is_string($category)) {
+            return null;
+        }
+
+        return strtolower(trim($category));
+    }
+
+    protected function buildCookieDescriptions($cookieCategories, $siteConfig)
     {
         $cookieDescriptions = [];
+        $services = $siteConfig->CookieServices();
+        $validCategories = [];
 
-        foreach ($cookieCategories as $group) {
-            $ConsentCategory = $group->ConsentCategory;
+        foreach ($cookieCategories as $cookieCategory) {
+            $validCategories[$this->normalizeCategoryKey($cookieCategory->ConsentCategory)] = true;
+        }
 
-            if (!isset($cookieDescriptions[$ConsentCategory])) {
-                $cookieDescriptions[$ConsentCategory] = [];
-            }
+        foreach ($services as $service) {
+            foreach ($validCategories as $categoryKey => $isValid) {
+                foreach ($service->getCookieDescriptionsForCategory($categoryKey) as $cookie) {
+                    $targetCategory = $this->normalizeCategoryKey($cookie->Category);
 
-            foreach ($group->CookieDescriptions() as $cookie) {
-                $cookieDescriptions[$ConsentCategory][] = [
-                    'name' => $cookie->Title,
-                    'domain' => $cookie->Provider,
-                    'description' => $cookie->Description,
-                    'expiration' => $cookie->Expiration
-                ];
+                    if (empty($targetCategory) || !isset($validCategories[$targetCategory])) {
+                        continue;
+                    }
+
+                    if (!isset($cookieDescriptions[$targetCategory])) {
+                        $cookieDescriptions[$targetCategory] = [];
+                    }
+
+                    $cookieDescriptions[$targetCategory][] = [
+                        'name' => $cookie->Title,
+                        'domain' => $cookie->Vendor,
+                        'description' => $cookie->Description,
+                        'expiration' => $cookie->Expiration
+                    ];
+                }
             }
         }
 
@@ -183,7 +210,7 @@ class CookieConsentConfigBuilder
         $descriptions = [];
 
         foreach ($cookieCategories as $group) {
-            $ConsentCategory = $group->ConsentCategory;
+            $ConsentCategory = $this->normalizeCategoryKey($group->ConsentCategory);
             $descriptions[$ConsentCategory] = empty($descriptions[$ConsentCategory])
                 ? $group->Description
                 : $descriptions[$ConsentCategory] . "\n\n" . $group->Description;

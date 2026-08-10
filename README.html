@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+	<meta charset="utf-8"/>
+</head>
+<body>
+
+<h1 id="cookieconsentmodule">Cookie Consent Module</h1>
+
+<p>This module ships with a minimal default CookieConsent setup and server-side translations.</p>
+
+<h2 id="whatthemoduleinjects">What the module injects</h2>
+
+<p>The module always injects runtime data into the page:</p>
+
+<ul>
+<li><code>window.gariaCookieConsentConfig</code></li>
+<li><code>window.gariaCookieConsentConfig.language.translations</code></li>
+</ul>
+
+<p>Translations are built on the server from the currently active SilverStripe locale.</p>
+
+<h2 id="mode1:defaultminimalsetup">Mode 1: Default minimal setup</h2>
+
+<p>By default, the module loads its own JS and CSS and runs CookieConsent with a small baseline config.</p>
+
+<p>Baseline includes:</p>
+
+<ul>
+<li>Simple <code>guiOptions</code> for consent and preferences modal</li>
+<li>Basic categories: <code>necessary</code>, <code>analytics</code>, <code>advertisement</code>, <code>functionality</code></li>
+<li><code>language.translations</code> from server payload</li>
+</ul>
+
+<h2 id="mode2:custombootstrapoverrideonlytheinitstep">Mode 2: Custom bootstrap (override only the init step)</h2>
+
+<p>If you want to keep module defaults/translations but control when and how the dialog starts, disable auto-init and call the global handler yourself.</p>
+
+<h3 id="1disableauto-init">1) Disable auto-init</h3>
+
+<p>Add this before the module script runs:</p>
+
+<pre><code class="html">&lt;script&gt;window.gariaCookieConsentAutoInit = false;&lt;/script&gt;
+</code></pre>
+
+<h3 id="2calltheglobalhandlerwithcustomconfig">2) Call the global handler with custom config</h3>
+
+<pre><code class="javascript">document.addEventListener('DOMContentLoaded', () =&gt; {
+  const myCustomConfig = {
+    guiOptions: {
+      consentModal: {
+        position: 'bottom center'
+      }
+    }
+  };
+
+  window.handleCookieConsentDialog(myCustomConfig);
+});
+</code></pre>
+
+<p>The module still injects translations and base configuration. Your config is merged on top.</p>
+
+<h2 id="mode3:bringyourownjs">Mode 3: Bring your own JS</h2>
+
+<p>If you want full control, disable the module JS and initialize CookieConsent yourself.</p>
+
+<h3 id="1disablemodulejs">1) Disable module JS</h3>
+
+<p>Example in your project YAML:</p>
+
+<pre><code class="yml">CookieConsent:
+  disable_default_js: true
+</code></pre>
+
+<p>You can also disable module CSS if you want to provide your own styles:</p>
+
+<pre><code class="yml">CookieConsent:
+  disable_default_css: true
+</code></pre>
+
+<h3 id="2initializecookieconsentinyourownscript">2) Initialize CookieConsent in your own script</h3>
+
+<pre><code class="javascript">import * as CookieConsent from 'vanilla-cookieconsent';
+
+function getDefaultLanguage(translations) {
+  const htmlLang = (document.documentElement.getAttribute('lang') || '').toLowerCase();
+  const languageCode = htmlLang.split(/[-_]/)[0];
+
+  if (translations &amp;&amp; translations[languageCode]) {
+    return languageCode;
+  }
+
+  const available = Object.keys(translations || {});
+  return available.length ? available[0] : 'en';
+}
+
+document.addEventListener('DOMContentLoaded', () =&gt; {
+  const runtime = window.gariaCookieConsentConfig || {};
+  const translations = runtime.language &amp;&amp; runtime.language.translations
+    ? runtime.language.translations
+    : {};
+
+  CookieConsent.run({
+    guiOptions: {
+      consentModal: {
+        layout: 'box',
+        position: 'bottom left'
+      }
+    },
+    categories: {
+      functional: { readOnly: true },
+      analytics: {}
+    },
+    language: {
+      default: getDefaultLanguage(translations),
+      autoDetect: 'browser',
+      translations: translations
+    }
+  });
+});
+</code></pre>
+
+<h2 id="loadorder">Load order</h2>
+
+<p>If you use custom bootstrap or BYO JS mode, make sure your custom script runs after:</p>
+
+<ul>
+<li><code>window.gariaCookieConsentConfig</code> is injected by SilverStripe</li>
+<li>module JS is loaded (for <code>window.handleCookieConsentDialog</code>) or <code>vanilla-cookieconsent</code> is loaded (for BYO JS)</li>
+</ul>
+
+</body>
+</html>
+

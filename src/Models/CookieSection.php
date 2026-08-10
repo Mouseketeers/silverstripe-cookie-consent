@@ -18,8 +18,7 @@ class CookieSection extends DataObject
     ];    
 
     private static $many_many = [
-        'CookieDescriptions' => 'CookieDescription',
-        'CookieServices' => 'CookieService'
+        'CookieDescriptions' => 'CookieDescription'
     ];
 
     private static $summary_fields = [
@@ -97,8 +96,8 @@ class CookieSection extends DataObject
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
     }
-    public function canCreate($member = null) {
-        return !empty($this->getUnusedConsentCategoriesMap());
-    }
+    // public function canCreate($member = null) {
+    //     return !empty($this->getUnusedConsentCategoriesMap());
+    // }
 
 }

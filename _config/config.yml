@@ -7,7 +7,7 @@ CookieConsent:
   enable_google_consent_mode: false
   enable_consent_logging: true
   categories:
-    necessary:
+    functional:
       enabled: true
       readOnly: true
     personalization:

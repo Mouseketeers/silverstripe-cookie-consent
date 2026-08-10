@@ -9,7 +9,7 @@ pl_PL:
     ButtonsSavePreferences: 'Zapisz preferencje'
     PreferencesCloseIconLabel: 'Zamknij'
     CookieTableName: 'Nazwa'
-    CookieTableProvider: 'Dostawca'
+    CookieTableVendor : 'Dostawca'
     CookieTableDescription: 'Opis'
     CookieTableExpiration: 'Czas wygaśnięcia'
     Category:

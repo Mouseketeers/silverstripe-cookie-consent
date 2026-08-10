@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
     categories: {
-      necessary: { readOnly: true },
+      functional: { readOnly: true },
       analytics: {}
     },
     language: {

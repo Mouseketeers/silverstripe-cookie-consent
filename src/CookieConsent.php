@@ -9,7 +9,7 @@ class CookieConsent
     private static $enable_google_consent_mode = false;
     private static $enable_consent_logging = false;
     private static $categories = [
-        'necessary' => [
+        'functional' => [
             'readOnly' => true
         ]
     ];
@@ -60,7 +60,6 @@ class CookieConsent
     public static function getCategoriesConfig()
     {
         $categories = Config::inst()->get('CookieConsent', 'categories');
-
         return is_array($categories) ? $categories : [];
     }
 

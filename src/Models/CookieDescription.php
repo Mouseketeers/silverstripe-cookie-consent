@@ -9,9 +9,14 @@ class CookieDescription extends DataObject
 
     private static $db = [
         'Title' => 'Varchar(255)',
-        'Provider' => 'Varchar(255)',
-        'Description' => 'Varchar(255)',
+        'Vendor' => 'Varchar(255)',
+        'Service' => 'Varchar(255)',
+        'Category' => 'Varchar(100)',
+        'Description' => 'Text',
+        'Domain' => 'Varchar(255)',
         'Expiration' => 'Varchar(255)',
+        'PrivacyPolicyURL' => 'Varchar(255)',
+        'Wildcard' => 'Boolean',
         'Locale' => 'Varchar(5)'
     ];
 
@@ -25,8 +30,9 @@ class CookieDescription extends DataObject
 
     private static $summary_fields = [
         'Title',
-        'Provider',
+        'Vendor',
         'Description',
+        'Category',
         'Expiration',
         'LocaleName' => 'Language'
     ];
@@ -75,7 +81,7 @@ class CookieDescription extends DataObject
 
         $fields->addFieldsToTab('Root.Main', [
             TextField::create('Title', $this->fieldLabel('Title')),
-            TextField::create('Provider', $this->fieldLabel('Provider')),
+            TextField::create('Vendor', $this->fieldLabel('Vendor')),
             TextAreaField::create('Description', $this->fieldLabel('Description')),
             TextField::create('Expiration', $this->fieldLabel('Expiration')),
             DropdownField::create('Locale', $this->fieldLabel('Locale'), i18n::get_common_locales())

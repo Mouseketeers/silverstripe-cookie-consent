@@ -8,18 +8,24 @@ class CookieService extends DataObject
     private static $plural_name = 'Cookie Services';
 
     private static $db = [
-        'Title' => 'Varchar(255)'
+        'Title' => 'Varchar(255)',
+        'Description' => 'Text'
     ];
 
     private static $has_many = [
         'CookieDescriptions' => 'CookieDescription'
     ];
 
-    private static $belongs_many_many = [
+    private static $belongs_many = [
         'CookieSections' => 'CookieSection'
     ];
 
-    // public function getCMSFields()
+    
+
+    // private static $belongs_many_many = [
+    //     'CookieSections' => 'CookieSection'
+    // ];
+
     // {
     //     $fields = parent::getCMSFields();
 
@@ -40,7 +46,7 @@ class CookieService extends DataObject
     public function populateDefaults()
     {
         parent::populateDefaults();
-        $this->syncCookieServicesFromDescriptions();
+        // $this->syncCookieServicesFromDescriptions();
     }
 
     public function requireDefaultRecords()
@@ -56,23 +62,40 @@ class CookieService extends DataObject
             return;
         }
 
-        $providers = [];
+        $services = [];
+        $cookiesByService = [];
         foreach ($cookies as $cookie) {
-            if ($cookie->Provider) {
-                $providers[$cookie->Provider] = $cookie->Provider;
+            if (!$cookie->Service) {
+                continue;
             }
+
+            $services[$cookie->Service] = $cookie->Service;
+            $cookiesByService[$cookie->Service][] = $cookie;
         }
 
-        foreach ($providers as $provider) {
-            $service = CookieService::get()->filter('Title', $provider)->first();
+        $existingServices = CookieService::get()
+            ->filter('Title', array_values($services))
+            ->toArray();
+
+        $servicesByTitle = [];
+        foreach ($existingServices as $service) {
+            $servicesByTitle[$service->Title] = $service;
+        }
+
+        foreach ($services as $serviceName) {
+            $service = isset($servicesByTitle[$serviceName]) ? $servicesByTitle[$serviceName] : null;
             if (!$service) {
                 $service = CookieService::create();
-                $service->Title = $provider;
+                $service->Title = $serviceName;
                 $service->write();
+                $servicesByTitle[$serviceName] = $service;
             }
 
-            $providerCookies = CookieDescription::get()->filter('Provider', $provider);
-            foreach ($providerCookies as $cookie) {
+            if (!isset($cookiesByService[$serviceName])) {
+                continue;
+            }
+
+            foreach ($cookiesByService[$serviceName] as $cookie) {
                 if ((int) $cookie->CookieServiceID !== (int) $service->ID) {
                     $cookie->CookieServiceID = $service->ID;
                     $cookie->write();

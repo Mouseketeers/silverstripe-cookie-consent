@@ -12,11 +12,15 @@ class CookieConsentSiteConfigExtension extends DataExtension
         'CookieSections' => 'CookieSection'
     ];
 
+    private static $many_many = [
+        'CookieServices' => 'CookieService'
+    ];
+
     public function updateCMSFields(FieldList $fields)
     {
         $cookieCategoriesGrid = GridField::create(
             'CookieSections',
-            'Cookie categories',
+            'Cookie Sections',
             $this->owner->CookieSections(),
             GridFieldConfig_RecordEditor::create()
         );
@@ -26,10 +30,24 @@ class CookieConsentSiteConfigExtension extends DataExtension
             ->removeComponentsByType('GridFieldPageCount')
             ->addComponent(new GridFieldOrderableRows('SortOrder'));
 
+
+        $cookieServicesGrid = GridField::create(
+            'CookieServices',
+            'Cookie Services',
+            $this->owner->CookieServices(),
+            GridFieldConfig_RelationEditor::create()
+        );
+
+        // $cookieServicesGrid->getConfig()
+        //     ->removeComponentsByType('GridFieldPaginator')
+        //     ->removeComponentsByType('GridFieldPageCount');
+
+
         $fields->addFieldsToTab('Root.CookieConsent', [
             TextField::create('CookieConsentTitle', $this->owner->fieldLabel('CookieConsentTitle')),
             HtmlEditorField::create('CookieConsentContent', $this->owner->fieldLabel('CookieConsentContent'))->setRows(5),
-            $cookieCategoriesGrid
+            $cookieCategoriesGrid,
+            $cookieServicesGrid
         ]);
     }
 

@@ -20,7 +20,7 @@
                 <thead class="cookie-consent__table-head">
                     <tr>
                         <th><%t CookieConsent.Name 'Name' %></th>
-                        <th><%t CookieConsent.Provider 'Placed by' %></th>
+                        <th><%t CookieConsent.Vendor  'Service' %></th>
                         <th><%t CookieConsent.Description 'Description' %></th>
                         <th><%t CookieConsent.Expiration 'Expiry' %></th>
                     </tr>
@@ -29,7 +29,7 @@
                     <% loop $CookieDescriptions.Sort('ID', 'DESC') %>
                         <tr class="cookie-consent__table-row">
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--name">$Title</td>
-                            <td class="cookie-consent__table-cell cookie-consent__table-cell--provider">$Provider</td>
+                            <td class="cookie-consent__table-cell cookie-consent__table-cell--service">$Service</td>
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--description">$Description</td>
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--expiration">$Expiration</td>
                         </tr>
