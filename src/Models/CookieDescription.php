@@ -8,7 +8,7 @@ class CookieDescription extends DataObject
     private static $plural_name = 'Cookies';
 
     private static $db = [
-        'Title' => 'Varchar(255)',
+        'Name' => 'Varchar(255)',
         'Category' => 'Varchar(100)',
         'Service' => 'Varchar(255)',
         'Vendor' => 'Varchar(255)',
@@ -26,7 +26,7 @@ class CookieDescription extends DataObject
     ];
 
     private static $summary_fields = [
-        'Title',
+        'Name',
         'Vendor',
         'Description',
         'Category',
@@ -34,13 +34,15 @@ class CookieDescription extends DataObject
         'LocaleName' => 'Language'
     ];
 
+    private static $default_sort = 'Name ASC';
+
     private static $field_labels = [
         'Locale' => 'Language'
     ];
 
     public function getListTitle()
     {
-        return $this->Title . ' ' . $this->getLocaleName();
+        return $this->Name . ' ' . $this->getLocaleName();
     }
 
     public function getLocaleName()
@@ -57,18 +59,17 @@ class CookieDescription extends DataObject
         return $this->Locale;
     }
 
-    // public function populateDefaults()
-    // {
-      
-    // parent::populateDefaults();
-    //     $subsite = CookieConsent::getCurrentSubsite(); 
-    //     if ($subsite) {
-    //         $this->Locale = $subsite->Language;
-    //     }
-    //     else {
-    //         $this->Locale = i18n::get_locale();
-    //     }
-    // }
+    public function populateDefaults()
+    {
+        parent::populateDefaults();
+        $subsite = CookieConsent::getCurrentSubsite(); 
+        if ($subsite) {
+            $this->Locale = $subsite->Language;
+        }
+        else {
+            $this->Locale = i18n::get_locale();
+        }
+    }
 
     public function getCMSFields()
     {
@@ -82,7 +83,7 @@ class CookieDescription extends DataObject
         }
 
         $fields->addFieldsToTab('Root.Main', [
-            TextField::create('Title', $this->fieldLabel('Title')),
+            TextField::create('Name', $this->fieldLabel('Name')),
             TextField::create('Vendor', $this->fieldLabel('Vendor')),
             TextAreaField::create('Description', $this->fieldLabel('Description')),
             DropdownField::create('Category', $this->fieldLabel('Category'), $categoryOptions)

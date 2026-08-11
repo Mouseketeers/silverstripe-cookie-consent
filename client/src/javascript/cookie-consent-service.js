@@ -1,33 +1,12 @@
 import * as CookieConsent from 'vanilla-cookieconsent';
 
 export const cookieConsentService = {
-    async loadConfiguration() {
-        try {
-            const response = await fetch('/cookie-consent/configuration', {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const endpointConfig = await response.json();
-                if (endpointConfig && typeof endpointConfig === 'object') {
-                    return endpointConfig;
-                }
-            }
-        } catch (error) {
-            console.error('Failed to load cookie consent configuration', error);
-        }
-
-        return {};
-    },
 	getCookieConsentApi() {
 		return CookieConsent;
 	},
-	async getServerSideConfiguration() {
-		const config = await this.loadConfiguration();
-		return config || {};
+	getServerSideConfiguration() {
+		// Read config from inline window object
+		return window.cookieConsentConfig || {};
 	},
     initializeGtagConsent(requireExplicitConsent = true) {
         window.dataLayer = window.dataLayer || [];

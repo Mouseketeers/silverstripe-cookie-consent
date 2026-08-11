@@ -1,9 +1,9 @@
 import { cookieConsentService } from './cookie-consent-service';
 
-async function initCookieConsent() {
+function initCookieConsent() {
 
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
-    const serverSideConfig = await cookieConsentService.getServerSideConfiguration();
+    const serverSideConfig = cookieConsentService.getServerSideConfiguration();
     const isGoogleConsentModeEnabled = serverSideConfig?.isGoogleConsentModeEnabled || false;
     const isConsentRegistrationEnabled = serverSideConfig?.isConsentRegistrationEnabled || false;
 
