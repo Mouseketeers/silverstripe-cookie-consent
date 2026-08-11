@@ -39,7 +39,7 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
                 continue;
             }
 
-            $service = CookieService::get()->filter('Title', $value)->first();
+            $service = CookieService::get()->filter('Name', $value)->first();
             if ($service) {
                 $existingRelationIds = $gridField->getList()->column('ID');
                 if (in_array($service->ID, $existingRelationIds, true)) {
@@ -65,16 +65,16 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
             $dataClass = $gridField->getModelClass();
             $object = DataObject::get_by_id($dataClass, (int) $objectID);
         } else {
-            $object = CookieService::get()->filter('Title', $objectID)->first();
+            $object = CookieService::get()->filter('Name', $objectID)->first();
             if (!$object) {
                 $object = CookieService::create();
-                $object->Title = $objectID;
+                $object->Name = $objectID;
                 $object->write();
             }
         }
 
         if ($object && $object instanceof CookieService) {
-            CookieService::importFromJSON(array($object->Title));
+            CookieService::importFromJSON(array($object->Name));
 
             $existingRelationIds = array();
             foreach ($dataList as $existingObject) {

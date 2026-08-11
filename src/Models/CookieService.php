@@ -8,14 +8,14 @@ class CookieService extends DataObject
     private static $plural_name = 'Services';
 
     private static $db = [
-        'Title' => 'Varchar(255)'
+        'Name' => 'Varchar(255)'
     ];
 
     private static $has_many = [
         'CookieDescriptions' => 'CookieDescription'
     ];
 
-    private static $default_sort = 'Title ASC';
+    private static $default_sort = 'Name ASC';
     
     public function getCMSFields()
     {
@@ -37,19 +37,6 @@ class CookieService extends DataObject
         return $fields;
     }
 
-
-    // public function populateDefaults()
-    // {
-    //     parent::populateDefaults();
-    //     // $this->syncCookieServicesFromDescriptions();
-    // }
-
-    // public function requireDefaultRecords()
-    // {
-    //     parent::requireDefaultRecords();
-    //     $this->syncCookieServicesFromDescriptions();
-    // }
-
     protected function syncCookieServicesFromDescriptions()
     {
         $cookies = CookieDescription::get();
@@ -69,21 +56,21 @@ class CookieService extends DataObject
         }
 
         $existingServices = CookieService::get()
-            ->filter('Title', array_values($services))
+            ->filter('Name', array_values($services))
             ->toArray();
 
-        $servicesByTitle = [];
+        $servicesByName = [];
         foreach ($existingServices as $service) {
-            $servicesByTitle[$service->Title] = $service;
+            $servicesByName[$service->Name] = $service;
         }
 
         foreach ($services as $serviceName) {
-            $service = isset($servicesByTitle[$serviceName]) ? $servicesByTitle[$serviceName] : null;
+            $service = isset($servicesByName[$serviceName]) ? $servicesByName[$serviceName] : null;
             if (!$service) {
                 $service = CookieService::create();
-                $service->Title = $serviceName;
+                $service->Name = $serviceName;
                 $service->write();
-                $servicesByTitle[$serviceName] = $service;
+                $servicesByName[$serviceName] = $service;
             }
 
             if (!isset($cookiesByService[$serviceName])) {
@@ -162,10 +149,10 @@ class CookieService extends DataObject
                 continue;
             }
 
-            $service = CookieService::get()->filter('Title', $serviceName)->first();
+            $service = CookieService::get()->filter('Name', $serviceName)->first();
             if (!$service) {
                 $service = CookieService::create();
-                $service->Title = $serviceName;
+                $service->Name = $serviceName;
                 $service->write();
             }
 
@@ -176,7 +163,7 @@ class CookieService extends DataObject
                 }
 
                 $description = CookieDescription::get()
-                    ->filter('Title', $cookieName)
+                    ->filter('Name', $cookieName)
                     ->filter('CookieServiceID', $service->ID)
                     ->first();
 
@@ -184,7 +171,7 @@ class CookieService extends DataObject
                     $description = CookieDescription::create();
                 }
 
-                $description->Title = $cookieName;
+                $description->Name = $cookieName;
                 $description->CookieServiceID = $service->ID;
                 $description->Service = $serviceName;
                 $description->Category = strtolower(isset($cookieData['category']) ? $cookieData['category'] : '');
@@ -208,7 +195,7 @@ class CookieService extends DataObject
         parent::onAfterWrite();
         CookieConsentConfigCache::clear();
 
-        if (!$this->ID || !$this->Title) {
+        if (!$this->ID || !$this->Name) {
             return;
         }
 
@@ -232,7 +219,7 @@ class CookieService extends DataObject
             return;
         }
 
-        $serviceCookies = self::resolveJsonServiceData($data, $this->Title);
+        $serviceCookies = self::resolveJsonServiceData($data, $this->Name);
         if ($serviceCookies === null) {
             return;
         }
@@ -244,7 +231,7 @@ class CookieService extends DataObject
             }
 
             $description = CookieDescription::get()
-                ->filter('Title', $cookieName)
+                ->filter('Name', $cookieName)
                 ->filter('CookieServiceID', $this->ID)
                 ->first();
 
@@ -252,9 +239,9 @@ class CookieService extends DataObject
                 $description = CookieDescription::create();
             }
 
-            $description->Title = $cookieName;
+            $description->Name = $cookieName;
             $description->CookieServiceID = $this->ID;
-            $description->Service = $this->Title;
+            $description->Service = $this->Name;
             $description->Category = strtolower(isset($cookieData['category']) ? $cookieData['category'] : '');
             $description->Vendor = isset($cookieData['dataController']) ? $cookieData['dataController'] : '';
             $description->Domain = isset($cookieData['domain']) ? $cookieData['domain'] : '';

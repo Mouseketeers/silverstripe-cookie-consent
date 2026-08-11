@@ -40,6 +40,11 @@ class CookieDescription extends DataObject
         'Locale' => 'Language'
     ];
 
+    public function getName()
+    {
+        return $this->Wildcard ? $this->getField('Name') . '*' : $this->getField('Name');
+    }
+
     public function getListTitle()
     {
         return $this->Name . ' ' . $this->getLocaleName();

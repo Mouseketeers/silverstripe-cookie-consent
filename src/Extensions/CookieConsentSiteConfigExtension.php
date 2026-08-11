@@ -28,8 +28,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
             $cookieServicesGridConfig->removeComponent($linkExistingServices);
 
             $customAutocompleter = new CookieServiceGridFieldAddExistingAutocompleter('buttons-before-right', $serviceOptions);
-            $customAutocompleter->setSearchFields(['Title']);
-            $customAutocompleter->setResultsFormat('$Title');
+            $customAutocompleter->setSearchFields(['Name']);
+            $customAutocompleter->setResultsFormat('$Name');
             $cookieServicesGridConfig->addComponent($customAutocompleter);
         }
 
