@@ -27,7 +27,8 @@ function initCookieConsent() {
         const consentIdElement = document.getElementById('cookie-consent-id');
         const consentTimestampElement = document.getElementById('cookie-consent-timestamp');
         const acceptedCategoriesElement = document.getElementById('cookie-consent-accepted-categories');
-
+        const translations = serverSideConfig?.translations || {};
+        
         if (consentIdElement) {
             consentIdElement.textContent = cookie?.consentId || '';
         }
@@ -37,10 +38,10 @@ function initCookieConsent() {
 
         if (acceptedCategoriesElement) {
             const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
-            const translations = serverSideConfig?.translations || {};
-            const sections = translations?.[defaultLanguage]?.preferencesModal?.sections || [];
+            
+            const sections = serverSideConfig?.translations?.[defaultLanguage]?.preferencesModal?.sections || [];
             const getSectionTitleByCategory = (category) =>
-                sections.find((item) => item.linkedCategory === category)?.title || category;
+                sections.find((item) => item.linkedCategory === category)?.name || category;
             const acceptedCategoryTitles = (cookie?.categories || [])
                 .map((category) => getSectionTitleByCategory(category))
                 .filter(Boolean);
@@ -54,6 +55,8 @@ function initCookieConsent() {
     }
 
     const translations = serverSideConfig?.translations || {};
+
+    console.log('Cookie Consent Translations:', translations);
     const categories = serverSideConfig?.categories || {
         functional: {
             readOnly: true

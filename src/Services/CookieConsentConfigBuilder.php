@@ -41,11 +41,11 @@ class CookieConsentConfigBuilder
     {
         $consentTitle = !empty($siteConfig->CookieConsentTitle)
             ? $siteConfig->CookieConsentTitle
-            : _t('CookieConsent.CookieConsentTitle', 'We use cookies');
+            : _t('CookieConsent.CookieConsentTitle');
 
         $consentDescription = !empty($siteConfig->CookieConsentContent)
             ? $siteConfig->CookieConsentContent
-            : _t('CookieConsent.CookieConsentContent', 'We use cookies to personalise content and ads, to provide social media features and to analyse our traffic.');
+            : _t('CookieConsent.CookieConsentContent');
 
         return [
             'consentModal' => [
@@ -82,11 +82,11 @@ class CookieConsentConfigBuilder
         $configCategories = CookieConsent::getCategoryLabelsConfig();
         $cookieDescriptions = $this->buildCookieDescriptions($siteConfig);
 
-        $cookieTableHeaders = [
-            'name' => _t('CookieConsent.CookieTableName', 'Name'),
-            'provider' => _t('CookieConsent.CookieTableProvider', 'Provider'),
-            'description' => _t('CookieConsent.CookieTableDescription', 'Description'),
-            'expiration' => _t('CookieConsent.CookieTableExpiration', 'Expiration')
+        $CookieHeaders = [
+            'name' => _t('CookieConsent.CookieName', 'Name'),
+            'provider' => _t('CookieConsent.CookieProvider', 'Provider'),
+            'description' => _t('CookieConsent.CookieDescription', 'Description'),
+            'expiration' => _t('CookieConsent.CookieExpiration', 'Expiration')
         ];
 
         foreach ($configCategories as $categoryId => $categoryConfig) {
@@ -110,7 +110,7 @@ class CookieConsentConfigBuilder
                 'description' => $description,
                 'linkedCategory' => $normalizedCategoryName,
                 'cookieTable' => [
-                    'headers' => $cookieTableHeaders,
+                    'headers' => $CookieHeaders,
                     'body' => $cookies
                 ]
             ];
@@ -122,9 +122,7 @@ class CookieConsentConfigBuilder
     protected function getCategoryTitle($categoryId)
     {
         $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
-        $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
-
-        return _t($translationKey, $defaultLabel);
+        return _t($translationKey, '');
     }
 
     protected function getCategoryDescription($categoryId)
@@ -167,7 +165,7 @@ class CookieConsentConfigBuilder
                     }
 
                     $cookieDescriptions[$targetCategory][] = [
-                        'name' => $cookie->Title,
+                        'name' => $cookie->Name,
                         'provider' => $cookie->Service,
                         'description' => $cookie->Description,
                         'expiration' => $cookie->Expiration
