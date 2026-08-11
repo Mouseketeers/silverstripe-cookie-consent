@@ -74,8 +74,6 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
         }
 
         if ($object && $object instanceof CookieService) {
-            CookieService::importFromJSON(array($object->Name));
-
             $existingRelationIds = array();
             foreach ($dataList as $existingObject) {
                 $existingRelationIds[] = (int) $existingObject->ID;

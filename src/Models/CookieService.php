@@ -16,26 +16,6 @@ class CookieService extends DataObject
     ];
 
     private static $default_sort = 'Name ASC';
-    
-    public function getCMSFields()
-    {
-        $fields = parent::getCMSFields();
-
-        $fields->removeByName('CookieDescriptions');
-
-        $cookieDescriptionsGrid = GridField::create(
-            'CookieDescriptions',
-            'Cookie Descriptions',
-            $this->CookieDescriptions(),
-            GridFieldConfig_RecordEditor::create()
-        );
-
-        $fields->addFieldsToTab('Root.CookieDescriptions', [
-            $cookieDescriptionsGrid
-        ]);
-
-        return $fields;
-    }
 
     protected function syncCookieServicesFromDescriptions()
     {
@@ -121,21 +101,6 @@ class CookieService extends DataObject
 
     public static function importFromJSON(array $selectedServices)
     {
-        $jsonPath = CookieConsent::resolveCookieRegistryPath();
-        if ($jsonPath === null || !file_exists($jsonPath)) {
-            return [];
-        }
-
-        $raw = file_get_contents($jsonPath);
-        if ($raw === false) {
-            return [];
-        }
-
-        $data = json_decode($raw, true);
-        if (!is_array($data)) {
-            return [];
-        }
-
         $importedServices = [];
 
         foreach ($selectedServices as $serviceName) {
@@ -144,44 +109,11 @@ class CookieService extends DataObject
                 continue;
             }
 
-            $serviceCookies = self::resolveJsonServiceData($data, $serviceName);
-            if ($serviceCookies === null) {
-                continue;
-            }
-
             $service = CookieService::get()->filter('Name', $serviceName)->first();
             if (!$service) {
                 $service = CookieService::create();
                 $service->Name = $serviceName;
-                $service->write();
-            }
-
-            foreach ($serviceCookies as $cookieData) {
-                $cookieName = isset($cookieData['cookie']) ? trim($cookieData['cookie']) : '';
-                if ($cookieName === '') {
-                    continue;
-                }
-
-                $description = CookieDescription::get()
-                    ->filter('Name', $cookieName)
-                    ->filter('CookieServiceID', $service->ID)
-                    ->first();
-
-                if (!$description) {
-                    $description = CookieDescription::create();
-                }
-
-                $description->Name = $cookieName;
-                $description->CookieServiceID = $service->ID;
-                $description->Service = $serviceName;
-                $description->Category = strtolower(isset($cookieData['category']) ? $cookieData['category'] : '');
-                $description->Vendor = isset($cookieData['dataController']) ? $cookieData['dataController'] : '';
-                $description->Domain = isset($cookieData['domain']) ? $cookieData['domain'] : '';
-                $description->Description = isset($cookieData['description']) ? $cookieData['description'] : '';
-                $description->Expiration = isset($cookieData['retentionPeriod']) ? $cookieData['retentionPeriod'] : '';
-                $description->PrivacyPolicyURL = isset($cookieData['privacyLink']) ? $cookieData['privacyLink'] : '';
-                $description->Wildcard = (bool)(int)(isset($cookieData['wildcardMatch']) ? $cookieData['wildcardMatch'] : 0);
-                $description->write();
+                $service->write(); // onAfterWrite will handle the import
             }
 
             $importedServices[] = $service;
@@ -204,6 +136,10 @@ class CookieService extends DataObject
 
     protected function importCookieDescriptionsFromJSON()
     {
+        if (!$this->ID || !$this->Name) {
+            return;
+        }
+
         $jsonPath = CookieConsent::resolveCookieRegistryPath();
         if ($jsonPath === null || !file_exists($jsonPath)) {
             return;
@@ -225,33 +161,38 @@ class CookieService extends DataObject
         }
 
         foreach ($serviceCookies as $cookieData) {
-            $cookieName = isset($cookieData['cookie']) ? trim($cookieData['cookie']) : '';
-            if ($cookieName === '') {
-                continue;
-            }
-
-            $description = CookieDescription::get()
-                ->filter('Name', $cookieName)
-                ->filter('CookieServiceID', $this->ID)
-                ->first();
-
-            if (!$description) {
-                $description = CookieDescription::create();
-            }
-
-            $description->Name = $cookieName;
-            $description->CookieServiceID = $this->ID;
-            $description->Service = $this->Name;
-            $description->Category = strtolower(isset($cookieData['category']) ? $cookieData['category'] : '');
-            $description->Vendor = isset($cookieData['dataController']) ? $cookieData['dataController'] : '';
-            $description->Domain = isset($cookieData['domain']) ? $cookieData['domain'] : '';
-            $description->Description = isset($cookieData['description']) ? $cookieData['description'] : '';
-            $description->Expiration = isset($cookieData['retentionPeriod']) ? $cookieData['retentionPeriod'] : '';
-            $description->PrivacyPolicyURL = isset($cookieData['privacyLink']) ? $cookieData['privacyLink'] : '';
-            $description->Wildcard = (bool)(int)(isset($cookieData['wildcardMatch']) ? $cookieData['wildcardMatch'] : 0);
-            $description->CookieRegistryID = isset($cookieData['id']) ? $cookieData['id'] : '';
-            $description->write();
+            $this->importCookieDescriptionFromData($cookieData);
         }
+    }
+
+    protected function importCookieDescriptionFromData(array $cookieData)
+    {
+        $cookieName = isset($cookieData['cookie']) ? trim($cookieData['cookie']) : '';
+        if ($cookieName === '') {
+            return;
+        }
+
+        $description = CookieDescription::get()
+            ->filter('Name', $cookieName)
+            ->filter('CookieServiceID', $this->ID)
+            ->first();
+
+        if (!$description) {
+            $description = CookieDescription::create();
+        }
+
+        $description->Name = $cookieName;
+        $description->CookieServiceID = $this->ID;
+        $description->Service = $this->Name;
+        $description->Category = strtolower(isset($cookieData['category']) ? $cookieData['category'] : '');
+        $description->Vendor = isset($cookieData['dataController']) ? $cookieData['dataController'] : '';
+        $description->Domain = isset($cookieData['domain']) ? $cookieData['domain'] : '';
+        $description->Description = isset($cookieData['description']) ? $cookieData['description'] : '';
+        $description->Expiration = isset($cookieData['retentionPeriod']) ? $cookieData['retentionPeriod'] : '';
+        $description->PrivacyPolicyURL = isset($cookieData['privacyLink']) ? $cookieData['privacyLink'] : '';
+        $description->Wildcard = (bool)(int)(isset($cookieData['wildcardMatch']) ? $cookieData['wildcardMatch'] : 0);
+        $description->CookieRegistryID = isset($cookieData['id']) ? $cookieData['id'] : '';
+        $description->write();
     }
 
     public function onAfterDelete()
