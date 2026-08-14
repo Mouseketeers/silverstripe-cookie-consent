@@ -9,8 +9,13 @@ pl_PL:
     ButtonsSavePreferences: 'Zapisz preferencje'
     PreferencesCloseIconLabel: 'Zamknij'
     CookieName: 'Nazwa'
+    CookieProvider: 'Dostawca'
     CookieVendor : 'Dostawca'
     CookieDescription: 'Opis'
+    CookieDomain: 'Domena'
+    CookieService: 'Usługa'
+    CookieVendor: 'Dostawca'
+    CookieExpiration: 'Czas wygaśnięcia'
     CookieExpiration: 'Czas wygaśnięcia'
     Category:
       functional: 'Niezbędne'

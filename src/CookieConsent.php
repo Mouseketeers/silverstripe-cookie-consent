@@ -9,29 +9,13 @@ class CookieConsent
     private static $enable_google_consent_mode = false;
     private static $enable_consent_logging = false;
     private static $cookie_registry_path = 'cookie-consent/open-cookie-database.json';
+    private static $clear_cookies_on_cookie_registry_update = true;
     private static $categories = [
         'functional' => [
             'readOnly' => true
         ]
     ];
     private static $cookie_consent_values_cache = null;
-
-
-    public static function getCurrentSubsite()
-    {
-        if (self::isSubsitesEnabled()) {
-            return Subsite::currentSubsite();
-        }
-        return null;
-    }
-
-    public static function getCurrentSubsiteId()
-    {
-        if (self::isSubsitesEnabled()) {
-            return (int) Subsite::currentSubsiteID();
-        }
-        return 0;
-    }
 
     public static function isCookieConsentDisabled()
     {
@@ -51,12 +35,7 @@ class CookieConsent
     public static function isGoogleConsentModeEnabled()
     {
         return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
-    }
-
-    public static function isSubsitesEnabled()
-    {
-        return class_exists('Subsite');
-    }    
+    }  
 
     public static function getCategoryLabelsConfig()
     {
@@ -83,6 +62,11 @@ class CookieConsent
     public static function isConsentRegistrationEnabled()
     {
         return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
+    }
+
+    public static function shouldClearCookiesOnCookieRegistryUpdate()
+    {
+        return (bool) Config::inst()->get('CookieConsent', 'clear_cookies_on_cookie_registry_update');
     }
 
     public static function getCookieRegistryPath()

@@ -7,6 +7,7 @@ CookieConsent:
   enable_google_consent_mode: false
   enable_consent_logging: true
   cookie_registry_path: 'cookie-consent/open-cookie-database.json'
+  clear_cookies_on_cookie_registry_update: true
   categories:
     functional:
       enabled: true

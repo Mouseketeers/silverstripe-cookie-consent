@@ -12,7 +12,6 @@ class CookieConsentConfigBuilder
             if (is_string($cachedConfig)) {
                 $decodedConfig = @unserialize($cachedConfig);
                 if (is_array($decodedConfig)) {
-                    // debug::dump($decodedConfig);die();
                     return $decodedConfig;
                 }
             }

@@ -25,60 +25,24 @@ class CookieDescription extends DataObject
 
     private static $summary_fields = [
         'Name',
-        'Vendor',
-        'Description',
         'Category',
-        'Expiration',
-        'LocaleName' => 'Language'
+        'Service',
+        'Vendor',
+        'Expiration'
     ];
 
     private static $default_sort = 'Name ASC';
-
-    private static $field_labels = [
-        'Locale' => 'Language'
-    ];
 
     public function getName()
     {
         return $this->Wildcard ? $this->getField('Name') . '*' : $this->getField('Name');
     }
 
-    public function getListTitle()
-    {
-        return $this->Name . ' ' . $this->getLocaleName();
-    }
-
-    public function getLocaleName()
-    {
-        if (!$this->Locale) {
-            return '';
-        }
-
-        $locales = i18n::get_common_locales();
-        if (isset($locales[$this->Locale])) {
-            return $locales[$this->Locale];
-        }
-
-        return $this->Locale;
-    }
-
-    public function populateDefaults()
-    {
-        parent::populateDefaults();
-        $subsite = CookieConsent::getCurrentSubsite(); 
-        if ($subsite) {
-            $this->Locale = $subsite->Language;
-        }
-        else {
-            $this->Locale = i18n::get_locale();
-        }
-    }
-
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
 
-        $fields->removeByName(['CookieRegistryID', 'CookieServiceID']);
+        $fields->removeByName(['SiteConfigID']);
 
         $categoryOptions = CookieConsent::getCategoryTranslationsMap();
         if ($this->Category && !isset($categoryOptions[$this->Category])) {
@@ -92,9 +56,7 @@ class CookieDescription extends DataObject
             DropdownField::create('Category', $this->fieldLabel('Category'), $categoryOptions)
                 ->setEmptyString(_t('CookieConsent.SelectCategory', 'Select...'))
                 ->setAttribute('required', 'required'),
-            TextField::create('Expiration', $this->fieldLabel('Expiration')),
-            DropdownField::create('Locale', $this->fieldLabel('Locale'), i18n::get_common_locales())
-                ->setEmptyString(_t('CookieConsent.SelectLanguage', 'Select...'))
+            TextField::create('Expiration', $this->fieldLabel('Expiration'))
         ]);
 
         return $fields;

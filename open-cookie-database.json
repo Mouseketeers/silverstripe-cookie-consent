@@ -1,4 +1,28 @@
 {
+    "Meta Pixels": [
+        {
+            "id": "f3e1c5d0-8b2a-4f3e-9c1a-2b2e1c5d0f3e",
+            "category": "Marketing",
+            "cookie": "lastExternalReferrer",
+            "domain": ".facebook.com",
+            "description": "Detects how the user reached the website by registering their last URL-address.",
+            "retentionPeriod": "3 months",
+            "dataController": "Facebook",
+            "privacyLink": "https://www.facebook.com/policy.php",
+            "wildcardMatch": "0"
+        },
+        {
+            "id": "f3e1c5d0-8b2a-4f3e-9c1a-2b2e1c5d0f3f",
+            "category": "Marketing",
+            "cookie": "lastExternalReferrerTime",
+            "domain": ".facebook.com",
+            "description": "Detects how the user reached the website by registering their last URL-address.",
+            "retentionPeriod": "3 months",
+            "dataController": "Facebook",
+            "privacyLink": "https://www.facebook.com/policy.php",
+            "wildcardMatch": "0"
+        }        
+    ],
     "Google Tag Manager": [
         {
             "id": "256c0fe2-d881-11e9-8a34-2a2ae2dbcce4",

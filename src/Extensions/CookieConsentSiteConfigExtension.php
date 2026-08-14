@@ -23,13 +23,14 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
         $cookieServicesField = Injector::inst()->create(
             'CookieServiceListboxField',
-            'CookieServices',
-            'Services Using Cookies',
+            'SelectedCookieServices',
+            'Services',
             $serviceOptions
         )
+            ->setRelationName('CookieServices')
             ->setMultiple(true)
             ->setSize(12)
-            ->setValue($this->owner->CookieServices()->column('Name'));
+            ->setValue(array_values($this->owner->CookieServices()->column('Name')));
 
         $fields->addFieldsToTab('Root.CookieConsent', [
             TextField::create('CookieConsentModalTitle', $this->owner->fieldLabel('CookieConsentModalTitle')),
