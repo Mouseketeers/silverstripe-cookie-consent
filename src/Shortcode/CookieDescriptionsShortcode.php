@@ -5,36 +5,8 @@ class CookieDeclarationShortcode
     public static function register()
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
-            $categories = new ArrayList();
-            $siteConfig = SiteConfig::current_site_config();
-
-            if (!$siteConfig) {
-                return '';
-            }
-
-            foreach (CookieConsent::getCategoryLabelsConfig() as $categoryId => $categoryConfig) {
-                $normalizedCategory = strtolower(trim((string) $categoryId));
-                if ($normalizedCategory === '') {
-                    continue;
-                }
-
-                $cookieDescriptions = new ArrayList();
-                foreach ($siteConfig->CookieServices() as $service) {
-                    foreach ($service->getCookieDescriptionsForCategory($normalizedCategory) as $cookieDescription) {
-                        $cookieDescriptions->push($cookieDescription);
-                    }
-                }
-
-                if (!$cookieDescriptions->exists()) {
-                    continue;
-                }
-
-                $categories->push(ArrayData::create([
-                    'Title' => self::getCategoryTitle($categoryId),
-                    'Content' => self::getCategoryDescription($categoryId),
-                    'CookieDescriptions' => $cookieDescriptions
-                ]));
-            }
+            $declarationData = (new CookieConsentConfigBuilder())->buildDeclarationData();
+            $categories = self::buildCategoryList($declarationData);
 
             if (!$categories->exists()) {
                 return '';
@@ -51,18 +23,50 @@ class CookieDeclarationShortcode
         });
     }
 
-    protected static function getCategoryTitle($categoryId)
+    protected static function buildCategoryList(array $declarationData)
     {
-        $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
-        $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
+        $categories = new ArrayList();
+        $declarationCategories = isset($declarationData['categories']) && is_array($declarationData['categories'])
+            ? $declarationData['categories']
+            : [];
 
-        return _t($translationKey, $defaultLabel);
-    }
+        foreach ($declarationCategories as $categoryData) {
+            if (!is_array($categoryData)) {
+                continue;
+            }
 
-    protected static function getCategoryDescription($categoryId)
-    {
-        $translationKey = sprintf('CookieConsent.Category.%s.Description', $categoryId);
+            $cookieDescriptions = new ArrayList();
+            $cookies = isset($categoryData['cookies']) && is_array($categoryData['cookies'])
+                ? $categoryData['cookies']
+                : [];
 
-        return _t($translationKey, '');
+            foreach ($cookies as $cookieData) {
+                if (!is_array($cookieData)) {
+                    continue;
+                }
+
+                $cookieDescriptions->push(ArrayData::create([
+                    'Name' => isset($cookieData['name']) ? $cookieData['name'] : '',
+                    'Vendor' => isset($cookieData['vendor']) ? $cookieData['vendor'] : '',
+                    'Service' => isset($cookieData['service']) ? $cookieData['service'] : '',
+                    'Domain' => isset($cookieData['domain']) ? $cookieData['domain'] : '',
+                    'PrivacyPolicyURL' => isset($cookieData['privacyPolicyURL']) ? $cookieData['privacyPolicyURL'] : '',
+                    'Description' => isset($cookieData['description']) ? $cookieData['description'] : '',
+                    'Expiration' => isset($cookieData['expiration']) ? $cookieData['expiration'] : ''
+                ]));
+            }
+
+            if (!$cookieDescriptions->exists()) {
+                continue;
+            }
+
+            $categories->push(ArrayData::create([
+                'Title' => isset($categoryData['title']) ? $categoryData['title'] : '',
+                'Content' => isset($categoryData['content']) ? $categoryData['content'] : '',
+                'CookieDescriptions' => $cookieDescriptions
+            ]));
+        }
+
+        return $categories;
     }
 }

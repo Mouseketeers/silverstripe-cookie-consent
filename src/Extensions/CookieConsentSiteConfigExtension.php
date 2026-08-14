@@ -1,6 +1,5 @@
 <?php
 
-
 class CookieConsentSiteConfigExtension extends DataExtension
 {
     private static $db = [
@@ -8,39 +7,39 @@ class CookieConsentSiteConfigExtension extends DataExtension
         'CookieConsentModalContent' => 'HTMLText'
     ];
 
-    private static $many_many = [
-        'CookieServices' => 'CookieService'
+    private static $has_many = [
+        'CookieServices' => 'CookieService.SiteConfig',
+        'CustomCookies' => 'CookieDescription.SiteConfig'
     ];
 
     public function updateCMSFields(FieldList $fields)
     {
-        $cookieServicesGrid = GridField::create(
-            'CookieServices',
-            'Services using Cookies',
-            $this->owner->CookieServices(),
-            GridFieldConfig_RelationEditor::create()
-        );
+        $customCookiesField = GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create());
 
-        $cookieServicesGridConfig = $cookieServicesGrid->getConfig();
-        $linkExistingServices = $cookieServicesGridConfig->getComponentByType('GridFieldAddExistingAutocompleter');
-        if ($linkExistingServices instanceof GridFieldAddExistingAutocompleter) {
-            $serviceOptions = $this->getAvailableServiceOptions();
-            $cookieServicesGridConfig->removeComponent($linkExistingServices);
-
-            $customAutocompleter = new CookieServiceGridFieldAddExistingAutocompleter('buttons-before-right', $serviceOptions);
-            $customAutocompleter->setSearchFields(['Name']);
-            $customAutocompleter->setResultsFormat('$Name');
-            $cookieServicesGridConfig->addComponent($customAutocompleter);
+        $serviceOptions = $this->getServicesOptionsFromCookieRegistry();
+        foreach ($this->owner->CookieServices() as $selectedService) {
+            $serviceOptions[$selectedService->Name] = $selectedService->Name;
         }
+
+        $cookieServicesField = Injector::inst()->create(
+            'CookieServiceListboxField',
+            'CookieServices',
+            'Services Using Cookies',
+            $serviceOptions
+        )
+            ->setMultiple(true)
+            ->setSize(12)
+            ->setValue($this->owner->CookieServices()->column('Name'));
 
         $fields->addFieldsToTab('Root.CookieConsent', [
             TextField::create('CookieConsentModalTitle', $this->owner->fieldLabel('CookieConsentModalTitle')),
             HtmlEditorField::create('CookieConsentModalContent', $this->owner->fieldLabel('CookieConsentModalContent'))->setRows(5),
-            $cookieServicesGrid
+            $cookieServicesField,
+            $customCookiesField
         ]);
     }
 
-    protected function getAvailableServiceOptions()
+    protected function getServicesOptionsFromCookieRegistry()
     {
         $jsonPath = CookieConsent::resolveCookieRegistryPath();
         if ($jsonPath === null || !file_exists($jsonPath)) {
@@ -60,7 +59,17 @@ class CookieConsentSiteConfigExtension extends DataExtension
         $names = array_keys($data);
         sort($names);
 
-        return array_combine($names, $names);
+        $options = [];
+        foreach ($names as $serviceName) {
+            $normalizedName = trim((string) $serviceName);
+            if ($normalizedName === '') {
+                continue;
+            }
+
+            $options[$normalizedName] = $normalizedName;
+        }
+
+        return $options;
     }
 
     public function requireDefaultRecords()

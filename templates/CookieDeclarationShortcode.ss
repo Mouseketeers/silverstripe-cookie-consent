@@ -29,7 +29,7 @@
                     <% loop $CookieDescriptions.Sort('ID', 'DESC') %>
                         <tr class="cookie-consent__table-row">
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--name">$Name</td>
-                            <td class="cookie-consent__table-cell cookie-consent__table-cell--service">$Service</td>
+                            <td class="cookie-consent__table-cell cookie-consent__table-cell--provider">$Service xx $PrivacyPolicyURL</td>
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--description">$Description</td>
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--expiration">$Expiration</td>
                         </tr>

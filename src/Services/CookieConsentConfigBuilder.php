@@ -9,9 +9,12 @@ class CookieConsentConfigBuilder
         $cachedConfig = $cache->load($cacheKey);
 
         if ($cachedConfig !== false) {
-            $decodedConfig = json_decode($cachedConfig, true);
-            if (is_array($decodedConfig)) {
-                return $decodedConfig;
+            if (is_string($cachedConfig)) {
+                $decodedConfig = @unserialize($cachedConfig);
+                if (is_array($decodedConfig)) {
+                    // debug::dump($decodedConfig);die();
+                    return $decodedConfig;
+                }
             }
         }
 
@@ -27,14 +30,27 @@ class CookieConsentConfigBuilder
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
             'categories' => $this->buildCategories($siteConfig),
             'defaultLanguage' => $languageCode,
+            'declaration' => [
+                'categories' => $this->buildDeclarationCategories($siteConfig)
+            ],
             'translations' => [
                 $languageCode => $this->buildLanguageData($siteConfig)
             ]
         ];
 
-        $cache->save(json_encode($config), $cacheKey);
+        $cache->save(serialize($config), $cacheKey);
 
         return $config;
+    }
+
+    public function buildDeclarationData()
+    {
+        $config = $this->build();
+        if (!isset($config['declaration']) || !is_array($config['declaration'])) {
+            return ['categories' => []];
+        }
+
+        return $config['declaration'];
     }
     
     protected function buildLanguageData($siteConfig)
@@ -66,7 +82,7 @@ class CookieConsentConfigBuilder
         ];
     }
 
-    protected function buildCategories($siteConfig)
+    protected function buildCategories()
     {
         $configCategories = CookieConsent::getCategoryLabelsConfig();
         if (!is_array($configCategories)) {
@@ -119,6 +135,35 @@ class CookieConsentConfigBuilder
         return $sections;
     }
 
+    protected function buildDeclarationCategories($siteConfig)
+    {
+        $categories = [];
+        $configCategories = CookieConsent::getCategoryLabelsConfig();
+        $cookieDescriptions = $this->buildCookieDescriptions($siteConfig);
+
+        foreach ($configCategories as $categoryId => $categoryConfig) {
+            $normalizedCategoryName = $this->normalizeCategoryKey($categoryId);
+            if (empty($normalizedCategoryName)) {
+                continue;
+            }
+
+            $cookies = isset($cookieDescriptions[$normalizedCategoryName])
+                ? $cookieDescriptions[$normalizedCategoryName]
+                : [];
+            if (empty($cookies)) {
+                continue;
+            }
+
+            $categories[] = [
+                'title' => $this->getCategoryTitle($categoryId),
+                'content' => $this->getCategoryDescription($categoryId),
+                'cookies' => $cookies
+            ];
+        }
+
+        return $categories;
+    }
+
     protected function getCategoryTitle($categoryId)
     {
         $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
@@ -145,6 +190,7 @@ class CookieConsentConfigBuilder
     {
         $cookieDescriptions = [];
         $services = $siteConfig->CookieServices();
+        $customCookies = $siteConfig->CustomCookies();
         $validCategories = [];
 
         foreach (CookieConsent::getCategoryLabelsConfig() as $categoryId => $categoryConfig) {
@@ -165,13 +211,42 @@ class CookieConsentConfigBuilder
                     }
 
                     $cookieDescriptions[$targetCategory][] = [
+                        'id' => (int) $cookie->ID,
                         'name' => $cookie->Name,
                         'provider' => $cookie->Service,
+                        'service' => $cookie->Service,
+                        'vendor' => $cookie->Vendor,
                         'description' => $cookie->Description,
+                        'domain' => $cookie->Domain,
+                        'privacyPolicyURL' => $cookie->PrivacyPolicyURL,
                         'expiration' => $cookie->Expiration
+
                     ];
                 }
             }
+        }
+
+        foreach ($customCookies as $customCookie) {
+            $targetCategory = $this->normalizeCategoryKey($customCookie->Category);
+            if (empty($targetCategory) || !isset($validCategories[$targetCategory])) {
+                continue;
+            }
+
+            if (!isset($cookieDescriptions[$targetCategory])) {
+                $cookieDescriptions[$targetCategory] = [];
+            }
+
+            $cookieDescriptions[$targetCategory][] = [
+                'id' => (int) $customCookie->ID,
+                'name' => $customCookie->Name,
+                'provider' => $customCookie->Service,
+                'service' => $customCookie->Service,
+                'vendor' => $customCookie->Vendor,
+                'description' => $customCookie->Description,
+                'domain' => $customCookie->Domain,
+                'privacyPolicyURL' => $customCookie->PrivacyPolicyURL,
+                'expiration' => $customCookie->Expiration
+            ];
         }
 
         return $cookieDescriptions;

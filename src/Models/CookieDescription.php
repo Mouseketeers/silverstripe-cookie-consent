@@ -3,9 +3,9 @@
 class CookieDescription extends DataObject
 {
 
-    private static $singular_name = 'Cookie';
+    private static $singular_name = 'Custom Cookie';
 
-    private static $plural_name = 'Cookies';
+    private static $plural_name = 'Custom Cookies';
 
     private static $db = [
         'Name' => 'Varchar(255)',
@@ -16,13 +16,11 @@ class CookieDescription extends DataObject
         'Domain' => 'Varchar(255)',
         'Expiration' => 'Varchar(255)',
         'PrivacyPolicyURL' => 'Varchar(255)',
-        'Wildcard' => 'Boolean',
-        'Locale' => 'Varchar(5)',
-        'CookieRegistryID' => 'Varchar(255)'
+        'Wildcard' => 'Boolean'
     ];
 
     private static $has_one = [
-        'CookieService' => 'CookieService'
+        'SiteConfig' => 'SiteConfig'
     ];
 
     private static $summary_fields = [

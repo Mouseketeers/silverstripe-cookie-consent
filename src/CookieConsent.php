@@ -14,7 +14,7 @@ class CookieConsent
             'readOnly' => true
         ]
     ];
-    private static $cookie_info_cache = null;
+    private static $cookie_consent_values_cache = null;
 
 
     public static function getCurrentSubsite()
@@ -112,26 +112,27 @@ class CookieConsent
 
     public static function getCookieConsentValues()
     {
-        if (self::$cookie_info_cache !== null) {
-            return self::$cookie_info_cache;
+        if (self::$cookie_consent_values_cache !== null) {
+            return self::$cookie_consent_values_cache;
         }
 
         $cookieValue = self::getCookie();
         if (!$cookieValue) {
-            self::$cookie_info_cache = null;
+            self::$cookie_consent_values_cache = null;
             return null;
         }
 
         $decodedValue = rawurldecode($cookieValue);
         $decodedData = json_decode($decodedValue, true);
 
-        self::$cookie_info_cache = is_array($decodedData) ? $decodedData : null;
+        self::$cookie_consent_values_cache = is_array($decodedData) ? $decodedData : null;
 
-        return self::$cookie_info_cache;
+        return self::$cookie_consent_values_cache;
     }
 
     private static function getConsentCookieValue($key)
     {
+        
         $decodedData = self::getCookieConsentValues();
 
         if (is_array($decodedData) && isset($decodedData[$key])) {
