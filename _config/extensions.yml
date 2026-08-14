@@ -30,7 +30,7 @@ Page_Controller:
 #   translate:
 #     - 'CCActive'
 #     - 'DisplayOnLogin'
-#     - 'ModalTitle'
+#     - 'CookieConsentModalTitle'
 #     - 'ModalDescription'
 #     - 'TextBlockTitle'
 #     - 'TextBlockDescription'

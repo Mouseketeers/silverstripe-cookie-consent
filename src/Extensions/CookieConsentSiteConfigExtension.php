@@ -4,8 +4,8 @@
 class CookieConsentSiteConfigExtension extends DataExtension
 {
     private static $db = [
-        'CookieConsentTitle' => 'Varchar(255)',
-        'CookieConsentContent' => 'HTMLText'
+        'CookieConsentModalTitle' => 'Varchar(255)',
+        'CookieConsentModalContent' => 'HTMLText'
     ];
 
     private static $many_many = [
@@ -34,8 +34,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
         }
 
         $fields->addFieldsToTab('Root.CookieConsent', [
-            TextField::create('CookieConsentTitle', $this->owner->fieldLabel('CookieConsentTitle')),
-            HtmlEditorField::create('CookieConsentContent', $this->owner->fieldLabel('CookieConsentContent'))->setRows(5),
+            TextField::create('CookieConsentModalTitle', $this->owner->fieldLabel('CookieConsentModalTitle')),
+            HtmlEditorField::create('CookieConsentModalContent', $this->owner->fieldLabel('CookieConsentModalContent'))->setRows(5),
             $cookieServicesGrid
         ]);
     }
@@ -66,12 +66,12 @@ class CookieConsentSiteConfigExtension extends DataExtension
     public function requireDefaultRecords()
     {
         if ($config = SiteConfig::current_site_config()) {
-            if (empty($config->CookieConsentTitle)) {
-                $config->CookieConsentTitle = _t('CookieConsent.CookieConsentTitle');
+            if (empty($config->CookieConsentModalTitle)) {
+                $config->CookieConsentModalTitle = _t('CookieConsent.CookieConsentModalTitle');
             }
 
-            if (empty($config->CookieConsentContent)) {
-                $config->CookieConsentContent = _t('CookieConsent.CookieConsentContent');
+            if (empty($config->CookieConsentModalContent)) {
+                $config->CookieConsentModalContent = _t('CookieConsent.CookieConsentModalContent');
             }
 
             $config->write();

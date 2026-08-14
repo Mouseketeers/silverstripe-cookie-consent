@@ -39,13 +39,13 @@ class CookieConsentConfigBuilder
     
     protected function buildLanguageData($siteConfig)
     {
-        $consentTitle = !empty($siteConfig->CookieConsentTitle)
-            ? $siteConfig->CookieConsentTitle
-            : _t('CookieConsent.CookieConsentTitle');
+        $consentTitle = !empty($siteConfig->CookieConsentModalTitle)
+            ? $siteConfig->CookieConsentModalTitle
+            : _t('CookieConsent.CookieConsentModalTitle');
 
-        $consentDescription = !empty($siteConfig->CookieConsentContent)
-            ? $siteConfig->CookieConsentContent
-            : _t('CookieConsent.CookieConsentContent');
+        $consentDescription = !empty($siteConfig->CookieConsentModalContent)
+            ? $siteConfig->CookieConsentModalContent
+            : _t('CookieConsent.CookieConsentModalContent');
 
         return [
             'consentModal' => [
@@ -56,7 +56,7 @@ class CookieConsentConfigBuilder
                 'showPreferencesBtn' => _t('CookieConsent.ButtonsManagePreferences', 'Manage preferences')
             ],
             'preferencesModal' => [
-                'title' => _t('CookieConsent.PreferencesModalTitle', 'Manage cookie preferences'),
+                'title' => _t('CookieConsent.PreferencesCookieConsentModalTitle', 'Manage cookie preferences'),
                 'acceptAllBtn' => _t('CookieConsent.ButtonsAcceptAll', 'Accept all'),
                 'acceptNecessaryBtn' => _t('CookieConsent.ButtonsRejectAll', 'Reject all'),
                 'savePreferencesBtn' => _t('CookieConsent.ButtonsSavePreferences', 'Save preferences'),
