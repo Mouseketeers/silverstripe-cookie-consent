@@ -16,16 +16,11 @@ class CookieConsentSiteConfigExtension extends DataExtension
     {
         $customCookiesField = GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create());
 
-        $serviceOptions = $this->getServicesOptionsFromCookieRegistry();
-        foreach ($this->owner->CookieServices() as $selectedService) {
-            $serviceOptions[$selectedService->Name] = $selectedService->Name;
-        }
-
         $cookieServicesField = Injector::inst()->create(
             'CookieServiceListboxField',
             'SelectedCookieServices',
             'Services',
-            $serviceOptions
+            $this->getServicesOptionsMapFromCookieRegistry()
         )
             ->setRelationName('CookieServices')
             ->setMultiple(true)
@@ -33,44 +28,73 @@ class CookieConsentSiteConfigExtension extends DataExtension
             ->setValue(array_values($this->owner->CookieServices()->column('Name')));
 
         $fields->addFieldsToTab('Root.CookieConsent', [
+            HeaderField::create('CookieConsentHeader', 'Cookie Modal Settings'),
             TextField::create('CookieConsentModalTitle', $this->owner->fieldLabel('CookieConsentModalTitle')),
             HtmlEditorField::create('CookieConsentModalContent', $this->owner->fieldLabel('CookieConsentModalContent'))->setRows(5),
+            HeaderField::create('CookieServicesHeader', 'Third-Party Services'),
             $cookieServicesField,
+            HeaderField::create('CustomCookiesHeader', 'Custom Cookies'),
             $customCookiesField
         ]);
     }
 
     protected function getServicesOptionsFromCookieRegistry()
     {
-        $jsonPath = CookieConsent::resolveCookieRegistryPath();
-        if ($jsonPath === null || !file_exists($jsonPath)) {
-            return [];
+        $cachedOptions = CookieConsentServiceOptionsCache::load();
+        if ($cachedOptions !== null) {
+            return $cachedOptions;
         }
-
-        $raw = file_get_contents($jsonPath);
-        if ($raw === false) {
-            return [];
-        }
-
-        $data = json_decode($raw, true);
-        if (!is_array($data)) {
-            return [];
-        }
-
-        $names = array_keys($data);
-        sort($names);
 
         $options = [];
-        foreach ($names as $serviceName) {
-            $normalizedName = trim((string) $serviceName);
-            if ($normalizedName === '') {
+        $jsonPath = CookieConsent::resolveCookieRegistryPath();
+        if ($jsonPath !== null && file_exists($jsonPath)) {
+            $raw = @file_get_contents($jsonPath);
+            if ($raw !== false) {
+                $data = json_decode($raw, true);
+                if (is_array($data)) {
+                    $names = array_keys($data);
+                    sort($names);
+
+                    foreach ($names as $serviceName) {
+                        $normalizedName = trim((string) $serviceName);
+                        if ($normalizedName === '') {
+                            continue;
+                        }
+
+                        $options[$normalizedName] = $normalizedName;
+                    }
+                }
+            }
+        }
+
+        CookieConsentServiceOptionsCache::save($options);
+
+        return $options;
+    }
+
+    protected function getServicesOptionsMapFromCookieRegistry()
+    {
+        $siteConfigId = isset($this->owner->ID) ? (int) $this->owner->ID : 0;
+        $cacheKey = CookieConsentServiceOptionsCache::getOptionsMapCacheKey($siteConfigId);
+
+        $cachedOptionsMap = CookieConsentServiceOptionsCache::load($cacheKey);
+        if ($cachedOptionsMap !== null) {
+            return $cachedOptionsMap;
+        }
+
+        $serviceOptionsMap = $this->getServicesOptionsFromCookieRegistry();
+        foreach ($this->owner->CookieServices() as $selectedService) {
+            $serviceName = trim((string) $selectedService->Name);
+            if ($serviceName === '') {
                 continue;
             }
 
-            $options[$normalizedName] = $normalizedName;
+            $serviceOptionsMap[$serviceName] = $serviceName;
         }
 
-        return $options;
+        CookieConsentServiceOptionsCache::save($serviceOptionsMap, $cacheKey);
+
+        return $serviceOptionsMap;
     }
 
     public function requireDefaultRecords()
@@ -91,10 +115,12 @@ class CookieConsentSiteConfigExtension extends DataExtension
     public function onAfterWrite()
     {
         CookieConsentConfigCache::clear();
+        CookieConsentServiceOptionsCache::clear();
     }
 
     public function onAfterDelete()
     {
         CookieConsentConfigCache::clear();
+        CookieConsentServiceOptionsCache::clear();
     }
 }

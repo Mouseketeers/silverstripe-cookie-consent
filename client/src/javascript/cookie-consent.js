@@ -56,7 +56,6 @@ function initCookieConsent() {
 
     const translations = serverSideConfig?.translations || {};
 
-    console.log('Cookie Consent Translations:', translations);
     const categories = serverSideConfig?.categories || {
         functional: {
             readOnly: true

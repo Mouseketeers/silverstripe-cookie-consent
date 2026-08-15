@@ -1,36 +1,9 @@
 ---
 Name: cookieconsent--extensions
 ---
-# CookieConsent:
-#   disable_default_js: false
-# SilverStripe\SiteConfig\SiteConfig:
 SiteConfig:
   extensions:
     - CookieConsentSiteConfigExtension
-
-# Page:
-#   extensions:
-#     - VanillaCookieConsent\Extensions\PageExtension
-
 Page_Controller:
   extensions:
-    # - VanillaCookieConsent\Extensions\PageControllerExtension
     - CookieConsentPageControllerExtension
-
-
-# SilverStripe\ORM\FieldType\DBHTMLText:
-#   extensions:
-#     - VanillaCookieConsent\Extensions\IFrameTinyExtension
-
-# ---
-# Only:
-#   moduleexists: 'tractorcow/silverstripe-fluent'
-# ---
-# SilverStripe\SiteConfig\SiteConfig:
-#   translate:
-#     - 'CCActive'
-#     - 'DisplayOnLogin'
-#     - 'CookieConsentModalTitle'
-#     - 'ModalDescription'
-#     - 'TextBlockTitle'
-#     - 'TextBlockDescription'
