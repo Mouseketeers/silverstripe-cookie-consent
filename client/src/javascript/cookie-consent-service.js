@@ -1,35 +1,21 @@
 import * as CookieConsent from 'vanilla-cookieconsent';
+import iframemanager from '@orestbida/iframemanager/src/iframemanager';
+
 
 export const cookieConsentService = {
 	getCookieConsentApi() {
 		return CookieConsent;
 	},
 	getServerSideConfiguration() {
-		// Read config from inline window object
 		return window.cookieConsentConfig || {};
 	},
-    initializeGtagConsent(requireExplicitConsent = true) {
+    initializeGtagConsent() {
         window.dataLayer = window.dataLayer || [];
         window.gtag = window.gtag || function () {
             window.dataLayer.push(arguments);
         };
-
-        window.gtag('consent', 'default', {
-            ad_storage: requireExplicitConsent ? 'denied' : 'granted',
-            ad_user_data: requireExplicitConsent ? 'denied' : 'granted',
-            ad_personalization: requireExplicitConsent ? 'denied' : 'granted',
-            analytics_storage: requireExplicitConsent ? 'denied' : 'granted',
-            functionality_storage: requireExplicitConsent ? 'denied' : 'granted',
-            personalization_storage: requireExplicitConsent ? 'denied' : 'granted',
-            security_storage: 'granted',
-        });
     },
     updateGtagConsent() {
-
-        if (typeof window.gtag !== 'function') {
-            return;
-        }
-
         window.gtag('consent', 'update', {
             functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
             personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',

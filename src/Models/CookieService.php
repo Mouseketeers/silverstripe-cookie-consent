@@ -21,7 +21,7 @@ class CookieService extends DataObject
 
     private static $default_sort = 'Name ASC';
 
-    public function getCookieDescriptionsForCategory($category)
+    public function getCookieTranslationsForCategory($category)
     {
         if (!$this->Name) {
             return new ArrayList();

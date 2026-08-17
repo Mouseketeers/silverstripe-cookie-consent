@@ -24,6 +24,10 @@ class CookieConsentConfigBuilder
 
         $siteConfig = SiteConfig::current_site_config();
 
+        // debug::dump($this->buildCategories($siteConfig));die();
+
+        // debug::dump($this->buildCategoryTranslations($siteConfig));die();
+
         $config = [
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
@@ -33,7 +37,7 @@ class CookieConsentConfigBuilder
                 'categories' => $this->buildDeclarationCategories($siteConfig)
             ],
             'translations' => [
-                $languageCode => $this->buildLanguageData($siteConfig)
+                $languageCode => $this->buildTranslations($siteConfig)
             ]
         ];
 
@@ -52,7 +56,7 @@ class CookieConsentConfigBuilder
         return $config['declaration'];
     }
     
-    protected function buildLanguageData($siteConfig)
+    protected function buildTranslations($siteConfig)
     {
         $consentTitle = !empty($siteConfig->CookieConsentModalTitle)
             ? $siteConfig->CookieConsentModalTitle
@@ -76,7 +80,7 @@ class CookieConsentConfigBuilder
                 'acceptNecessaryBtn' => _t('CookieConsent.ButtonsRejectAll', 'Reject all'),
                 'savePreferencesBtn' => _t('CookieConsent.ButtonsSavePreferences', 'Save preferences'),
                 'closeIconLabel' => _t('CookieConsent.PreferencesCloseIconLabel', 'Close'),
-                'sections' => $this->buildCategorySections($siteConfig)
+                'sections' => $this->buildCategoryTranslations($siteConfig)
             ]
         ];
     }
@@ -84,6 +88,7 @@ class CookieConsentConfigBuilder
     protected function buildCategories()
     {
         $configCategories = CookieConsent::getCategoryLabelsConfig();
+        
         if (!is_array($configCategories)) {
             return [];
         }
@@ -91,11 +96,11 @@ class CookieConsentConfigBuilder
         return $configCategories;
     }
 
-    protected function buildCategorySections($siteConfig)
+    protected function buildCategoryTranslations($siteConfig)
     {
         $sections = [];
         $configCategories = CookieConsent::getCategoryLabelsConfig();
-        $cookieDescriptions = $this->buildCookieDescriptions($siteConfig);
+        $cookieItems = $this->buildCookieTranslations($siteConfig);
 
         $CookieHeaders = [
             'name' => _t('CookieConsent.CookieName', 'Name'),
@@ -110,8 +115,8 @@ class CookieConsentConfigBuilder
                 continue;
             }
 
-            $cookies = isset($cookieDescriptions[$normalizedCategoryName])
-                ? $cookieDescriptions[$normalizedCategoryName]
+            $cookies = isset($cookieItems[$normalizedCategoryName])
+                ? $cookieItems[$normalizedCategoryName]
                 : [];
             $title = $this->getCategoryTitle($categoryId);
             $description = $this->getCategoryDescription($categoryId);
@@ -138,7 +143,7 @@ class CookieConsentConfigBuilder
     {
         $categories = [];
         $configCategories = CookieConsent::getCategoryLabelsConfig();
-        $cookieDescriptions = $this->buildCookieDescriptions($siteConfig);
+        $cookieItems = $this->buildCookieTranslations($siteConfig);
 
         foreach ($configCategories as $categoryId => $categoryConfig) {
             $normalizedCategoryName = $this->normalizeCategoryKey($categoryId);
@@ -146,8 +151,8 @@ class CookieConsentConfigBuilder
                 continue;
             }
 
-            $cookies = isset($cookieDescriptions[$normalizedCategoryName])
-                ? $cookieDescriptions[$normalizedCategoryName]
+            $cookies = isset($cookieItems[$normalizedCategoryName])
+                ? $cookieItems[$normalizedCategoryName]
                 : [];
             if (empty($cookies)) {
                 continue;
@@ -185,9 +190,9 @@ class CookieConsentConfigBuilder
         return strtolower(trim($category));
     }
 
-    protected function buildCookieDescriptions($siteConfig)
+    protected function buildCookieTranslations($siteConfig)
     {
-        $cookieDescriptions = [];
+        $cookieItems = [];
         $services = $siteConfig->CookieServices();
         $customCookies = $siteConfig->CustomCookies();
         $validCategories = [];
@@ -198,18 +203,18 @@ class CookieConsentConfigBuilder
 
         foreach ($services as $service) {
             foreach ($validCategories as $categoryKey => $isValid) {
-                foreach ($service->getCookieDescriptionsForCategory($categoryKey) as $cookie) {
+                foreach ($service->getCookieTranslationsForCategory($categoryKey) as $cookie) {
                     $targetCategory = $this->normalizeCategoryKey($cookie->Category);
 
                     if (empty($targetCategory) || !isset($validCategories[$targetCategory])) {
                         continue;
                     }
 
-                    if (!isset($cookieDescriptions[$targetCategory])) {
-                        $cookieDescriptions[$targetCategory] = [];
+                    if (!isset($cookieItems[$targetCategory])) {
+                        $cookieItems[$targetCategory] = [];
                     }
 
-                    $cookieDescriptions[$targetCategory][] = [
+                    $cookieItems[$targetCategory][] = [
                         'id' => (int) $cookie->ID,
                         'name' => $cookie->Name,
                         'provider' => $cookie->Service,
@@ -231,11 +236,11 @@ class CookieConsentConfigBuilder
                 continue;
             }
 
-            if (!isset($cookieDescriptions[$targetCategory])) {
-                $cookieDescriptions[$targetCategory] = [];
+            if (!isset($cookieItems[$targetCategory])) {
+                $cookieItems[$targetCategory] = [];
             }
 
-            $cookieDescriptions[$targetCategory][] = [
+            $cookieItems[$targetCategory][] = [
                 'id' => (int) $customCookie->ID,
                 'name' => $customCookie->Name,
                 'provider' => $customCookie->Service,
@@ -248,6 +253,6 @@ class CookieConsentConfigBuilder
             ];
         }
 
-        return $cookieDescriptions;
+        return $cookieItems;
     }
 }
