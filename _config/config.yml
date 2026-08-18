@@ -20,8 +20,11 @@ CookieConsent:
       enabled: false
     embeds:
       enabled: false
+      services:
+        youtube:
+          label: 'Youtube'
+        vimeo:
+          label: 'Vimeo'
   external_media:
-    youtube:
-      label: 'Youtube'
-    vimeo:
-      label: 'Vimeo'
+    - youtube
+    - vimeo

@@ -18,6 +18,11 @@ class CookieConsentConfigCache implements Flushable
 
     public static function getCacheKey()
     {
+        return self::getJsCacheKey();
+    }
+
+    public static function getJsCacheKey()
+    {
         $locale = i18n::get_locale();
         $siteConfig = SiteConfig::current_site_config();
         $siteConfigId = $siteConfig ? (int) $siteConfig->ID : 0;
@@ -26,7 +31,20 @@ class CookieConsentConfigCache implements Flushable
             ? self::getRegistryVersion()
             : '0';
 
-        return sprintf('cookie_consent_config_%s_site_%s_registry_%s', $locale, $siteConfigId, $registryVersion);
+        return sprintf('cookie_consent_config_js_%s_site_%s_registry_%s', $locale, $siteConfigId, $registryVersion);
+    }
+
+    public static function getDeclarationCacheKey()
+    {
+        $locale = i18n::get_locale();
+        $siteConfig = SiteConfig::current_site_config();
+        $siteConfigId = $siteConfig ? (int) $siteConfig->ID : 0;
+
+        $registryVersion = CookieConsent::shouldClearCookiesOnCookieRegistryUpdate()
+            ? self::getRegistryVersion()
+            : '0';
+
+        return sprintf('cookie_consent_config_declaration_%s_site_%s_registry_%s', $locale, $siteConfigId, $registryVersion);
     }
 
     protected static function getRegistryVersion()
