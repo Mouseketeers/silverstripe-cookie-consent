@@ -18,3 +18,10 @@ CookieConsent:
       enabled: false
     marketing:
       enabled: false
+    embeds:
+      enabled: false
+  external_media:
+    youtube:
+      label: 'Youtube'
+    vimeo:
+      label: 'Vimeo'

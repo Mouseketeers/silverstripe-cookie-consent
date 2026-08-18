@@ -3,11 +3,13 @@ import { cookieConsentService } from './cookie-consent-service';
 function initCookieConsent() {
 
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
-    const iframeManager = iframemanager();
+    const iframeManagerApi = iframemanager();
     const iframeServices = ['youtube'];
     const serverSideConfig = cookieConsentService.getServerSideConfiguration();
+    const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
     const isGoogleConsentModeEnabled = serverSideConfig?.isGoogleConsentModeEnabled || false;
     const isConsentRegistrationEnabled = serverSideConfig?.isConsentRegistrationEnabled || false;
+
 
     function updateGtagConsent() {
         if (isGoogleConsentModeEnabled) {
@@ -19,20 +21,6 @@ function initCookieConsent() {
         if (isConsentRegistrationEnabled) {
             cookieConsentService.registerConsent();
         }
-    }
-
-    function syncIframeServicesWithConsent() {
-        const isMarketingAccepted = cookieConsentApi.acceptedCategory('marketing');
-        const acceptedServices = cookieConsentApi.getUserPreferences()?.acceptedServices?.['marketing'] || [];
-
-        iframeServices.forEach((serviceName) => {
-            if (!isMarketingAccepted || !acceptedServices.includes(serviceName)) {
-                iframeManager.rejectService(serviceName);
-                return;
-            }
-
-            iframeManager.acceptService(serviceName);
-        });
     }
 
     function updateCookieConsentDeclaration() {
@@ -51,11 +39,10 @@ function initCookieConsent() {
         }
 
         if (acceptedCategoriesElement) {
-            const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
 
             const sections = serverSideConfig?.translations?.[defaultLanguage]?.preferencesModal?.sections || [];
             const getSectionTitleByCategory = (category) =>
-                sections.find((item) => item.linkedCategory === category)?.name || category;
+                sections.find((item) => item.linkedCategory === category)?.title;
             const acceptedCategoryTitles = (cookie?.categories || [])
                 .map((category) => getSectionTitleByCategory(category))
                 .filter(Boolean);
@@ -76,16 +63,10 @@ function initCookieConsent() {
         }
     };
 
-    categories['marketing'] = categories['marketing'] || {};
-    categories['marketing'].services = {
-        youtube: {
-            label: 'Youtube',
-            onAccept: () => iframeManager.acceptService('youtube'),
-            onReject: () => iframeManager.rejectService('youtube')
-        }
-    };
 
-    const defaultConfig = {
+    console.log(categories);
+
+    const cookieConsentConfig = {
         guiOptions: {
             consentModal: {
                 layout: 'box',
@@ -110,69 +91,76 @@ function initCookieConsent() {
             updateGtagConsent();
             registerConsent();
             updateCookieConsentDeclaration();
-            // syncIframeServicesWithConsent();
         },
         onConsent: () => {
             updateGtagConsent();
-            // syncIframeServicesWithConsent();
         },
         onChange: () => {
             updateGtagConsent();
             registerConsent();
             updateCookieConsentDeclaration();
-            // syncIframeServicesWithConsent();
 
         }
     };
-    cookieConsentApi.run(defaultConfig);
+    cookieConsentApi.run(cookieConsentConfig);
 
+    // const consentEmbedServices = categories?.embeds?.services || {};
 
-    iframeManager.run({
-        currLang: 'en',
-        services: {
-            youtube: {
-                embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}?{data-params}',
-                thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
-                iframe: {
-                    allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;'
-                },
-                languages: {
-                    en: {
-                        loadAllBtn: "Accept Marketing Cookies to View Video",
-                    }
+    const services = {
+        vimeo: {
+            embedUrl: 'https://player.vimeo.com/video/{data-id}',
+
+            iframe: {
+                allow: 'fullscreen; picture-in-picture, allowfullscreen;',
+            },
+
+            thumbnailUrl: async (dataId, setThumbnail) => {
+                const url = `https://vimeo.com/api/v2/video/${dataId}.json`;
+                const response = await (await fetch(url)).json();
+                const thumbnailUrl = response[0]?.thumbnail_large;
+                thumbnailUrl && setThumbnail(thumbnailUrl);
+            },
+
+            languages: {
+                en: {
+                    notice: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://vimeo.com/terms" target="_blank">terms and conditions</a> of vimeo.com.',
+                    loadBtn: 'Load video',
+                    loadAllBtn: "Don't ask again"
                 }
             }
         },
-        onChange: ({ changedServices, eventSource }) => {
-            if (eventSource.type === 'click') {
-                const isMarketingAccepted = cookieConsentApi.acceptedCategory('marketing');
+        youtube: {
+            embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
 
-                // if (!isMarketingAccepted) {
-                //     changedServices.forEach((serviceName) => iframeManager.rejectService(serviceName));
-                //     cookieConsentApi.showPreferences();
-                //     return;
-                // }
+            thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
 
-                const acceptedMarketingServices = cookieConsentApi.getUserPreferences()?.acceptedServices?.['marketing'] || [];
-                const servicesToAccept = [
-                    ...acceptedMarketingServices,
-                    ...changedServices,
-                ];
+            iframe: {
+                allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
+            },
 
-                cookieConsentApi.acceptService([...new Set(servicesToAccept)], 'marketing');
-                syncIframeServicesWithConsent();
-
-                // const acceptedMarketingServices = cookieConsentApi.getUserPreferences()?.acceptedServices?.marketing || [];
-                // console.log('Changed services:', changedServices);
-                // console.log('Accepted marketing services:', acceptedMarketingServices);
-                // const servicesToAccept = [
-                //     ...acceptedMarketingServices,
-                //     ...changedServices,
-                // ];
-
-                // cookieConsentApi.acceptService(servicesToAccept, 'marketing');                
+            languages: {
+                en: {
+                    notice: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.youtube.com/t/terms" target="_blank">terms and conditions</a> of youtube.com.',
+                    loadBtn: 'Load video',
+                    loadAllBtn: "Don't ask again"
+                }
             }
         }
-    });
+    };
+
+    const iframeManagerConfig = {
+        currLang: serverSideConfig?.defaultLanguage || 'en',
+        services,
+        onChange: ({ changedServices, eventSource }) => {
+            if (eventSource.type === 'click') {
+                const servicesToAccept = [
+                    ...cookieConsentApi.getUserPreferences().acceptedServices['embeds'],
+                    ...changedServices
+                ];
+                cookieConsentApi.acceptService(servicesToAccept, 'embeds');
+            }
+        }
+    }
+    iframeManagerApi.run(iframeManagerConfig);
 };
 document.addEventListener('DOMContentLoaded', initCookieConsent);

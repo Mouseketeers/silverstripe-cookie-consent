@@ -4,7 +4,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
 {
     private static $db = [
         'CookieConsentModalTitle' => 'Varchar(255)',
-        'CookieConsentModalContent' => 'HTMLText'
+        'CookieConsentModalContent' => 'HTMLText',
+        'ExternalMedia' => 'Varchar(255)'
     ];
 
     private static $has_many = [
@@ -14,18 +15,23 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
     public function updateCMSFields(FieldList $fields)
     {
-        $customCookiesField = GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create());
 
-        $cookieServicesField = Injector::inst()->create(
-            'CookieServiceListboxField',
+
+        $cookieServicesField = CookieServiceListboxField::create(
             'SelectedCookieServices',
             'Services',
             $this->getServicesOptionsMapFromCookieRegistry()
         )
-            ->setRelationName('CookieServices')
             ->setMultiple(true)
-            ->setSize(12)
             ->setValue(array_values($this->owner->CookieServices()->column('Name')));
+
+        $externalMediaField = ListboxField::create(
+            'ExternalMedia',
+            $this->owner->fieldLabel('ExternalMedia'),
+            $this->getExternalMediaOptions()
+        )
+            ->setMultiple(true)
+            ->setValue($this->getExternalMediaValueArray());
 
         $fields->addFieldsToTab('Root.CookieConsent', [
             HeaderField::create('CookieConsentHeader', 'Cookie Modal Settings'),
@@ -33,9 +39,50 @@ class CookieConsentSiteConfigExtension extends DataExtension
             HtmlEditorField::create('CookieConsentModalContent', $this->owner->fieldLabel('CookieConsentModalContent'))->setRows(5),
             HeaderField::create('CookieServicesHeader', 'Third-Party Services'),
             $cookieServicesField,
+            $externalMediaField,
             HeaderField::create('CustomCookiesHeader', 'Custom Cookies'),
-            $customCookiesField
+            GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create())
         ]);
+    }
+
+    protected function getExternalMediaOptions()
+    {
+        $configuredMedia = CookieConsent::getExternalMediaConfig();
+        if (!is_array($configuredMedia)) {
+            return [];
+        }
+
+        $options = [];
+        foreach ($configuredMedia as $key => $config) {
+            $optionKey = trim((string) $key);
+            if ($optionKey === '') {
+                continue;
+            }
+
+            $label = is_array($config) && isset($config['label'])
+                ? trim((string) $config['label'])
+                : '';
+
+            $options[$optionKey] = $label !== '' ? $label : $optionKey;
+        }
+
+        return $options;
+    }
+
+    protected function getExternalMediaValueArray()
+    {
+        $rawValue = $this->owner->ExternalMedia;
+
+        if (is_array($rawValue)) {
+            return array_values(array_filter(array_map('trim', $rawValue)));
+        }
+
+        $stringValue = trim((string) $rawValue);
+        if ($stringValue === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $stringValue))));
     }
 
     protected function getServicesOptionsFromCookieRegistry()
@@ -110,6 +157,26 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
             $config->write();
         }
+    }
+
+    public function onBeforeWrite()
+    {
+        $rawValue = $this->owner->ExternalMedia;
+
+        if (is_array($rawValue)) {
+            $normalizedValues = array_values(array_filter(array_map('trim', $rawValue)));
+            $this->owner->ExternalMedia = implode(',', $normalizedValues);
+            return;
+        }
+
+        $stringValue = trim((string) $rawValue);
+        if ($stringValue === '') {
+            $this->owner->ExternalMedia = '';
+            return;
+        }
+
+        $normalizedValues = array_values(array_filter(array_map('trim', explode(',', $stringValue))));
+        $this->owner->ExternalMedia = implode(',', $normalizedValues);
     }
 
     public function onAfterWrite()

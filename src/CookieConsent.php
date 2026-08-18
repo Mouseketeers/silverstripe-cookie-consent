@@ -37,6 +37,12 @@ class CookieConsent
         return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
     }  
 
+    public static function getExternalMediaConfig()
+    {
+        $config = Config::inst()->get('CookieConsent', 'external_media');
+        return is_array($config) ? $config : [];
+    }
+
     public static function getCategoryLabelsConfig()
     {
         $categories = Config::inst()->get('CookieConsent', 'categories');
