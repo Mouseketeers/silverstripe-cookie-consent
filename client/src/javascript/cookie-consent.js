@@ -6,15 +6,8 @@ function initCookieConsent() {
     const iframeManagerApi = iframemanager();
     const serverSideConfig = cookieConsentService.getServerSideConfiguration();
     const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
-    const isGoogleConsentModeEnabled = serverSideConfig?.isGoogleConsentModeEnabled || false;
-    const isConsentRegistrationEnabled = serverSideConfig?.isConsentRegistrationEnabled || false;
 
-
-    if (isGoogleConsentModeEnabled) {
-        cookieConsentService.initializeGtagConsent();
-    }
-
-    const categories = cookieConsentService.getCategories();
+    cookieConsentService.init();
 
     const cookieConsentConfig = {
         guiOptions: {
@@ -31,58 +24,31 @@ function initCookieConsent() {
                 flipButtons: false
             }
         },
-        categories,
+        categories: cookieConsentService.getConsentCategories(),
         language: {
             autoDetect: 'document',
-            default: serverSideConfig?.defaultLanguage || 'en',
-            translations: serverSideConfig?.translations || {},
+            default: cookieConsentService.getDefaultLanguage(),
+            translations: cookieConsentService.getCookieConsentTranslations(),
         },
         onFirstConsent: () => {
-            updateGtagConsent();
-            registerConsent();
+            cookieConsentService.updateGtagConsent();
+            cookieConsentService.registerConsent();
             updateCookieConsentDeclaration();
         },
         onConsent: () => {
-            updateGtagConsent();
+            cookieConsentService.updateGtagConsent();
         },
         onChange: () => {
-            updateGtagConsent();
-            registerConsent();
+            cookieConsentService.updateGtagConsent();
+            cookieConsentService.registerConsent();
             updateCookieConsentDeclaration();
         }
     };
 
+    const iframeManagerConfig = cookieConsentService.buildIframeManagerConfig();
 
-    const externalMediaServices = cookieConsentService.getExternalMediaServices();
-
-    const iframeManagerConfig = {
-        currLang: serverSideConfig?.defaultLanguage || 'en',
-        services: externalMediaServices,
-        onChange: ({ changedServices, eventSource }) => {
-            if (eventSource.type === 'click') {
-                const servicesToAccept = [
-                    ...cookieConsentApi.getUserPreferences().acceptedServices['embeds'],
-                    ...changedServices
-                ];
-                cookieConsentApi.acceptService(servicesToAccept, 'embeds');
-            }
-        }
-    }
-    
-    cookieConsentApi.run(cookieConsentConfig);    
+    cookieConsentApi.run(cookieConsentConfig);
     iframeManagerApi.run(iframeManagerConfig);
-
-    function updateGtagConsent() {
-        if (isGoogleConsentModeEnabled) {
-            cookieConsentService.updateGtagConsent();
-        }
-    }
-
-    function registerConsent() {
-        if (isConsentRegistrationEnabled) {
-            cookieConsentService.registerConsent();
-        }
-    }
 
     function updateCookieConsentDeclaration() {
 
@@ -90,7 +56,6 @@ function initCookieConsent() {
         const consentIdElement = document.getElementById('cookie-consent-id');
         const consentTimestampElement = document.getElementById('cookie-consent-timestamp');
         const acceptedCategoriesElement = document.getElementById('cookie-consent-accepted-categories');
-        const translations = serverSideConfig?.translations || {};
 
         if (consentIdElement) {
             consentIdElement.textContent = cookie?.consentId || '';
@@ -100,16 +65,9 @@ function initCookieConsent() {
         }
 
         if (acceptedCategoriesElement) {
-
-            const sections = serverSideConfig?.translations?.[defaultLanguage]?.preferencesModal?.sections || [];
-            const getSectionTitleByCategory = (category) =>
-                sections.find((item) => item.linkedCategory === category)?.title;
-            const acceptedCategoryTitles = (cookie?.categories || [])
-                .map((category) => getSectionTitleByCategory(category))
-                .filter(Boolean);
-
+            const acceptedCategoryTitles = cookieConsentService.getAcceptedCategoryTitles(cookie);
             acceptedCategoriesElement.textContent = acceptedCategoryTitles.join(', ') || '';
         }
-    }    
+    }
 };
 document.addEventListener('DOMContentLoaded', initCookieConsent);

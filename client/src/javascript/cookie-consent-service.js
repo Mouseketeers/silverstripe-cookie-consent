@@ -1,7 +1,15 @@
 import * as CookieConsent from 'vanilla-cookieconsent';
 import iframemanager from '@orestbida/iframemanager/src/iframemanager';
 
-const externalMediaServices = {
+const defaultExternalMediaServices = {
+    youtube: {
+        embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
+        thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
+        iframe: {
+            allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
+        },
+        languages: {}
+    },
     vimeo: {
         embedUrl: 'https://player.vimeo.com/video/{data-id}',
         iframe: {
@@ -14,34 +22,75 @@ const externalMediaServices = {
             thumbnailUrl && setThumbnail(thumbnailUrl);
         },
         languages: {}
-    },
-    youtube: {
-        embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
-        thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
-        iframe: {
-            allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
-        },
-        languages: {}
     }
 };
 
 export const cookieConsentService = {
+    init() {
+        if(this.isGoogleConsentModeEnabled()) {
+            cookieConsentService.initializeGtagConsent();
+        }
+    },
     getCookieConsentApi() {
         return CookieConsent;
     },
-    getIframeManagerApi() {
-        return iframemanager();
+    isGoogleConsentModeEnabled() {
+        const serverSideConfig = this.getServerSideConfiguration();
+        return serverSideConfig?.isGoogleConsentModeEnabled || false;
+    },
+    isConsentRegistrationEnabled() {
+        const serverSideConfig = this.getServerSideConfiguration();
+        return serverSideConfig?.isConsentRegistrationEnabled || false;
+    },
+    getDefaultLanguage() {
+        const serverSideConfig = this.getServerSideConfiguration();
+        return serverSideConfig?.defaultLanguage || 'en';
+    },
+    getCookieConsentTranslations() {
+        const serverSideConfig = this.getServerSideConfiguration();
+        return serverSideConfig?.translations || {};
+    },
+    getExternalMediaTranslations() {
+        const serverSideConfig = this.getServerSideConfiguration();
+        return serverSideConfig?.externalMediaServices?.services || {};
     },
     getServerSideConfiguration() {
         return window.cookieConsentConfig || {};
     },
-    getCategories() {
+    getConsentCategories() {
         const serverSideConfig = this.getServerSideConfiguration();
-        return serverSideConfig?.categories || {
+        const categories = serverSideConfig?.categories || {
             functional: {
                 readOnly: true
             }
         };
+
+        if (!serverSideConfig?.externalMediaServices?.services) {
+            return categories;
+        }
+
+        return Object.fromEntries(
+            Object.entries(categories).map(([categoryKey, categoryConfig]) => {
+                const services = categoryConfig?.services;
+
+                if (!services) {
+                    return [categoryKey, categoryConfig];
+                }
+
+                const mappedServices = Object.fromEntries(
+                    Object.entries(services).map(([serviceKey, serviceConfig]) => [
+                        serviceKey,
+                        {
+                            ...serviceConfig,
+                            onAccept: () => window.iframemanager().acceptService(serviceKey),
+                            onReject: () => window.iframemanager().rejectService(serviceKey)
+                        }
+                    ])
+                );
+
+                return [categoryKey, { ...categoryConfig, services: mappedServices }];
+            })
+        );
     },
     initializeGtagConsent() {
         window.dataLayer = window.dataLayer || [];
@@ -50,6 +99,11 @@ export const cookieConsentService = {
         };
     },
     updateGtagConsent() {
+
+        if(!this.isGoogleConsentModeEnabled) {
+            return;
+        }
+        
         window.gtag('consent', 'update', {
             functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
             personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
@@ -61,6 +115,11 @@ export const cookieConsentService = {
         });
     },
     registerConsent() {
+        
+        if(!this.isConsentRegistrationEnabled()) {
+            return;
+        }
+        
         const cookie = CookieConsent.getCookie();
         const preferences = CookieConsent.getUserPreferences();
 
@@ -96,24 +155,46 @@ export const cookieConsentService = {
             console.error('Failed to register consent', error);
         });
     },
+    buildIframeManagerConfig() {
+       
+        return {
+            currLang: this.getDefaultLanguage(),
+            services: this.getExternalMediaServices(),
+            onChange: ({ changedServices, eventSource }) => {
+                if (eventSource.type === 'click') {
+                    const servicesToAccept = [
+                        ...CookieConsent.getUserPreferences().acceptedServices['embeds'],
+                        ...changedServices
+                    ];
+                    CookieConsent.acceptService(servicesToAccept, 'embeds');
+                }
+            }
+        };
+    },
+    getAcceptedCategoryTitles(cookie) {
+        const translations = this.getCookieConsentTranslations();
+        const defaultLanguage = this.getDefaultLanguage();
+        const sections = translations?.[defaultLanguage]?.preferencesModal?.sections || [];
+
+        const getSectionTitleByCategory = (category) =>
+            sections.find((item) => item.linkedCategory === category)?.title;
+
+        return (cookie?.categories || [])
+            .map((category) => getSectionTitleByCategory(category))
+            .filter(Boolean);
+    },
     getExternalMediaServices() {
-        const translations = window.cookieConsentConfig?.externalMediaServices?.services || {};
+        const externalMediaTranslations = this.getExternalMediaTranslations();
 
         return Object.fromEntries(
-            Object.entries({ ...externalMediaServices, ...translations }).map(([key, config]) => [
+            Object.entries({ ...defaultExternalMediaServices, ...externalMediaTranslations }).map(([key, config]) => [
                 key,
                 {
-                    ...externalMediaServices[key],
+                    ...defaultExternalMediaServices[key],
                     ...config,
                     languages: {
-                        ...(externalMediaServices[key]?.languages || {}),
+                        ...(defaultExternalMediaServices[key]?.languages || {}),
                         ...(config.languages || {})
-                    },
-                    onAccept: () => {
-                        window.iframemanager().acceptService(key);
-                    },
-                    onReject: () => {
-                        window.iframemanager().rejectService(key);
                     }
                 }
             ])
