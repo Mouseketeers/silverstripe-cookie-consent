@@ -32,7 +32,7 @@ class CookieConsentConfigBuilder
             'translations' => [
                 $languageCode => $this->buildTranslations($siteConfig, $categories)
             ],
-            'iframeManager' => [
+            'externalMediaServices' => [
                 'services' => $this->buildExternalMediaServices($siteConfig, $languageCode)
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
@@ -50,7 +50,7 @@ class CookieConsentConfigBuilder
         if ($cachedDeclaration !== false && is_string($cachedDeclaration)) {
             $decodedDeclaration = @unserialize($cachedDeclaration);
             if (is_array($decodedDeclaration)) {
-                return $decodedDeclaration;
+                return $this->buildTemplateDeclarationData($decodedDeclaration);
             }
         }
 
@@ -63,7 +63,48 @@ class CookieConsentConfigBuilder
 
         $cache->save(serialize($declaration), $cacheKey);
 
-        return $declaration;
+        return $this->buildTemplateDeclarationData($declaration);
+    }
+
+    protected function buildTemplateDeclarationData(array $declaration)
+    {
+        $categories = new ArrayList();
+        $declarationCategories = isset($declaration['categories']) && is_array($declaration['categories'])
+            ? $declaration['categories']
+            : [];
+
+        foreach ($declarationCategories as $categoryData) {
+            if (!is_array($categoryData)) {
+                continue;
+            }
+
+            $cookieDescriptions = new ArrayList();
+            $cookies = isset($categoryData['CookieDescriptions']) && is_array($categoryData['CookieDescriptions'])
+                ? $categoryData['CookieDescriptions']
+                : [];
+
+            foreach ($cookies as $cookieData) {
+                if (!is_array($cookieData)) {
+                    continue;
+                }
+
+                $cookieDescriptions->push(ArrayData::create($cookieData));
+            }
+
+            if (!$cookieDescriptions->exists()) {
+                continue;
+            }
+
+            $categories->push(ArrayData::create([
+                'Title' => isset($categoryData['Title']) ? $categoryData['Title'] : '',
+                'Content' => isset($categoryData['Content']) ? $categoryData['Content'] : '',
+                'CookieDescriptions' => $cookieDescriptions
+            ]));
+        }
+
+        return [
+            'categories' => $categories
+        ];
     }
 
     protected function buildTranslations($siteConfig, $categories)
@@ -132,24 +173,51 @@ class CookieConsentConfigBuilder
 
     protected function buildDeclarationCategories($siteConfig, $categories)
     {
-
+        $declarationCategories = [];
         $cookieItems = $this->buildCookieTranslations($siteConfig);
 
         foreach ($categories as $categoryKey => $categoryData) {
-
             $cookies = isset($cookieItems[$categoryKey]) ? $cookieItems[$categoryKey] : [];
+
             if (empty($cookies) && empty($categoryData['services'])) {
                 continue;
             }
 
-            $categories[] = [
-                'title' => $this->getCategoryTitle($categoryKey),
-                'content' => $this->getCategoryDescription($categoryKey),
-                'cookies' => $cookies
+            usort($cookies, function ($left, $right) {
+                return (int) ($right['id'] ?? 0) <=> (int) ($left['id'] ?? 0);
+            });
+
+            $cookieDescriptions = [];
+
+            foreach ($cookies as $cookieData) {
+                if (!is_array($cookieData)) {
+                    continue;
+                }
+
+                $cookieDescriptions[] = [
+                    'ID' => (int) ($cookieData['id'] ?? 0),
+                    'Name' => $cookieData['name'] ?? '',
+                    'Vendor' => $cookieData['vendor'] ?? '',
+                    'Service' => $cookieData['service'] ?? '',
+                    'Domain' => $cookieData['domain'] ?? '',
+                    'PrivacyPolicyURL' => $cookieData['privacyPolicyURL'] ?? '',
+                    'Description' => $cookieData['description'] ?? '',
+                    'Expiration' => $cookieData['expiration'] ?? ''
+                ];
+            }
+
+            if (empty($cookieDescriptions)) {
+                continue;
+            }
+
+            $declarationCategories[] = [
+                'Title' => $this->getCategoryTitle($categoryKey),
+                'Content' => $this->getCategoryDescription($categoryKey),
+                'CookieDescriptions' => $cookieDescriptions
             ];
         }
-        debug::dump($categories);
-        return $categories;
+
+        return $declarationCategories;
     }
 
     protected function getCategoryTitle($categoryId)

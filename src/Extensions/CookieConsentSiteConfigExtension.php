@@ -16,11 +16,10 @@ class CookieConsentSiteConfigExtension extends DataExtension
     public function updateCMSFields(FieldList $fields)
     {
 
-
         $cookieServicesField = CookieServiceListboxField::create(
             'SelectedCookieServices',
             'Services',
-            $this->getServicesOptionsMapFromCookieRegistry()
+            $this->getServicesOptionsMap()
         )
             ->setMultiple(true)
             ->setValue(array_values($this->owner->CookieServices()->column('Name')));
@@ -28,7 +27,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
         $externalMediaField = ListboxField::create(
             'ExternalMedia',
             $this->owner->fieldLabel('ExternalMedia'),
-            $this->getExternalMediaOptions()
+            $this->getExternalMediaOptionsMap()
         )
             ->setMultiple(true)
             ->setValue($this->getExternalMediaValueArray());
@@ -45,12 +44,15 @@ class CookieConsentSiteConfigExtension extends DataExtension
         ]);
     }
 
-    protected function getExternalMediaOptions()
+    protected function getExternalMediaOptionsMap()
     {
         $configuredMedia = CookieConsent::getExternalMediaConfig();
+
         if (!is_array($configuredMedia)) {
             return [];
         }
+
+        
 
         $options = [];
         foreach ($configuredMedia as $key => $config) {
@@ -119,7 +121,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
         return $options;
     }
 
-    protected function getServicesOptionsMapFromCookieRegistry()
+    protected function getServicesOptionsMap()
     {
         $siteConfigId = isset($this->owner->ID) ? (int) $this->owner->ID : 0;
         $cacheKey = CookieConsentServiceOptionsCache::getOptionsMapCacheKey($siteConfigId);

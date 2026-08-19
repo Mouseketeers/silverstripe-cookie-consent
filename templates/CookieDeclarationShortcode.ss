@@ -26,7 +26,7 @@
                     </tr>
                 </thead>
                 <tbody class="cookie-consent__table-body">
-                    <% loop $CookieDescriptions.Sort('ID', 'DESC') %>
+                    <% loop $CookieDescriptions %>
                         <tr class="cookie-consent__table-row">
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--name">$Name</td>
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--provider">$Service</td>

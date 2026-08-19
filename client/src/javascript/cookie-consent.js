@@ -8,36 +8,13 @@ function initCookieConsent() {
     const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
     const isGoogleConsentModeEnabled = serverSideConfig?.isGoogleConsentModeEnabled || false;
     const isConsentRegistrationEnabled = serverSideConfig?.isConsentRegistrationEnabled || false;
-    const iframeMangerServices = serverSideConfig?.iframeManager?.services || {};
+
 
     if (isGoogleConsentModeEnabled) {
         cookieConsentService.initializeGtagConsent();
     }
 
-    const categories = serverSideConfig?.categories || {
-        functional: {
-            readOnly: true
-        }
-    };
-
-    if(iframeMangerServices) {
-        console.log('iframeMangerServices', iframeMangerServices);
-    }
-
-    for (const category in categories) {
-        let services = categories[category].services;
-
-        if (services === undefined) continue;
-
-         for (const serviceKey in services) {
-             services[serviceKey].onAccept = () => {
-                 window.iframemanager().acceptService(serviceKey);
-             };
-             services[serviceKey].onReject = () => {
-                 window.iframemanager().rejectService(serviceKey);
-             };
-         }
-    }
+    const categories = cookieConsentService.getCategories();
 
     const cookieConsentConfig = {
         guiOptions: {
@@ -74,38 +51,13 @@ function initCookieConsent() {
             updateCookieConsentDeclaration();
         }
     };
-    cookieConsentApi.run(cookieConsentConfig);
 
-    // const iframeMangerServices = serverSideConfig?.iframeManager?.services || {};
 
-    const services = {
-        vimeo: {
-            embedUrl: 'https://player.vimeo.com/video/{data-id}',
-            iframe: {
-                allow: 'fullscreen; picture-in-picture, allowfullscreen;',
-            },
-
-            thumbnailUrl: async (dataId, setThumbnail) => {
-                const url = `https://vimeo.com/api/v2/video/${dataId}.json`;
-                const response = await (await fetch(url)).json();
-                const thumbnailUrl = response[0]?.thumbnail_large;
-                thumbnailUrl && setThumbnail(thumbnailUrl);
-            },
-            languages: iframeMangerServices?.vimeo?.languages || {}
-        },
-        youtube: {
-            embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
-            thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
-            iframe: {
-                allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
-            },
-            languages: iframeMangerServices?.youtube?.languages || {}
-        }
-    };
+    const externalMediaServices = cookieConsentService.getExternalMediaServices();
 
     const iframeManagerConfig = {
         currLang: serverSideConfig?.defaultLanguage || 'en',
-        services,
+        services: externalMediaServices,
         onChange: ({ changedServices, eventSource }) => {
             if (eventSource.type === 'click') {
                 const servicesToAccept = [
@@ -116,6 +68,8 @@ function initCookieConsent() {
             }
         }
     }
+    
+    cookieConsentApi.run(cookieConsentConfig);    
     iframeManagerApi.run(iframeManagerConfig);
 
     function updateGtagConsent() {

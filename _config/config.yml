@@ -25,6 +25,10 @@ CookieConsent:
           label: 'Youtube'
         vimeo:
           label: 'Vimeo'
+        facebook:
+          label: 'Facebook'
   external_media:
-    - youtube
-    - vimeo
+    youtube:
+      label: 'Youtube'
+    vimeo:
+      label: 'Vimeo'
