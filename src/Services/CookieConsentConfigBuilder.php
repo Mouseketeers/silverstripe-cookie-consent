@@ -281,8 +281,28 @@ class CookieConsentConfigBuilder
         $customCookies = $siteConfig->CustomCookies();
         $categories = CookieConsent::getCategoryConfig();
 
-        foreach ($services as $service) {
-            foreach (array_keys($categories) as $categoryKey) {
+        // debug::dump($categories);
+
+        // $test = _t('CookieConsent.Cookies.cc_cookie.name', 'Cookie Consent');
+
+        // debug::dump($test);
+        // die();
+        // _t('CookieConsent.Cookies.' . $cookie . '.name'),
+        foreach ($categories as $categoryKey => $categoryData) {
+            foreach ($categoryData['cookies'] as $cookieName) {
+                $cookieItems[$categoryKey][] = [
+                    'name' => $cookieName,
+                    'provider' => $_SERVER['HTTP_HOST'],
+                    'service' => $_SERVER['HTTP_HOST'],
+                    'description' => _t('CookieConsent.Cookies.' . $cookieName . '.description', ''),
+                    'domain' => $_SERVER['HTTP_HOST'],
+                    'expiration' => _t('CookieConsent.Cookies.' . $cookieName . '.expiration', '')
+                ];
+                // debug::dump($cookie);
+            }
+            foreach ($services as $service) {
+                
+
                 foreach ($service->getCookieTranslationsForCategory($categoryKey) as $cookie) {
 
                     if (!isset($cookieItems[$categoryKey])) {
@@ -303,7 +323,6 @@ class CookieConsentConfigBuilder
                 }
             }
         }
-
         foreach ($customCookies as $customCookie) {
             $cookieItems[$customCookie->Category][] = [
                 'id' => (int) $customCookie->ID,

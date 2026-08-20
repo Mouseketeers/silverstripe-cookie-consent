@@ -1,7 +1,7 @@
 en:
   CookieConsent:
     CookieConsentModalTitle: 'We use cookies'
-    CookieConsentModalContent: '<p>We use cookies to personalise content and ads, to provide social media features and to analyse our traffic. We also share information about your use of our site with our social media, advertising and analytics partners who may combine it with other information that you\'ve provided to them or that they\'ve collected from your use of their services.</p>'
+    CookieConsentModalContent: "<p>We use cookies to personalise content and ads, to provide social media features and to analyse our traffic. We also share information about your use of our site with our social media, advertising and analytics partners who may combine it with other information that you've provided to them or that they've collected from your use of their services.</p>"
     PreferencesCookieConsentModalTitle: 'Manage cookie preferences'
     ButtonsAcceptAll: 'Accept all'
     ButtonsRejectAll: 'Reject all'
@@ -12,6 +12,8 @@ en:
     CookieProvider: 'Provider'
     CookieDescription: 'Description'
     CookieExpiration: 'Expiration'
+    CookieConsentCookieDecrtiption:	"Stores the user's cookie preferences for this domain"
+    ExternalMediaCookieDescription: "Stores the user's accept to load external media content from third party providers"
     Category:
       functional: 'Necessary'
       analytics: 'Analytics'
@@ -25,3 +27,24 @@ en:
       Notice_youtube: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.youtube.com/t/terms" target="_blank">terms and conditions</a> of youtube.com.'
       Notice_vimeo: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://vimeo.com/terms" target="_blank">terms and conditions</a> of vimeo.com.'
       Notice_yumpu: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.yumpu.com/en/info/privacy_policy" target="_blank">privacy policy</a> of yumpu.com.'
+    Cookies:
+      cc_cookie:
+        name: 'cc_cookie'
+        provider: 'This website'
+        description: "Stores the user's cookie preferences for this domain"
+        expiration: '1 year'
+      im_youtube:
+        name: 'YouTube Iframe'
+        provider: 'YouTube'
+        description: "Stores the user's accept to load external media content from YouTube"
+        expiration: '1 year'
+      im_vimeo:
+        name: 'Vimeo Iframe'
+        provider: 'Vimeo'
+        description: "Stores the user's accept to load external media content from Vimeo"
+        expiration: '1 year'
+      im_googlemaps:
+        name: 'Google Maps Iframe'
+        provider: 'Google Maps'
+        description: "Stores the user's accept to load external media content from Google Maps"
+        expiration: '1 year'
