@@ -73,29 +73,42 @@ export const cookieConsentService = {
             externalMediaServiceTranslations: serverSideConfig?.externalMediaServices?.services || {},
             isGoogleConsentModeEnabled: serverSideConfig?.isGoogleConsentModeEnabled || false,
             isConsentRegistrationEnabled: serverSideConfig?.isConsentRegistrationEnabled || false,
-            isEmbedsManagementEnabled: serverSideConfig?.isEmbedsManagementEnabled || false,
+            isExternalMediaManagementEnabled: serverSideConfig?.isExternalMediaManagementEnabled || false,
             externalMediaCategory: serverSideConfig?.externalMediaCategory || 'embeds',
         };
     },
     getConsentCategories() {
-
         const { categories, externalMediaCategory } = this.getConsentSettings();
-        const externalMediaServices = this.getExternalMediaServices();
 
-        if (!externalMediaCategory || !Object.keys(externalMediaServices).length) {
+        if (!externalMediaCategory) {
             return categories;
         }
+
+        const categoryServices = categories?.[externalMediaCategory]?.services || {};
 
         const mergedCategories = {
             ...categories,
             [externalMediaCategory]: {
                 ...(categories?.[externalMediaCategory] || {}),
-                services: {
-                    ...(categories?.[externalMediaCategory]?.services || {}),
-                    ...externalMediaServices
-                }
+                services: Object.fromEntries(
+                    Object.entries(categoryServices).map(([key, service]) => [
+                        key,
+                        {
+                            ...service,
+                            onAccept: () => {
+                                console.log('Accepting iframe service:', key);
+                                return window.iframemanager().acceptService(key);
+                            },
+                            onReject: () => {
+                                console.log('Rejecting iframe service:', key);
+                                return window.iframemanager().rejectService(key);
+                            }
+                        }
+                    ])
+                )
             }
         };
+        // console.log('mergedCategories', mergedCategories);
         return mergedCategories;
     },
     initializeGtagConsent() {
@@ -184,7 +197,7 @@ export const cookieConsentService = {
         });
     },
     buildIframeManagerConfig() {
-        const { isEmbedsManagementEnabled, externalMediaCategory } = this.getConsentSettings();
+        const { externalMediaCategory } = this.getConsentSettings();
 
         return {
             currLang: this.getDefaultLanguage(),
@@ -223,8 +236,6 @@ export const cookieConsentService = {
                 {
                     ...defaultExternalMediaServices[key],
                     ...config,
-                    onAccept: () => window.iframemanager().acceptService(key),
-                    onReject: () => window.iframemanager().rejectService(key),
                     languages: {
                         ...(defaultExternalMediaServices[key]?.languages || {}),
                         ...(config.languages || {})

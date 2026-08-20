@@ -47,8 +47,12 @@ function initCookieConsent() {
 
     const iframeManagerConfig = cookieConsentService.buildIframeManagerConfig();
 
+    console.log('cookieConsentConfig', cookieConsentConfig);
+
     cookieConsentApi.run(cookieConsentConfig);
     iframeManagerApi.run(iframeManagerConfig);
+
+    // console.log(iframeManagerConfig);
 
     function updateCookieConsentDeclaration() {
 
