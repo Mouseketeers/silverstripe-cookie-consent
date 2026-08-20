@@ -6,7 +6,7 @@
             <span class="cookie-consent__label cookie-consent__label--categories"><%t CookieConsent.AcceptedCategories 'Accepted Categories' %></span>: <span class="cookie-consent__value cookie-consent__value--categories" id="cookie-consent-accepted-categories">$AcceptedCategories</span>
         </p>
         <p class="cookie-consent__actions">
-            <a class="cookie-consent__button" type="button" data-cc="show-consentModal"><%t CookieConsent.ShowConsentModal 'Change Your Cookie Preferences' %></a>
+            <a class="cookie-consent__button" type="button" data-cc="show-preferencesModal"><%t CookieConsent.ShowConsentModal 'Change Your Cookie Preferences' %></a>
         </p>
     <% end_if %>
 

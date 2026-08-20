@@ -59,6 +59,9 @@ export const cookieConsentService = {
     getServerSideConfiguration() {
         return window.cookieConsentConfig || {};
     },
+    getGuiOptions() {
+        return this.getConsentSettings().guiOptions;
+    },
     getConsentSettings() {
         const serverSideConfig = this.getServerSideConfiguration();
 
@@ -69,6 +72,7 @@ export const cookieConsentService = {
                 }
             },
             defaultLanguage: serverSideConfig?.defaultLanguage || 'en',
+            guiOptions: serverSideConfig?.guiOptions || {},
             translations: serverSideConfig?.translations || {},
             externalMediaServiceTranslations: serverSideConfig?.externalMediaServices?.services || {},
             isGoogleConsentModeEnabled: serverSideConfig?.isGoogleConsentModeEnabled || false,
@@ -95,14 +99,8 @@ export const cookieConsentService = {
                         key,
                         {
                             ...service,
-                            onAccept: () => {
-                                console.log('Accepting iframe service:', key);
-                                return window.iframemanager().acceptService(key);
-                            },
-                            onReject: () => {
-                                console.log('Rejecting iframe service:', key);
-                                return window.iframemanager().rejectService(key);
-                            }
+                            onAccept: () => window.iframemanager().acceptService(key),
+                            onReject: () => window.iframemanager().rejectService(key)
                         }
                     ])
                 )

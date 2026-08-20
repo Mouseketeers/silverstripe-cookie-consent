@@ -8,20 +8,7 @@ function initCookieConsent() {
     cookieConsentService.init();
 
     const cookieConsentConfig = {
-        guiOptions: {
-            consentModal: {
-                layout: 'box',
-                position: 'bottom left',
-                equalWeightButtons: true,
-                flipButtons: false
-            },
-            preferencesModal: {
-                layout: 'box',
-                position: 'right',
-                equalWeightButtons: true,
-                flipButtons: false
-            }
-        },
+        guiOptions: cookieConsentService.getGuiOptions(),
         categories: cookieConsentService.getConsentCategories(),
         language: {
             autoDetect: 'document',
