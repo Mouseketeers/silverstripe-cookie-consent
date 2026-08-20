@@ -37,13 +37,34 @@ class CookieConsent
         return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
     }  
 
-    public static function getExternalMediaConfig()
+    public static function isConsentRegistrationEnabled()
     {
-        $config = Config::inst()->get('CookieConsent', 'external_media');
-        return is_array($config) ? $config : [];
+        return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
     }
 
-    public static function getCategoryLabelsConfig()
+    public static function isExternalMediaManagementEnabled() {
+        return Config::inst()->get('CookieConsent', 'enable_external_media_management');
+    }
+
+    public static function getExternalMediaCategory()
+    {
+        return Config::inst()->get('CookieConsent', 'external_media_category');
+    }
+
+    public static function getExternalMediaConfig()
+    {
+        $externalMediaConfig = Config::inst()->get('CookieConsent', 'external_media_services');
+        return is_array($externalMediaConfig) ? $externalMediaConfig : [];
+    }
+    public static function getSelectedExternalMedia()
+    {
+        $siteConfig = SiteConfig::current_site_config();        
+        if(!$siteConfig->ExternalMedia) {
+            return [];
+        }        
+        return explode(',', $siteConfig->ExternalMedia);
+    }
+    public static function getCategoryConfig()
     {
         $categories = Config::inst()->get('CookieConsent', 'categories');
         return is_array($categories) ? $categories : [];
@@ -52,7 +73,7 @@ class CookieConsent
     public static function getCategoryTranslationsMap()
     {
         $options = [];
-        $categories = self::getCategoryLabelsConfig();
+        $categories = self::getCategoryConfig();
 
         foreach ($categories as $categoryId => $categoryConfig) {
             if (!is_string($categoryId) || $categoryId === '') {
@@ -64,12 +85,6 @@ class CookieConsent
 
         return $options;
     }
-
-    public static function isConsentRegistrationEnabled()
-    {
-        return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
-    }
-
     public static function shouldClearCookiesOnCookieRegistryUpdate()
     {
         return (bool) Config::inst()->get('CookieConsent', 'clear_cookies_on_cookie_registry_update');

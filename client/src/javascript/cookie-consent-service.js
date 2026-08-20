@@ -3,7 +3,7 @@ import iframemanager from '@orestbida/iframemanager/src/iframemanager';
 
 const defaultExternalMediaServices = {
     youtube: {
-        embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
+        embedUrl: 'https://www.youtube.com/embed/72c0OSQhi6Q',
         thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
         iframe: {
             allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
@@ -22,7 +22,14 @@ const defaultExternalMediaServices = {
             thumbnailUrl && setThumbnail(thumbnailUrl);
         },
         languages: {}
-    }
+    },
+    googlemaps: {
+        embedUrl: 'https://www.google.com/maps/embed?pb={data-id}',
+        iframe: {
+            allow: 'fullscreen; picture-in-picture;',
+        },
+        languages: {}
+    }    
 };
 
 export const cookieConsentService = {
@@ -35,62 +42,61 @@ export const cookieConsentService = {
         return CookieConsent;
     },
     isGoogleConsentModeEnabled() {
-        const serverSideConfig = this.getServerSideConfiguration();
-        return serverSideConfig?.isGoogleConsentModeEnabled || false;
+        return this.getConsentSettings().isGoogleConsentModeEnabled;
     },
     isConsentRegistrationEnabled() {
-        const serverSideConfig = this.getServerSideConfiguration();
-        return serverSideConfig?.isConsentRegistrationEnabled || false;
+        return this.getConsentSettings().isConsentRegistrationEnabled;
     },
     getDefaultLanguage() {
-        const serverSideConfig = this.getServerSideConfiguration();
-        return serverSideConfig?.defaultLanguage || 'en';
+        return this.getConsentSettings().defaultLanguage;
     },
     getCookieConsentTranslations() {
-        const serverSideConfig = this.getServerSideConfiguration();
-        return serverSideConfig?.translations || {};
+        return this.getConsentSettings().translations;
     },
     getExternalMediaTranslations() {
-        const serverSideConfig = this.getServerSideConfiguration();
-        return serverSideConfig?.externalMediaServices?.services || {};
+        return this.getConsentSettings().externalMediaServices;
     },
     getServerSideConfiguration() {
         return window.cookieConsentConfig || {};
     },
-    getConsentCategories() {
+    getConsentSettings() {
         const serverSideConfig = this.getServerSideConfiguration();
-        const categories = serverSideConfig?.categories || {
-            functional: {
-                readOnly: true
-            }
-        };
 
-        if (!serverSideConfig?.externalMediaServices?.services) {
+        return {
+            categories: serverSideConfig?.categories || {
+                functional: {
+                    readOnly: true
+                }
+            },
+            defaultLanguage: serverSideConfig?.defaultLanguage || 'en',
+            translations: serverSideConfig?.translations || {},
+            externalMediaServiceTranslations: serverSideConfig?.externalMediaServices?.services || {},
+            isGoogleConsentModeEnabled: serverSideConfig?.isGoogleConsentModeEnabled || false,
+            isConsentRegistrationEnabled: serverSideConfig?.isConsentRegistrationEnabled || false,
+            isEmbedsManagementEnabled: serverSideConfig?.isEmbedsManagementEnabled || false,
+            externalMediaCategory: serverSideConfig?.externalMediaCategory || 'embeds',
+        };
+    },
+    getConsentCategories() {
+
+        const { categories, externalMediaCategory } = this.getConsentSettings();
+        const externalMediaServices = this.getExternalMediaServices();
+
+        if (!externalMediaCategory || !Object.keys(externalMediaServices).length) {
             return categories;
         }
 
-        return Object.fromEntries(
-            Object.entries(categories).map(([categoryKey, categoryConfig]) => {
-                const services = categoryConfig?.services;
-
-                if (!services) {
-                    return [categoryKey, categoryConfig];
+        const mergedCategories = {
+            ...categories,
+            [externalMediaCategory]: {
+                ...(categories?.[externalMediaCategory] || {}),
+                services: {
+                    ...(categories?.[externalMediaCategory]?.services || {}),
+                    ...externalMediaServices
                 }
-
-                const mappedServices = Object.fromEntries(
-                    Object.entries(services).map(([serviceKey, serviceConfig]) => [
-                        serviceKey,
-                        {
-                            ...serviceConfig,
-                            onAccept: () => window.iframemanager().acceptService(serviceKey),
-                            onReject: () => window.iframemanager().rejectService(serviceKey)
-                        }
-                    ])
-                );
-
-                return [categoryKey, { ...categoryConfig, services: mappedServices }];
-            })
-        );
+            }
+        };
+        return mergedCategories;
     },
     initializeGtagConsent() {
         window.dataLayer = window.dataLayer || [];
@@ -100,7 +106,7 @@ export const cookieConsentService = {
     },
     updateGtagConsent() {
 
-        if(!this.isGoogleConsentModeEnabled) {
+        if(!this.isGoogleConsentModeEnabled()) {
             return;
         }
         
@@ -129,12 +135,34 @@ export const cookieConsentService = {
 
         const consentData = [];
 
+        if(preferences.acceptType) {
+            consentData.push('Consent Type: ' + preferences.acceptType);
+        }
+
         if (preferences.acceptedCategories && preferences.acceptedCategories.length) {
             consentData.push('Accepted Categories: ' + preferences.acceptedCategories.join(', '));
         }
 
         if (preferences.rejectedCategories && preferences.rejectedCategories.length) {
             consentData.push('Rejected Categories: ' + preferences.rejectedCategories.join(', '));
+        }
+
+        const acceptedServicesByCategory = Object.entries(preferences.acceptedServices || {})
+            .filter(([, services]) => Array.isArray(services) && services.length > 0)
+            .map(([,services]) => `${services.join(', ')}`)
+            .join('; ');
+        
+        if (acceptedServicesByCategory) {
+            consentData.push('Accepted Services: ' + acceptedServicesByCategory);
+        }
+
+        const rejectedServicesByCategory = Object.entries(preferences.rejectedServices || {})
+            .filter(([, services]) => Array.isArray(services) && services.length > 0)
+            .map(([, services]) => `${services.join(', ')}`)
+            .join('; ');
+
+        if (rejectedServicesByCategory) {
+            consentData.push('Rejected Services: ' + rejectedServicesByCategory);
         }
 
         const userConsent = {
@@ -156,24 +184,24 @@ export const cookieConsentService = {
         });
     },
     buildIframeManagerConfig() {
-       
+        const { isEmbedsManagementEnabled, externalMediaCategory } = this.getConsentSettings();
+
         return {
             currLang: this.getDefaultLanguage(),
             services: this.getExternalMediaServices(),
             onChange: ({ changedServices, eventSource }) => {
-                if (eventSource.type === 'click') {
+                if (eventSource.type === 'api') {
                     const servicesToAccept = [
-                        ...CookieConsent.getUserPreferences().acceptedServices['embeds'],
+                        ...CookieConsent.getUserPreferences().acceptedServices[externalMediaCategory],
                         ...changedServices
                     ];
-                    CookieConsent.acceptService(servicesToAccept, 'embeds');
+                    CookieConsent.acceptService(servicesToAccept, externalMediaCategory);
                 }
             }
         };
     },
     getAcceptedCategoryTitles(cookie) {
-        const translations = this.getCookieConsentTranslations();
-        const defaultLanguage = this.getDefaultLanguage();
+        const { translations, defaultLanguage } = this.getConsentSettings();
         const sections = translations?.[defaultLanguage]?.preferencesModal?.sections || [];
 
         const getSectionTitleByCategory = (category) =>
@@ -184,14 +212,19 @@ export const cookieConsentService = {
             .filter(Boolean);
     },
     getExternalMediaServices() {
-        const externalMediaTranslations = this.getExternalMediaTranslations();
+        const { externalMediaServiceTranslations } = this.getConsentSettings();
 
-        return Object.fromEntries(
-            Object.entries({ ...defaultExternalMediaServices, ...externalMediaTranslations }).map(([key, config]) => [
+        if(!externalMediaServiceTranslations || Object.keys(externalMediaServiceTranslations).length === 0) {
+            return {};
+        }
+        const mergedExternalMediaServices = Object.fromEntries(
+            Object.entries(externalMediaServiceTranslations).map(([key, config]) => [
                 key,
                 {
                     ...defaultExternalMediaServices[key],
                     ...config,
+                    onAccept: () => window.iframemanager().acceptService(key),
+                    onReject: () => window.iframemanager().rejectService(key),
                     languages: {
                         ...(defaultExternalMediaServices[key]?.languages || {}),
                         ...(config.languages || {})
@@ -199,6 +232,7 @@ export const cookieConsentService = {
                 }
             ])
         );
+        return mergedExternalMediaServices;
     },
     addExternalMediaService(key, config) {
         if (!key || !config) {

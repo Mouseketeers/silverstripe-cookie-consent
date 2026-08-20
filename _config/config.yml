@@ -6,6 +6,8 @@ CookieConsent:
   disable_default_js: false
   enable_google_consent_mode: false
   enable_consent_logging: true
+  enable_external_media_management: true
+  external_media_category: 'embeds'
   cookie_registry_path: 'cookie-consent/open-cookie-database.json'
   clear_cookies_on_cookie_registry_update: true
   categories:
@@ -20,15 +22,10 @@ CookieConsent:
       enabled: false
     embeds:
       enabled: false
-      services:
-        youtube:
-          label: 'Youtube'
-        vimeo:
-          label: 'Vimeo'
-        facebook:
-          label: 'Facebook'
-  external_media:
+  external_media_services:
     youtube:
       label: 'Youtube'
     vimeo:
       label: 'Vimeo'
+    googlemaps:
+      label: 'Google Maps'

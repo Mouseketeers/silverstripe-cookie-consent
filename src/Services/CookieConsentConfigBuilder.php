@@ -24,22 +24,67 @@ class CookieConsentConfigBuilder
 
         $siteConfig = SiteConfig::current_site_config();
 
-        $categories = CookieConsent::getCategoryLabelsConfig();
+        $cookieItems = $this->buildCookies($siteConfig);
+        $categories = $this->buildCategories($cookieItems);
+
+        $isExternalMediaManagementEnabled = CookieConsent::isExternalMediaManagementEnabled();
 
         $config = [
             'defaultLanguage' => $languageCode,
             'categories' => $categories,
             'translations' => [
-                $languageCode => $this->buildTranslations($siteConfig, $categories)
-            ],
-            'externalMediaServices' => [
-                'services' => $this->buildExternalMediaServices($siteConfig, $languageCode)
+                $languageCode => $this->buildTranslations($siteConfig, $categories, $cookieItems)
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
-            'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled()            
+            'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
+            'isExternalMediaManagementEnabled' => $isExternalMediaManagementEnabled,
         ];
+        if($isExternalMediaManagementEnabled) {
+            $config['externalMediaCategory'] = CookieConsent::getExternalMediaCategory();
+            $config['externalMediaServices'] = [
+                'services' => $this->buildExternalMediaServices($languageCode)
+            ];
+        }
         $cache->save(serialize($config), $cacheKey);
         return $config;
+    }
+    public function buildCategories($cookieItems)
+    {
+        $categoryConfig = CookieConsent::getCategoryConfig();
+        $externalMediaCategory = CookieConsent::getExternalMediaCategory();
+        $selectedExternalMedia = CookieConsent::getSelectedExternalMedia();
+        $externalMediaConfig = CookieConsent::getExternalMediaConfig();
+
+        $externalMediaCategory = CookieConsent::getExternalMediaCategory();
+        $selectedExternalMedia = CookieConsent::getSelectedExternalMedia();     
+
+        $categoryServices = $categoryConfig['services'] ?? [];
+
+        if (!empty($selectedExternalMedia) && !empty($externalMediaConfig)) {
+            $categoryServices = array_intersect_key(
+                $externalMediaConfig,
+                array_flip($selectedExternalMedia)
+            );
+        }
+
+        $categories = [];
+        foreach ($categoryConfig as $categoryKey => $categoryData) {
+
+            if($categoryKey === $externalMediaCategory && empty($selectedExternalMedia)) {
+                continue;
+            }        
+            $cookies = isset($cookieItems[$categoryKey]) ? $cookieItems[$categoryKey] : [];
+            if ($categoryKey !== $externalMediaCategory && empty($cookies)) {
+                continue;
+            }             
+            $categories[$categoryKey] = $categoryData;
+            if ($categoryKey !== $externalMediaCategory) {
+                continue;
+            }
+
+            $categories[$categoryKey]['services'] = $categoryServices;
+        }
+        return $categories;
     }
     public function buildDeclarationData()
     {
@@ -55,7 +100,7 @@ class CookieConsentConfigBuilder
         }
 
         $siteConfig = SiteConfig::current_site_config();
-        $categories = CookieConsent::getCategoryLabelsConfig();
+        $categories = CookieConsent::getCategoryConfig();
 
         $declaration = [
             'categories' => $this->buildDeclarationCategories($siteConfig, $categories)
@@ -107,7 +152,7 @@ class CookieConsentConfigBuilder
         ];
     }
 
-    protected function buildTranslations($siteConfig, $categories)
+    protected function buildTranslations($siteConfig, $categories, $cookieItems)
     {
         $consentTitle = !empty($siteConfig->CookieConsentModalTitle)
             ? $siteConfig->CookieConsentModalTitle
@@ -131,15 +176,14 @@ class CookieConsentConfigBuilder
                 'acceptNecessaryBtn' => _t('CookieConsent.ButtonsRejectAll', 'Reject all'),
                 'savePreferencesBtn' => _t('CookieConsent.ButtonsSavePreferences', 'Save preferences'),
                 'closeIconLabel' => _t('CookieConsent.PreferencesCloseIconLabel', 'Close'),
-                'sections' => $this->buildCategoryTranslations($siteConfig, $categories)
+                'sections' => $this->buildSectionTranslations($categories, $cookieItems)
             ]
         ];
     }
 
-    protected function buildCategoryTranslations($siteConfig, $categories)
+    protected function buildSectionTranslations($categories, $cookieItems)
     {
         $sections = [];
-        $cookieItems = $this->buildCookieTranslations($siteConfig);
 
         $CookieHeaders = [
             'name' => _t('CookieConsent.CookieName', 'Name'),
@@ -147,16 +191,12 @@ class CookieConsentConfigBuilder
             'description' => _t('CookieConsent.CookieDescription', 'Description'),
             'expiration' => _t('CookieConsent.CookieExpiration', 'Expiration')
         ];
-
+        
         foreach ($categories as $categoryKey => $categoryData) {
 
+            $title = $this->getSectionTitle($categoryKey);
+            $description = $this->getSectionDescription($categoryKey);
             $cookies = isset($cookieItems[$categoryKey]) ? $cookieItems[$categoryKey] : [];
-            $title = $this->getCategoryTitle($categoryKey);
-            $description = $this->getCategoryDescription($categoryKey);
-
-            if (empty($cookies) && empty($categoryData['services'])) {
-                continue;
-            }
 
             $sections[] = [
                 'title' => $title,
@@ -174,7 +214,7 @@ class CookieConsentConfigBuilder
     protected function buildDeclarationCategories($siteConfig, $categories)
     {
         $declarationCategories = [];
-        $cookieItems = $this->buildCookieTranslations($siteConfig);
+        $cookieItems = $this->buildCookies($siteConfig);
 
         foreach ($categories as $categoryKey => $categoryData) {
             $cookies = isset($cookieItems[$categoryKey]) ? $cookieItems[$categoryKey] : [];
@@ -211,8 +251,8 @@ class CookieConsentConfigBuilder
             }
 
             $declarationCategories[] = [
-                'Title' => $this->getCategoryTitle($categoryKey),
-                'Content' => $this->getCategoryDescription($categoryKey),
+                'Title' => $this->getSectionTitle($categoryKey),
+                'Content' => $this->getSectionDescription($categoryKey),
                 'CookieDescriptions' => $cookieDescriptions
             ];
         }
@@ -220,25 +260,25 @@ class CookieConsentConfigBuilder
         return $declarationCategories;
     }
 
-    protected function getCategoryTitle($categoryId)
+    protected function getSectionTitle($categoryId)
     {
         $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
         return _t($translationKey, '');
     }
 
-    protected function getCategoryDescription($categoryId)
+    protected function getSectionDescription($categoryId)
     {
         $translationKey = sprintf('CookieConsent.Category.%s.Description', $categoryId);
 
         return _t($translationKey, '');
     }
 
-    protected function buildCookieTranslations($siteConfig)
+    protected function buildCookies($siteConfig)
     {
         $cookieItems = [];
         $services = $siteConfig->CookieServices();
         $customCookies = $siteConfig->CustomCookies();
-        $categories = CookieConsent::getCategoryLabelsConfig();
+        $categories = CookieConsent::getCategoryConfig();
 
         foreach ($services as $service) {
             foreach (array_keys($categories) as $categoryKey) {
@@ -278,15 +318,18 @@ class CookieConsentConfigBuilder
         }
         return $cookieItems;
     }
-    public function buildExternalMediaServices($siteConfig, $languageCode)
+    public function buildExternalMediaServices($languageCode)
     {
 
+        $selectedExternalMedia = CookieConsent::getSelectedExternalMedia();
+       
+        if(!$selectedExternalMedia) {
+            return [];
+        }
         $externalMediaServices = [];
 
         $loadBtnTranslation = _t('CookieConsent.IframeManager.LoadBtn', 'Load Once');
         $loadAllBtnTranslation = _t('CookieConsent.IframeManager.LoadAllBtn', 'Don\'t ask again');
-
-        $selectedExternalMedia = explode(',', $siteConfig->ExternalMedia);
 
         foreach ($selectedExternalMedia as $externalMediaKey) {
             $externalMediaServices[$externalMediaKey]['languages'][$languageCode] = [
