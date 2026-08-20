@@ -59,6 +59,9 @@ export const cookieConsentService = {
     getServerSideConfiguration() {
         return window.cookieConsentConfig || {};
     },
+    getGuiOptions() {
+        return this.getConsentSettings().guiOptions;
+    },
     getConsentSettings() {
         const serverSideConfig = this.getServerSideConfiguration();
 
@@ -69,6 +72,7 @@ export const cookieConsentService = {
                 }
             },
             defaultLanguage: serverSideConfig?.defaultLanguage || 'en',
+            guiOptions: serverSideConfig?.guiOptions || {},
             translations: serverSideConfig?.translations || {},
             externalMediaServiceTranslations: serverSideConfig?.externalMediaServices?.services || {},
             isGoogleConsentModeEnabled: serverSideConfig?.isGoogleConsentModeEnabled || false,

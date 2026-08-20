@@ -31,6 +31,7 @@ class CookieConsentConfigBuilder
 
         $config = [
             'defaultLanguage' => $languageCode,
+            'guiOptions' => CookieConsent::getGuiOptions(),
             'categories' => $categories,
             'translations' => [
                 $languageCode => $this->buildTranslations($siteConfig, $categories, $cookieItems)

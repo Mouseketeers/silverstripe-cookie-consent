@@ -46,6 +46,12 @@ class CookieConsent
         return Config::inst()->get('CookieConsent', 'enable_external_media_management');
     }
 
+    public static function getGuiOptions() 
+    {
+        $guiOptions = Config::inst()->get('CookieConsent', 'gui_options');
+        return is_array($guiOptions) ? $guiOptions : [];
+    }
+
     public static function getExternalMediaCategory()
     {
         return Config::inst()->get('CookieConsent', 'external_media_category');

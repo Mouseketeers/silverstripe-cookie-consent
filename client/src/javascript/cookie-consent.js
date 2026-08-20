@@ -7,21 +7,25 @@ function initCookieConsent() {
 
     cookieConsentService.init();
 
+    // const guiOptions = {
+    //     consentModal: {
+    //         layout: 'box',
+    //         position: 'bottom left',
+    //         equalWeightButtons: true,
+    //         flipButtons: false
+    //     },
+    //     preferencesModal: {
+    //         layout: 'box',
+    //         position: 'right',
+    //         equalWeightButtons: true,
+    //         flipButtons: false
+    //     }
+    // };
+
+    const guiOptions = {};
+
     const cookieConsentConfig = {
-        guiOptions: {
-            consentModal: {
-                layout: 'box',
-                position: 'bottom left',
-                equalWeightButtons: true,
-                flipButtons: false
-            },
-            preferencesModal: {
-                layout: 'box',
-                position: 'right',
-                equalWeightButtons: true,
-                flipButtons: false
-            }
-        },
+        guiOptions: cookieConsentService.getGuiOptions(),
         categories: cookieConsentService.getConsentCategories(),
         language: {
             autoDetect: 'document',
