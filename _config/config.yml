@@ -2,6 +2,7 @@
 Name: cookie-consent--config
 ---
 CookieConsent:
+  disable_cookie_consent: false
   disable_default_css: false
   disable_default_js: false
   enable_google_consent_mode: false

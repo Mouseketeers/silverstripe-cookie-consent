@@ -3,7 +3,7 @@ import iframemanager from '@orestbida/iframemanager/src/iframemanager';
 
 const defaultExternalMediaServices = {
     youtube: {
-        embedUrl: 'https://www.youtube.com/embed/72c0OSQhi6Q',
+        embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
         thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
         iframe: {
             allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
@@ -108,7 +108,6 @@ export const cookieConsentService = {
                 )
             }
         };
-        // console.log('mergedCategories', mergedCategories);
         return mergedCategories;
     },
     initializeGtagConsent() {
@@ -203,7 +202,7 @@ export const cookieConsentService = {
             currLang: this.getDefaultLanguage(),
             services: this.getExternalMediaServices(),
             onChange: ({ changedServices, eventSource }) => {
-                if (eventSource.type === 'api') {
+                if (eventSource.type === 'click') {
                     const servicesToAccept = [
                         ...CookieConsent.getUserPreferences().acceptedServices[externalMediaCategory],
                         ...changedServices

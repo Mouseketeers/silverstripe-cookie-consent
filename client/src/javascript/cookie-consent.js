@@ -4,8 +4,6 @@ function initCookieConsent() {
 
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
     const iframeManagerApi = iframemanager();
-    const serverSideConfig = cookieConsentService.getServerSideConfiguration();
-    const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
 
     cookieConsentService.init();
 
@@ -47,12 +45,8 @@ function initCookieConsent() {
 
     const iframeManagerConfig = cookieConsentService.buildIframeManagerConfig();
 
-    console.log('cookieConsentConfig', cookieConsentConfig);
-
     cookieConsentApi.run(cookieConsentConfig);
     iframeManagerApi.run(iframeManagerConfig);
-
-    // console.log(iframeManagerConfig);
 
     function updateCookieConsentDeclaration() {
 
