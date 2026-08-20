@@ -9,29 +9,13 @@ class CookieConsent
     private static $enable_google_consent_mode = false;
     private static $enable_consent_logging = false;
     private static $cookie_registry_path = 'cookie-consent/open-cookie-database.json';
+    private static $clear_cookies_on_cookie_registry_update = true;
     private static $categories = [
         'functional' => [
             'readOnly' => true
         ]
     ];
-    private static $cookie_info_cache = null;
-
-
-    public static function getCurrentSubsite()
-    {
-        if (self::isSubsitesEnabled()) {
-            return Subsite::currentSubsite();
-        }
-        return null;
-    }
-
-    public static function getCurrentSubsiteId()
-    {
-        if (self::isSubsitesEnabled()) {
-            return (int) Subsite::currentSubsiteID();
-        }
-        return 0;
-    }
+    private static $cookie_consent_values_cache = null;
 
     public static function isCookieConsentDisabled()
     {
@@ -51,14 +35,42 @@ class CookieConsent
     public static function isGoogleConsentModeEnabled()
     {
         return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
+    }  
+
+    public static function isConsentRegistrationEnabled()
+    {
+        return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
     }
 
-    public static function isSubsitesEnabled()
-    {
-        return class_exists('Subsite');
-    }    
+    public static function isExternalMediaManagementEnabled() {
+        return Config::inst()->get('CookieConsent', 'enable_external_media_management');
+    }
 
-    public static function getCategoryLabelsConfig()
+    public static function getGuiOptions() 
+    {
+        $guiOptions = Config::inst()->get('CookieConsent', 'gui_options');
+        return is_array($guiOptions) ? $guiOptions : [];
+    }
+
+    public static function getExternalMediaCategory()
+    {
+        return Config::inst()->get('CookieConsent', 'external_media_category');
+    }
+
+    public static function getExternalMediaConfig()
+    {
+        $externalMediaConfig = Config::inst()->get('CookieConsent', 'external_media_services');
+        return is_array($externalMediaConfig) ? $externalMediaConfig : [];
+    }
+    public static function getSelectedExternalMedia()
+    {
+        $siteConfig = SiteConfig::current_site_config();        
+        if(!$siteConfig->ExternalMedia) {
+            return [];
+        }        
+        return explode(',', $siteConfig->ExternalMedia);
+    }
+    public static function getCategoryConfig()
     {
         $categories = Config::inst()->get('CookieConsent', 'categories');
         return is_array($categories) ? $categories : [];
@@ -67,7 +79,7 @@ class CookieConsent
     public static function getCategoryTranslationsMap()
     {
         $options = [];
-        $categories = self::getCategoryLabelsConfig();
+        $categories = self::getCategoryConfig();
 
         foreach ($categories as $categoryId => $categoryConfig) {
             if (!is_string($categoryId) || $categoryId === '') {
@@ -79,10 +91,9 @@ class CookieConsent
 
         return $options;
     }
-
-    public static function isConsentRegistrationEnabled()
+    public static function shouldClearCookiesOnCookieRegistryUpdate()
     {
-        return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
+        return (bool) Config::inst()->get('CookieConsent', 'clear_cookies_on_cookie_registry_update');
     }
 
     public static function getCookieRegistryPath()
@@ -112,26 +123,27 @@ class CookieConsent
 
     public static function getCookieConsentValues()
     {
-        if (self::$cookie_info_cache !== null) {
-            return self::$cookie_info_cache;
+        if (self::$cookie_consent_values_cache !== null) {
+            return self::$cookie_consent_values_cache;
         }
 
         $cookieValue = self::getCookie();
         if (!$cookieValue) {
-            self::$cookie_info_cache = null;
+            self::$cookie_consent_values_cache = null;
             return null;
         }
 
         $decodedValue = rawurldecode($cookieValue);
         $decodedData = json_decode($decodedValue, true);
 
-        self::$cookie_info_cache = is_array($decodedData) ? $decodedData : null;
+        self::$cookie_consent_values_cache = is_array($decodedData) ? $decodedData : null;
 
-        return self::$cookie_info_cache;
+        return self::$cookie_consent_values_cache;
     }
 
     private static function getConsentCookieValue($key)
     {
+        
         $decodedData = self::getCookieConsentValues();
 
         if (is_array($decodedData) && isset($decodedData[$key])) {

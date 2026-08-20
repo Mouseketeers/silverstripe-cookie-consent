@@ -2,11 +2,19 @@
 Name: cookie-consent--config
 ---
 CookieConsent:
+  disable_cookie_consent: false
   disable_default_css: false
   disable_default_js: false
   enable_google_consent_mode: false
   enable_consent_logging: true
+  enable_external_media_management: true
+  external_media_category: 'embeds'
   cookie_registry_path: 'cookie-consent/open-cookie-database.json'
+  clear_cookies_on_cookie_registry_update: true
+  gui_options:
+    consentModal:
+      layout: 'cloud'
+      position: 'bottom'
   categories:
     functional:
       enabled: true
@@ -17,3 +25,12 @@ CookieConsent:
       enabled: false
     marketing:
       enabled: false
+    embeds:
+      enabled: false
+  external_media_services:
+    youtube:
+      label: 'Youtube'
+    vimeo:
+      label: 'Vimeo'
+    googlemaps:
+      label: 'Google Maps'
