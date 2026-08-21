@@ -76,6 +76,11 @@ class CookieConsent
         return is_array($categories) ? $categories : [];
     }
 
+    public static function getCategoryTranslationKey($categoryId)
+    {
+        return sprintf('CookieConsent.Category.%s', $categoryId);
+    }
+
     public static function getCategoryTranslationsMap()
     {
         $options = [];
@@ -85,7 +90,7 @@ class CookieConsent
             if (!is_string($categoryId) || $categoryId === '') {
                 continue;
             }
-            $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
+            $translationKey = self::getCategoryTranslationKey($categoryId);
             $options[$categoryId] = _t($translationKey);
         }
 
