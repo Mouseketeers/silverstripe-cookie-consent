@@ -29,22 +29,20 @@ en:
       Notice_yumpu: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.yumpu.com/en/info/privacy_policy" target="_blank">privacy policy</a> of yumpu.com.'
     Cookies:
       cc_cookie:
-        name: 'cc_cookie'
-        provider: 'This website'
         description: "Stores the user's cookie preferences for this domain"
         expiration: '1 year'
       im_youtube:
-        name: 'YouTube Iframe'
-        provider: 'YouTube'
         description: "Stores the user's accept to load external media content from YouTube"
         expiration: '1 year'
       im_vimeo:
-        name: 'Vimeo Iframe'
-        provider: 'Vimeo'
         description: "Stores the user's accept to load external media content from Vimeo"
         expiration: '1 year'
       im_googlemaps:
-        name: 'Google Maps Iframe'
-        provider: 'Google Maps'
         description: "Stores the user's accept to load external media content from Google Maps"
         expiration: '1 year'
+    CookieDeclaration:
+      ConsentID: 'Consent ID'
+      ConsentDate: 'Consent given on'
+      AcceptedCategories: 'Accepted Categories'
+      ShowPreferencesModal: 'Change Your Cookie Preferences'
+

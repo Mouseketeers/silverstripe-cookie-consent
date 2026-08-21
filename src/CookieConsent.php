@@ -9,7 +9,6 @@ class CookieConsent
     private static $enable_google_consent_mode = false;
     private static $enable_consent_logging = false;
     private static $cookie_registry_path = 'cookie-consent/open-cookie-database.json';
-    private static $clear_cookies_on_cookie_registry_update = true;
     private static $categories = [
         'functional' => [
             'readOnly' => true
@@ -96,11 +95,6 @@ class CookieConsent
 
         return $options;
     }
-    public static function shouldClearCookiesOnCookieRegistryUpdate()
-    {
-        return (bool) Config::inst()->get('CookieConsent', 'clear_cookies_on_cookie_registry_update');
-    }
-
     public static function getCookieRegistryPath()
     {
         $path = Config::inst()->get('CookieConsent', 'cookie_registry_path');
