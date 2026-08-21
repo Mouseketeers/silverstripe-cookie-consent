@@ -262,26 +262,30 @@ class CookieConsentConfigBuilder
         $cacheKey = CookieConsentConfigCache::getDeclarationCacheKey();
         $cachedDeclaration = $cache->load($cacheKey);
 
-        if ($cachedDeclaration !== false && is_string($cachedDeclaration)) {
-            $decodedDeclaration = @unserialize($cachedDeclaration);
-            if (is_array($decodedDeclaration)) {
-                return $this->buildTemplateDeclarationData($decodedDeclaration);
+        if ($cachedDeclaration !== false) {
+            if (is_string($cachedDeclaration)) {
+                $decodedDeclaration = @unserialize($cachedDeclaration);
+                if (is_array($decodedDeclaration)) {
+                    return $this->buildDeclarationTemplateData($decodedDeclaration);
+                }
             }
         }
 
         $siteConfig = SiteConfig::current_site_config();
         $categoriesConfig = CookieConsent::getCategoryConfig();
 
+        $buildDeclarationCategories = $this->buildDeclarationCategories($siteConfig, $categoriesConfig);
+
         $cookieDeclarationData = [
-            'categories' => $this->buildDeclarationCategories($siteConfig, $categoriesConfig)
+            'categories' => $buildDeclarationCategories
         ];
 
         $cache->save(serialize($cookieDeclarationData), $cacheKey);
 
-        return $this->buildTemplateDeclarationData($cookieDeclarationData);
+        return $this->buildDeclarationTemplateData($cookieDeclarationData);
     }
 
-    protected function buildTemplateDeclarationData(array $cookieDeclarationData)
+    public function buildDeclarationTemplateData(array $cookieDeclarationData)
     {
         $categories = new ArrayList();
         $cookieDeclarationCategories = isset($cookieDeclarationData['categories']) && is_array($cookieDeclarationData['categories'])
