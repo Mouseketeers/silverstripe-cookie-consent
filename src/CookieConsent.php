@@ -72,7 +72,7 @@ class CookieConsent
     }
     public static function getCategoryConfig()
     {
-        $categories = Config::inst()->get('CookieConsent', 'categories');
+        $categories = Config::inst()->get('CookieConsent', 'categories');  
         return is_array($categories) ? $categories : [];
     }
 

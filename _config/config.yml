@@ -19,6 +19,8 @@ CookieConsent:
     functional:
       enabled: true
       readOnly: true
+      cookies:
+        - cc_cookie
     personalization:
       enabled: false
     analytics:
