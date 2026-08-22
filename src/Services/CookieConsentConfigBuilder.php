@@ -49,33 +49,31 @@ class CookieConsentConfigBuilder
         $categoryConfig = CookieConsent::getCategoryConfig();
         $externalMediaCategory = CookieConsent::getExternalMediaCategory();
         $selectedExternalMedia = CookieConsent::getSelectedExternalMedia();
-        $externalMediaConfig = CookieConsent::getExternalMediaConfig();
-
-        $categoryServices = $categoryConfig['services'] ?? [];
-
-        if (!empty($selectedExternalMedia) && !empty($externalMediaConfig)) {
-            $categoryServices = array_intersect_key(
-                $externalMediaConfig,
-                array_flip($selectedExternalMedia)
-            );
-        }
 
         $builtCategories = [];
         foreach ($categoryConfig as $categoryKey => $categoryData) {
 
+            // no further processing needed if it's the external media category and no external media services are selected
             if ($categoryKey === $externalMediaCategory && empty($selectedExternalMedia)) {
                 continue;
             }
             $cookies = $this->getCategoryCookies($builtCookieDescriptions, $categoryKey);
+            // no further processing needed if there are no cookies
             if ($categoryKey !== $externalMediaCategory && empty($cookies)) {
                 continue;
             }
+            
             $builtCategories[$categoryKey] = $categoryData;
             if ($categoryKey !== $externalMediaCategory) {
                 continue;
             }
 
-            $builtCategories[$categoryKey]['services'] = $categoryServices;
+            // add selected external media services to the external media category
+            foreach($selectedExternalMedia as $key) {
+                $builtCategories[$categoryKey]['services'][$key] = [
+                    'label' => _t('CookieConsent.ExternalMediaServices.' . $key, '')
+                ];
+            }
         }
         return $builtCategories;
     }
@@ -151,13 +149,11 @@ class CookieConsentConfigBuilder
 
         $services = $siteConfig->CookieServices();
         $customCookies = $siteConfig->CustomCookies();
-        $builtCategories = CookieConsent::getCategoryConfig();
+        $categoriesConfig = CookieConsent::getCategoryConfig();
 
-        if (!is_array($builtCategories) || empty($builtCategories)) {
-            return $builtCookieDescriptions;
-        }
+        foreach ($categoriesConfig as $categoryKey => $categoryData) {
 
-        foreach ($builtCategories as $categoryKey => $categoryData) {
+            // add cookies defined in yml config
             $defaultCookies = isset($categoryData['cookies']) && is_array($categoryData['cookies'])
                 ? $categoryData['cookies']
                 : [];
@@ -172,10 +168,8 @@ class CookieConsentConfigBuilder
                     'expiration' => _t('CookieConsent.Cookies.' . $cookieName . '.expiration', '')
                 ];
             }
-            if (!is_iterable($services)) {
-                continue;
-            }
 
+            // add cookies from selected services
             foreach ($services as $service) {
                 $cookieTranslations = $service->getCookieTranslationsForCategory($categoryKey);
 
@@ -192,14 +186,13 @@ class CookieConsentConfigBuilder
                 }
             }
         }
-        if (is_iterable($customCookies)) {
-            foreach ($customCookies as $customCookie) {
-                if (empty($customCookie->Category) || !isset($builtCookieDescriptions[$customCookie->Category])) {
-                    $builtCookieDescriptions[$customCookie->Category] = [];
-                }
-
-                $builtCookieDescriptions[$customCookie->Category][] = $this->mapCookieToArray($customCookie);
+        // add custom cookies defined in the CMS
+        foreach ($customCookies as $customCookie) {
+            if (empty($customCookie->Category) || !isset($builtCookieDescriptions[$customCookie->Category])) {
+                $builtCookieDescriptions[$customCookie->Category] = [];
             }
+
+            $builtCookieDescriptions[$customCookie->Category][] = $this->mapCookieToArray($customCookie);
         }
 
         return $builtCookieDescriptions;
