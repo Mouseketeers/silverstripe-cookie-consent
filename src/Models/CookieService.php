@@ -17,95 +17,81 @@ class CookieService extends DataObject
 
     private static $default_sort = 'Name ASC';
 
-    public function getCookieTranslationsForCategory($category)
+    public function getCookieRegistryDataForCategory($configCategory)
     {
-        if (!$this->Name) {
-            return new ArrayList();
-        }
 
-        $normalizedCategory = strtolower(trim((string) $category));
-        if ($normalizedCategory === '') {
+        if (empty($configCategory) || !$this->Name) {
             return new ArrayList();
-        }
+        }      
 
         $registryData = self::getCookieRegistryData();
+        
         if (empty($registryData)) {
             return new ArrayList();
         }
 
-        $serviceCookies = self::resolveJsonServiceData($registryData, $this->Name);
-        if (!is_array($serviceCookies)) {
+        $registryDataServiceCookies = self::resolveJsonServiceData($registryData, $this->Name);
+
+        if (!is_array($registryDataServiceCookies)) {
             return new ArrayList();
         }
 
-        $cookieDescriptions = new ArrayList();
-        foreach ($serviceCookies as $cookieData) {
-            if (!is_array($cookieData)) {
+        $registryDataCookieDescriptions = new ArrayList();
+        foreach ($registryDataServiceCookies as $registryCookieData) {
+
+            if (!is_array($registryCookieData)) {
                 continue;
             }
 
-            $cookieCategory = strtolower(trim((string) (isset($cookieData['category']) ? $cookieData['category'] : '')));
-            if ($cookieCategory === '' || $cookieCategory !== $normalizedCategory) {
+            $normalizedRegistryCookieCategory = strtolower($registryCookieData['category']);
+            if ($normalizedRegistryCookieCategory === '' || $normalizedRegistryCookieCategory !== $configCategory) {
                 continue;
             }
 
-            $cookieName = trim((string) (isset($cookieData['cookie']) ? $cookieData['cookie'] : ''));
-            if ($cookieName === '') {
-                continue;
-            }
+            $isWildcard = (bool) (int) (isset($registryCookieData['wildcardMatch']) ? $registryCookieData['wildcardMatch'] : 0);
 
-            $isWildcard = (bool) (int) (isset($cookieData['wildcardMatch']) ? $cookieData['wildcardMatch'] : 0);
-
-            $cookieDescriptions->push(ArrayData::create([
-                'Name' => $isWildcard ? $cookieName . '*' : $cookieName,
+            $registryDataCookieDescriptions->push(ArrayData::create([
+                'Name' => $isWildcard ? $registryCookieData['cookie'] . '*' : $registryCookieData['cookie'],
                 'Service' => $this->Name,
-                'Vendor' => isset($cookieData['dataController']) ? $cookieData['dataController'] : '',
-                'PrivacyPolicyURL' => isset($cookieData['privacyLink']) ? $cookieData['privacyLink'] : '',
-                'Domain' => isset($cookieData['domain']) ? $cookieData['domain'] : '',
-                'Category' => $cookieCategory,
-                'Description' => isset($cookieData['description']) ? $cookieData['description'] : '',
-                'Expiration' => isset($cookieData['retentionPeriod']) ? $cookieData['retentionPeriod'] : ''
+                'Vendor' => isset($registryCookieData['dataController']) ? $registryCookieData['dataController'] : '',
+                'PrivacyPolicyURL' => isset($registryCookieData['privacyLink']) ? $registryCookieData['privacyLink'] : '',
+                'Domain' => isset($registryCookieData['domain']) ? $registryCookieData['domain'] : '',
+                'Category' => $registryCookieData['category'],
+                'Description' => isset($registryCookieData['description']) ? $registryCookieData['description'] : '',
+                'Expiration' => isset($registryCookieData['retentionPeriod']) ? $registryCookieData['retentionPeriod'] : ''
             ]));
         }
 
-        return $cookieDescriptions;
+        return $registryDataCookieDescriptions;
     }
 
     protected static function getCookieRegistryData()
     {
         $jsonPath = CookieConsent::resolveCookieRegistryPath();
-        if ($jsonPath === null || !file_exists($jsonPath)) {
+        if (!$jsonPath || !file_exists($jsonPath)) {
             return [];
         }
 
         $cache = CookieConsentConfigCache::getCache();
         $cacheKey = self::getCookieRegistryCacheKey($jsonPath);
-        $cachedRegistryData = $cache->load($cacheKey);
+        $cached = $cache->load($cacheKey);
 
-        if (is_array($cachedRegistryData)) {
-            return $cachedRegistryData;
+        if (is_array($cached)) {
+            return $cached;
         }
 
-        if (is_string($cachedRegistryData)) {
-            $decodedRegistryData = @unserialize($cachedRegistryData);
-            if (is_array($decodedRegistryData)) {
-                return $decodedRegistryData;
-            }
+        if (is_string($cached) && is_array($data = @unserialize($cached))) {
+            return $data;
         }
 
-        $rawRegistryData = file_get_contents($jsonPath);
-        if ($rawRegistryData === false) {
+        $raw = @file_get_contents($jsonPath);
+        if (!is_string($raw) || !is_array($data = json_decode($raw, true))) {
             return [];
         }
 
-        $registryData = json_decode($rawRegistryData, true);
-        if (!is_array($registryData)) {
-            return [];
-        }
+        $cache->save(serialize($data), $cacheKey);
 
-        $cache->save(serialize($registryData), $cacheKey);
-
-        return $registryData;
+        return $data;
     }
 
     protected static function getCookieRegistryCacheKey($jsonPath)
@@ -118,42 +104,18 @@ class CookieService extends DataObject
 
     protected static function resolveJsonServiceData(array $data, $serviceName)
     {
-        $serviceName = trim((string) $serviceName);
-        if ($serviceName === '') {
+        
+        if (empty($serviceName)) {
             return null;
         }
 
-        $normalizedServiceName = strtolower($serviceName);
         foreach ($data as $jsonServiceName => $cookieEntries) {
-            if (strtolower(trim((string) $jsonServiceName)) === $normalizedServiceName) {
+            if ($jsonServiceName === $serviceName) {
                 return $cookieEntries;
             }
         }
 
         return null;
-    }
-
-    public static function importFromJSON(array $selectedServices)
-    {
-        $importedServices = [];
-
-        foreach ($selectedServices as $serviceName) {
-            $serviceName = trim((string) $serviceName);
-            if ($serviceName === '') {
-                continue;
-            }
-
-            $service = CookieService::get()->filter('Name', $serviceName)->first();
-            if (!$service) {
-                $service = CookieService::create();
-                $service->Name = $serviceName;
-                $service->write();
-            }
-
-            $importedServices[] = $service;
-        }
-
-        return $importedServices;
     }
 
     public function onAfterWrite()

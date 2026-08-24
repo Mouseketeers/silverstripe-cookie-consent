@@ -184,11 +184,9 @@ class CookieConsentConfigBuilder
 
             // add cookies from selected services
             foreach ($services as $service) {
-                $cookieTranslations = $service->getCookieTranslationsForCategory($categoryKey);
+                
+                $cookieTranslations = $service->getCookieRegistryDataForCategory($categoryKey);
 
-                if (!is_iterable($cookieTranslations)) {
-                    continue;
-                }
 
                 foreach ($cookieTranslations as $cookie) {
                     if (!isset($builtCookieDescriptions[$categoryKey])) {

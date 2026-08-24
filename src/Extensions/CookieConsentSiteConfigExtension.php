@@ -79,12 +79,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
                     sort($names);
 
                     foreach ($names as $serviceName) {
-                        $normalizedName = trim((string) $serviceName);
-                        if ($normalizedName === '') {
-                            continue;
-                        }
-
-                        $options[$normalizedName] = $normalizedName;
+                        $options[$serviceName] = $serviceName;
                     }
                 }
             }
@@ -107,11 +102,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
         $serviceOptionsMap = $this->getServicesOptionsFromCookieRegistry();
         foreach ($this->owner->CookieServices() as $selectedService) {
-            $serviceName = trim((string) $selectedService->Name);
-            if ($serviceName === '') {
-                continue;
-            }
-
+            $serviceName = $selectedService->Name;
             $serviceOptionsMap[$serviceName] = $serviceName;
         }
 
@@ -137,22 +128,12 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
     public function onBeforeWrite()
     {
-        $rawValue = $this->owner->ExternalMedia;
+        $dbValue = $this->owner->ExternalMedia;
 
-        if (is_array($rawValue)) {
-            $normalizedValues = array_values(array_filter(array_map('trim', $rawValue)));
-            $this->owner->ExternalMedia = implode(',', $normalizedValues);
+        if (is_array($dbValue)) {
+            $this->owner->ExternalMedia = implode(',', $dbValue);
             return;
         }
-
-        $stringValue = trim((string) $rawValue);
-        if ($stringValue === '') {
-            $this->owner->ExternalMedia = '';
-            return;
-        }
-
-        $normalizedValues = array_values(array_filter(array_map('trim', explode(',', $stringValue))));
-        $this->owner->ExternalMedia = implode(',', $normalizedValues);
     }
 
     public function onAfterWrite()
