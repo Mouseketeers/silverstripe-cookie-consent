@@ -32,15 +32,17 @@ class CookieConsentSiteConfigExtension extends DataExtension
             ->setMultiple(true)
             ->setValue($this->getExternalMediaValueArray());
 
+
         $fields->addFieldsToTab('Root.CookieConsent', [
-            HeaderField::create('CookieConsentHeader', 'Cookie Modal Settings'),
-            TextField::create('CookieConsentModalTitle', $this->owner->fieldLabel('CookieConsentModalTitle')),
-            HtmlEditorField::create('CookieConsentModalContent', $this->owner->fieldLabel('CookieConsentModalContent'))->setRows(5),
+            HeaderField::create('CookieConsentHeader', 'Cookie Consent Settings'),
+            TextField::create('CookieConsentModalTitle'),
+            HtmlEditorField::create('CookieConsentModalContent')->setRows(5),
             HeaderField::create('CookieServicesHeader', 'Third-Party Services'),
             $cookieServicesField,
             $externalMediaField,
             HeaderField::create('CustomCookiesHeader', 'Custom Cookies'),
-            GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create())
+            GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create()),
+            CheckboxField::create('DeactivateCookieConsent', 'Deactivate Cookie Consent for this Site')
         ]);
     }
 
@@ -51,8 +53,6 @@ class CookieConsentSiteConfigExtension extends DataExtension
         if (!is_array($configuredMedia)) {
             return [];
         }
-
-        
 
         $options = [];
         foreach ($configuredMedia as $key => $config) {

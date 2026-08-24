@@ -5,8 +5,7 @@ class CookieDeclarationShortcode
     public static function register()
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
-            $builder = new CookieConsentConfigBuilder();
-            $cookieDeclarationData = $builder->buildCookieDeclarationData();
+            $cookieDeclarationData = CookieConsent::createConfigBuilder()->buildCookieDeclarationData();
             $categories = isset($cookieDeclarationData['categories']) && $cookieDeclarationData['categories'] instanceof ArrayList
                 ? $cookieDeclarationData['categories']
                 : new ArrayList();
