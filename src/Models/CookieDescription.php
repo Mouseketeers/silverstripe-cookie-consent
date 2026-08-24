@@ -11,7 +11,7 @@ class CookieDescription extends DataObject
         'Name' => 'Varchar(255)',
         'Category' => 'Varchar(100)',
         'Service' => 'Varchar(255)',
-        'Vendor' => 'Varchar(255)',
+        'Provider' => 'Varchar(255)',
         'Description' => 'Text',
         'Domain' => 'Varchar(255)',
         'Expiration' => 'Varchar(255)',
@@ -27,7 +27,7 @@ class CookieDescription extends DataObject
         'Name',
         'Category',
         'Service',
-        'Vendor',
+        'Provider',
         'Expiration'
     ];
 
@@ -51,7 +51,7 @@ class CookieDescription extends DataObject
 
         $fields->addFieldsToTab('Root.Main', [
             TextField::create('Name', $this->fieldLabel('Name')),
-            TextField::create('Vendor', $this->fieldLabel('Vendor')),
+            TextField::create('Provider', $this->fieldLabel('Provider')),
             TextAreaField::create('Description', $this->fieldLabel('Description')),
             DropdownField::create('Category', $this->fieldLabel('Category'), $categoryOptions)
                 ->setEmptyString(_t('CookieConsent.SelectCategory', 'Select...'))

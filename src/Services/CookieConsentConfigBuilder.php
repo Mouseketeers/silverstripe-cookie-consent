@@ -5,6 +5,7 @@ class CookieConsentConfigBuilder
 
     protected $categoryConfig;
     protected $externalMediaCategory;
+    protected $cookieDescriptionsCache;
 
     public function __construct()
     {
@@ -151,6 +152,10 @@ class CookieConsentConfigBuilder
 
     protected function buildCookieDescriptions()
     {
+        if ($this->cookieDescriptionsCache !== null) {
+            return $this->cookieDescriptionsCache;
+        }
+
         $builtCookieDescriptions = [];
 
         $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
@@ -199,6 +204,7 @@ class CookieConsentConfigBuilder
             $builtCookieDescriptions[$customCookie->Category][] = $this->mapCookieToArray($customCookie);
         }
         
+        $this->cookieDescriptionsCache = $builtCookieDescriptions;
         return $builtCookieDescriptions;
     }
 
@@ -290,46 +296,63 @@ class CookieConsentConfigBuilder
     protected function buildDeclarationCategories($builtCategories)
     {
         $declarationCategories = [];
-        $builtCookieDescriptions = $this->buildCookieDescriptions();
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        $services = CookieConsent::getCookieServices();
+        $customCookies = CookieConsent::getCustomCookies();
+
+        $customCookiesByCategory = [];
+        foreach ($customCookies as $customCookie) {
+            if (empty($customCookie->Category)) {
+                continue;
+            }
+            $customCookiesByCategory[$customCookie->Category][] = $customCookie;
+        }
 
         foreach ($builtCategories as $categoryKey => $categoryData) {
-            $cookies = $this->getCategoryCookies($builtCookieDescriptions, $categoryKey);
+            $cookies = [];
+
+            $defaultCookies = isset($categoryData['cookies']) && is_array($categoryData['cookies'])
+                ? $categoryData['cookies']
+                : [];
+
+            foreach ($defaultCookies as $cookieName) {
+                $cookies[] = [
+                    'ID' => 0,
+                    'Name' => $cookieName,
+                    'Provider' => $host,
+                    'Domain' => $host,
+                    'PrivacyPolicyURL' => '',
+                    'Description' => _t('CookieConsent.Cookies.' . $cookieName . '.description', ''),
+                    'Expiration' => _t('CookieConsent.Cookies.' . $cookieName . '.expiration', '')
+                ];
+            }
+
+            foreach ($services as $service) {
+                foreach ($service->getCookieRegistryDataForCategory($categoryKey) as $cookie) {
+                    $cookies[] = $this->mapCookieToDeclarationArray($cookie);
+                }
+            }
+
+            foreach ($customCookiesByCategory[$categoryKey] ?? [] as $customCookie) {
+                $cookies[] = $this->mapCookieToDeclarationArray($customCookie);
+            }
 
             if (empty($cookies) && empty($categoryData['services'])) {
                 continue;
             }
 
             usort($cookies, function ($left, $right) {
-                return (int) ($right['id'] ?? 0) <=> (int) ($left['id'] ?? 0);
+                return (int) ($right['ID'] ?? 0) <=> (int) ($left['ID'] ?? 0);
             });
 
-            $mappedCookies = [];
-
-            foreach ($cookies as $cookieData) {
-                if (!is_array($cookieData)) {
-                    continue;
-                }
-
-                $mappedCookies[] = [
-                    'ID' => (int) ($cookieData['id'] ?? 0),
-                    'Name' => $cookieData['name'] ?? '',
-                    'Vendor' => $cookieData['vendor'] ?? '',
-                    'Service' => $cookieData['service'] ?? '',
-                    'Domain' => $cookieData['domain'] ?? '',
-                    'PrivacyPolicyURL' => $cookieData['privacyPolicyURL'] ?? '',
-                    'Description' => $cookieData['description'] ?? '',
-                    'Expiration' => $cookieData['expiration'] ?? ''
-                ];
-            }
-
-            if (empty($mappedCookies)) {
+            if (empty($cookies)) {
                 continue;
             }
 
             $declarationCategories[] = [
                 'Title' => $this->getSectionTitle($categoryKey),
                 'Content' => $this->getSectionDescription($categoryKey),
-                'CookieDescriptions' => $mappedCookies
+                'CookieDescriptions' => $cookies
             ];
         }
 
@@ -368,11 +391,23 @@ class CookieConsentConfigBuilder
             'name' => $cookie->Name,
             'provider' => $cookie->Service,
             'service' => $cookie->Service,
-            'vendor' => $cookie->Vendor,
             'description' => $cookie->Description,
             'domain' => $cookie->Domain,
             'privacyPolicyURL' => $cookie->PrivacyPolicyURL,
             'expiration' => $cookie->Expiration
+        ];
+    }
+
+    protected function mapCookieToDeclarationArray($cookie)
+    {
+        return [
+            'Name' => $cookie->Name,
+            'Provider' => $cookie->Provider,
+            'Service' => $cookie->Service,
+            'Domain' => $cookie->Domain,
+            'PrivacyPolicyURL' => $cookie->PrivacyPolicyURL,
+            'Description' => $cookie->Description,
+            'Expiration' => $cookie->Expiration
         ];
     }
 

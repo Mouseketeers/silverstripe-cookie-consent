@@ -10,11 +10,9 @@ pl_PL:
     PreferencesCloseIconLabel: 'Zamknij'
     CookieName: 'Nazwa'
     CookieProvider: 'Dostawca'
-    CookieVendor : 'Dostawca'
     CookieDescription: 'Opis'
     CookieDomain: 'Domena'
     CookieService: 'Usługa'
-    CookieVendor: 'Dostawca'
     CookieExpiration: 'Czas wygaśnięcia'
     CookieExpiration: 'Czas wygaśnięcia'
     Category:

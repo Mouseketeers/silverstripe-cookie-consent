@@ -21,22 +21,22 @@ class CookieService extends DataObject
     {
 
         if (empty($configCategory) || !$this->Name) {
-            return new ArrayList();
+            return [];
         }      
 
         $registryData = self::getCookieRegistryData();
         
         if (empty($registryData)) {
-            return new ArrayList();
+            return [];
         }
 
-        $registryDataServiceCookies = self::resolveJsonServiceData($registryData, $this->Name);
+        $registryDataServiceCookies = self::getJsonServiceDataForService($registryData, $this->Name);
 
         if (!is_array($registryDataServiceCookies)) {
-            return new ArrayList();
+            return [];
         }
 
-        $registryDataCookieDescriptions = new ArrayList();
+        $registryDataCookieDescriptions = [];
         foreach ($registryDataServiceCookies as $registryCookieData) {
 
             if (!is_array($registryCookieData)) {
@@ -48,18 +48,21 @@ class CookieService extends DataObject
                 continue;
             }
 
+
+            
+
             $isWildcard = (bool) (int) (isset($registryCookieData['wildcardMatch']) ? $registryCookieData['wildcardMatch'] : 0);
 
-            $registryDataCookieDescriptions->push(ArrayData::create([
+            $registryDataCookieDescriptions[] = (object) [
                 'Name' => $isWildcard ? $registryCookieData['cookie'] . '*' : $registryCookieData['cookie'],
                 'Service' => $this->Name,
-                'Vendor' => isset($registryCookieData['dataController']) ? $registryCookieData['dataController'] : '',
+                'Provider' => isset($registryCookieData['dataController']) ? $registryCookieData['dataController'] : '',
+                'Description' => isset($registryCookieData['description']) ? $registryCookieData['description'] : '',
                 'PrivacyPolicyURL' => isset($registryCookieData['privacyLink']) ? $registryCookieData['privacyLink'] : '',
                 'Domain' => isset($registryCookieData['domain']) ? $registryCookieData['domain'] : '',
                 'Category' => $registryCookieData['category'],
-                'Description' => isset($registryCookieData['description']) ? $registryCookieData['description'] : '',
                 'Expiration' => isset($registryCookieData['retentionPeriod']) ? $registryCookieData['retentionPeriod'] : ''
-            ]));
+            ];
         }
 
         return $registryDataCookieDescriptions;
@@ -102,7 +105,7 @@ class CookieService extends DataObject
         return sprintf('cookie_registry_data_%s', sha1($jsonPath . '|' . $version));
     }
 
-    protected static function resolveJsonServiceData(array $data, $serviceName)
+    protected static function getJsonServiceDataForService(array $data, $serviceName)
     {
         
         if (empty($serviceName)) {
