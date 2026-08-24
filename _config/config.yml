@@ -30,9 +30,6 @@ CookieConsent:
     embeds:
       enabled: false
   external_media_services:
-    youtube:
-      label: 'Youtube'
-    vimeo:
-      label: 'Vimeo'
-    googlemaps:
-      label: 'Google Maps'
+    - youtube
+    - vimeo
+    - googlemaps

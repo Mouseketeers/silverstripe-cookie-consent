@@ -48,43 +48,17 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
     protected function getExternalMediaOptionsMap()
     {
-        $configuredMedia = CookieConsent::getExternalMediaConfig();
-
-        if (!is_array($configuredMedia)) {
-            return [];
-        }
-
+        $availableMediaServices = CookieConsent::getExternalMediaConfig();
         $options = [];
-        foreach ($configuredMedia as $key => $config) {
-            $optionKey = trim((string) $key);
-            if ($optionKey === '') {
-                continue;
-            }
-
-            $label = is_array($config) && isset($config['label'])
-                ? trim((string) $config['label'])
-                : '';
-
-            $options[$optionKey] = $label !== '' ? $label : $optionKey;
+        foreach ($availableMediaServices as $serviceKey) {
+            $options[$serviceKey] = _t('CookieConsent.ExternalMediaServices.' . $serviceKey, $serviceKey);
         }
-
         return $options;
     }
 
     protected function getExternalMediaValueArray()
     {
-        $rawValue = $this->owner->ExternalMedia;
-
-        if (is_array($rawValue)) {
-            return array_values(array_filter(array_map('trim', $rawValue)));
-        }
-
-        $stringValue = trim((string) $rawValue);
-        if ($stringValue === '') {
-            return [];
-        }
-
-        return array_values(array_filter(array_map('trim', explode(',', $stringValue))));
+        return explode(',', $this->owner->ExternalMedia);
     }
 
     protected function getServicesOptionsFromCookieRegistry()

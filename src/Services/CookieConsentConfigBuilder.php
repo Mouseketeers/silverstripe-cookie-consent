@@ -66,9 +66,10 @@ class CookieConsentConfigBuilder
             if ($categoryKey === $externalMediaCategory && empty($selectedExternalMedia)) {
                 continue;
             }
-            $cookies = $this->getCategoryCookies($builtCookieDescriptions, $categoryKey);
+            $cookieDescriptions = $this->getCategoryCookies($builtCookieDescriptions, $categoryKey);
+            
             // no further processing needed if there are no cookies
-            if ($categoryKey !== $externalMediaCategory && empty($cookies)) {
+            if ($categoryKey !== $externalMediaCategory && empty($cookieDescriptions)) {
                 continue;
             }
             
@@ -80,7 +81,7 @@ class CookieConsentConfigBuilder
             // add selected external media services to the external media category
             foreach($selectedExternalMedia as $key) {
                 $builtCategories[$categoryKey]['services'][$key] = [
-                    'label' => _t('CookieConsent.ExternalMediaServices.' . $key, '')
+                    'label' => _t('CookieConsent.ExternalMediaServices.' . $key, $key)
                 ];
             }
         }
