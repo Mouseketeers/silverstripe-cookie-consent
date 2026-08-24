@@ -37,7 +37,7 @@ class CookieConsentConfigBuilder
             'guiOptions' => CookieConsent::getGuiOptions(),
             'categories' => $builtCategories,
             'translations' => [
-                $languageCode => $this->buildTranslations($builtCategories, $builtCookieDescriptions)
+                $languageCode => $this->buildCookieConsentTranslations($builtCategories, $builtCookieDescriptions)
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
@@ -88,7 +88,7 @@ class CookieConsentConfigBuilder
         return $builtCategories;
     }
 
-    protected function buildTranslations($builtCategories, $builtCookieDescriptions)
+    protected function buildCookieConsentTranslations($builtCategories, $builtCookieDescriptions)
     {
         $siteConfig = CookieConsent::getSiteConfig();
 
@@ -123,7 +123,7 @@ class CookieConsentConfigBuilder
     {
         $sections = [];
 
-        $CookieHeaders = [
+        $cookieTableHeaders = [
             'name' => _t('CookieConsent.CookieName', 'Name'),
             'provider' => _t('CookieConsent.CookieProvider', 'Provider'),
             'description' => _t('CookieConsent.CookieDescription', 'Description'),
@@ -134,15 +134,15 @@ class CookieConsentConfigBuilder
 
             $title = $this->getSectionTitle($categoryKey);
             $description = $this->getSectionDescription($categoryKey);
-            $cookies = $this->getCategoryCookies($builtCookieDescriptions, $categoryKey);
+            $cookieTableBody = $this->getCategoryCookies($builtCookieDescriptions, $categoryKey);
 
             $sections[] = [
                 'title' => $title,
                 'description' => $description,
                 'linkedCategory' => $categoryKey,
                 'cookieTable' => [
-                    'headers' => $CookieHeaders,
-                    'body' => $cookies
+                    'headers' => $cookieTableHeaders,
+                    'body' => $cookieTableBody
                 ]
             ];
         }
@@ -153,26 +153,20 @@ class CookieConsentConfigBuilder
     {
         $builtCookieDescriptions = [];
 
-        $siteConfig = CookieConsent::getSiteConfig();
-        if (!$siteConfig || !is_object($siteConfig)) {
-            return $builtCookieDescriptions;
-        }
-
         $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
-
         $services = CookieConsent::getCookieServices();
         $customCookies = CookieConsent::getCustomCookies();
-        $categoriesConfig = $this->categoryConfig;
+        $configCookieCategories = $this->categoryConfig;
 
-        foreach ($categoriesConfig as $categoryKey => $categoryData) {
+        foreach ($configCookieCategories as $configCategoryKey => $configCategoryData) {
 
             // add cookies defined in yml config
-            $defaultCookies = isset($categoryData['cookies']) && is_array($categoryData['cookies'])
-                ? $categoryData['cookies']
+            $defaultCookies = isset($configCategoryData['cookies']) && is_array($configCategoryData['cookies'])
+                ? $configCategoryData['cookies']
                 : [];
 
             foreach ($defaultCookies as $cookieName) {
-                $builtCookieDescriptions[$categoryKey][] = [
+                $builtCookieDescriptions[$configCategoryKey][] = [
                     'name' => $cookieName,
                     'provider' => $host,
                     'service' => $host,
@@ -185,15 +179,14 @@ class CookieConsentConfigBuilder
             // add cookies from selected services
             foreach ($services as $service) {
                 
-                $cookieTranslations = $service->getCookieRegistryDataForCategory($categoryKey);
+                $registryCookies = $service->getCookieRegistryDataForCategory($configCategoryKey);
 
-
-                foreach ($cookieTranslations as $cookie) {
-                    if (!isset($builtCookieDescriptions[$categoryKey])) {
-                        $builtCookieDescriptions[$categoryKey] = [];
+                foreach ($registryCookies as $cookie) {
+                    if (!isset($builtCookieDescriptions[$configCategoryKey])) {
+                        $builtCookieDescriptions[$configCategoryKey] = [];
                     }
 
-                    $builtCookieDescriptions[$categoryKey][] = $this->mapCookieToArray($cookie);
+                    $builtCookieDescriptions[$configCategoryKey][] = $this->mapCookieToArray($cookie);
                 }
             }
         }
@@ -205,7 +198,7 @@ class CookieConsentConfigBuilder
 
             $builtCookieDescriptions[$customCookie->Category][] = $this->mapCookieToArray($customCookie);
         }
-
+        
         return $builtCookieDescriptions;
     }
 

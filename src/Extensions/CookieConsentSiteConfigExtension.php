@@ -4,12 +4,12 @@ class CookieConsentSiteConfigExtension extends DataExtension
 {
     private static $db = [
         'CookieConsentModalTitle' => 'Varchar(255)',
-        'CookieConsentModalContent' => 'HTMLText',
-        'ExternalMedia' => 'Varchar(255)'
+        'CookieConsentModalContent' => 'HTMLText'
     ];
 
     private static $has_many = [
         'CookieServices' => 'CookieService.SiteConfig',
+        'ExternalMedia' => 'ExternalMedia.SiteConfig',
         'CustomCookies' => 'CookieDescription.SiteConfig'
     ];
 
@@ -24,13 +24,15 @@ class CookieConsentSiteConfigExtension extends DataExtension
             ->setMultiple(true)
             ->setValue(array_values($this->owner->CookieServices()->column('Name')));
 
-        $externalMediaField = ListboxField::create(
-            'ExternalMedia',
+        $externalMediaField = CookieServiceListboxField::create(
+            'SelectedExternalMedia',
             $this->owner->fieldLabel('ExternalMedia'),
             $this->getExternalMediaOptionsMap()
         )
+            ->setRelationName('ExternalMedia')
+            ->setDataObjectClass('ExternalMedia')
             ->setMultiple(true)
-            ->setValue($this->getExternalMediaValueArray());
+            ->setValue(array_values($this->owner->ExternalMedia()->column('Name')));
 
 
         $fields->addFieldsToTab('Root.CookieConsent', [
@@ -54,11 +56,6 @@ class CookieConsentSiteConfigExtension extends DataExtension
             $options[$serviceKey] = _t('CookieConsent.ExternalMediaServices.' . $serviceKey, $serviceKey);
         }
         return $options;
-    }
-
-    protected function getExternalMediaValueArray()
-    {
-        return explode(',', $this->owner->ExternalMedia);
     }
 
     protected function getServicesOptionsFromCookieRegistry()
@@ -123,16 +120,6 @@ class CookieConsentSiteConfigExtension extends DataExtension
             }
 
             $config->write();
-        }
-    }
-
-    public function onBeforeWrite()
-    {
-        $dbValue = $this->owner->ExternalMedia;
-
-        if (is_array($dbValue)) {
-            $this->owner->ExternalMedia = implode(',', $dbValue);
-            return;
         }
     }
 

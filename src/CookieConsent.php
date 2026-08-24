@@ -18,6 +18,7 @@ class CookieConsent
     private static $site_config_cache = null;
     private static $cookie_services_cache = null;
     private static $custom_cookies_cache = null;
+    private static $external_media_cache = null;
     private static $selected_external_media_cache = null;
 
     public static function createConfigBuilder()
@@ -150,14 +151,23 @@ class CookieConsent
         return self::$custom_cookies_cache;
     }
 
+    public static function getExternalMedia()
+    {
+        if (self::$external_media_cache === null) {
+            $siteConfig = self::getSiteConfig();
+            self::$external_media_cache = $siteConfig ? $siteConfig->ExternalMedia() : null;
+        }
+        return self::$external_media_cache;
+    }
+
     public static function getSelectedExternalMedia()
     {
         if (self::$selected_external_media_cache === null) {
-            $siteConfig = self::getSiteConfig();
-            if (!$siteConfig || !$siteConfig->ExternalMedia) {
+            $externalMedia = self::getExternalMedia();
+            if (!$externalMedia || !$externalMedia->exists()) {
                 self::$selected_external_media_cache = [];
             } else {
-                self::$selected_external_media_cache = explode(',', $siteConfig->ExternalMedia);
+                self::$selected_external_media_cache = $externalMedia->column('Name');
             }
         }
         return self::$selected_external_media_cache;
