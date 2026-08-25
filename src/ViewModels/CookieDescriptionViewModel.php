@@ -14,12 +14,11 @@ class CookieDescriptionViewModel extends ViewableData
     {
         $vm = new self();
 
-        $dataController = $registryData->dataController ?? null;
-        $provider = ($serviceName !== '' && $serviceName !== $dataController)
-            ? $serviceName . ', ' . $dataController
-            : $dataController;
-
-        $vm->Name = $registryData->name ?? $registryData->cookie ?? '';
+        $provider = $serviceName;
+        $vm->Name = $registryData->cookie ?? '';
+        if (!empty($registryData->wildcardMatch) && $registryData->wildcardMatch !== '0') {
+            $vm->Name .= '*';
+        }
         $vm->Provider = $provider;
         $vm->Service = $serviceName;
         $vm->Domain = $registryData->domain ?? '';

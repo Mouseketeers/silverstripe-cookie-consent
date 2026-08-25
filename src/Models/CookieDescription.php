@@ -10,7 +10,6 @@ class CookieDescription extends DataObject
     private static $db = [
         'Name' => 'Varchar(255)',
         'Category' => 'Varchar(100)',
-        'Service' => 'Varchar(255)',
         'Provider' => 'Varchar(255)',
         'Description' => 'Text',
         'Domain' => 'Varchar(255)',
