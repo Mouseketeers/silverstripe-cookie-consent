@@ -77,7 +77,7 @@ class CookieConsent
         return is_array($guiOptions) ? $guiOptions : [];
     }
 
-    public static function getExternalMediaCategory()
+    public static function getExternalMediaCategoryConfig()
     {
         return Config::inst()->get('CookieConsent', 'external_media_category');
     }

@@ -29,7 +29,13 @@
                     <% loop $CookieDescriptions %>
                         <tr class="cookie-consent__table-row">
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--name">$Name</td>
-                            <td class="cookie-consent__table-cell cookie-consent__table-cell--provider">$Provider</td>
+                            <td class="cookie-consent__table-cell cookie-consent__table-cell--provider">
+                                <% if $PrivacyPolicyURL && $Provider %>
+                                    <a href="$PrivacyPolicyURL" target="_blank" rel="noopener noreferrer">$Provider</a>
+                                <% else %>
+                                    $Provider
+                                <% end_if %>
+                            </td>
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--description">$Description</td>
                             <td class="cookie-consent__table-cell cookie-consent__table-cell--expiration">$Expiration</td>
                         </tr>
