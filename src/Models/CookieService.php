@@ -17,6 +17,46 @@ class CookieService extends DataObject
 
     private static $default_sort = 'Name ASC';
 
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+        $this->Name = self::normalizeServiceName($this->Name);
+    }
+
+    public function getDisplayName()
+    {
+        return self::getRegistryServiceDisplayName($this->Name);
+    }
+
+    public static function getRegistryServiceDisplayName($normalizedName)
+    {
+        if (empty($normalizedName)) {
+            return $normalizedName;
+        }
+
+        $registryData = self::getCookieRegistryData();
+        if (empty($registryData)) {
+            return $normalizedName;
+        }
+
+        foreach ($registryData as $jsonServiceName => $cookieEntries) {
+            if (self::normalizeServiceName($jsonServiceName) === $normalizedName) {
+                return $jsonServiceName;
+            }
+        }
+
+        return $normalizedName;
+    }
+
+    public static function normalizeServiceName($name)
+    {
+        $normalized = strtolower(trim((string) $name));
+        $normalized = preg_replace('/[^a-z0-9]+/u', '_', $normalized);
+        $normalized = trim($normalized, '_');
+
+        return $normalized;
+    }
+
     public function getCookieRegistryDataByCategoryKey($configCategory)
     {
 
@@ -62,15 +102,16 @@ class CookieService extends DataObject
     {
         $registryData = $this->getCookieRegistryDataByCategoryKey($configCategory);
         $viewModels = [];
+        $displayName = $this->getDisplayName();
 
         foreach ($registryData as $cookieData) {
-            $viewModels[] = CookieDescriptionViewModel::fromRegistry($cookieData, $this->Name);
+            $viewModels[] = CookieDescriptionViewModel::fromRegistry($cookieData, $displayName);
         }
 
         return $viewModels;
     }
 
-    protected static function getCookieRegistryData()
+    public static function getCookieRegistryData()
     {
         $jsonPath = CookieConsent::resolveCookieRegistryPath();
         if (!$jsonPath || !file_exists($jsonPath)) {
@@ -114,8 +155,10 @@ class CookieService extends DataObject
             return null;
         }
 
+        $normalizedSearch = self::normalizeServiceName($serviceName);
+
         foreach ($data as $jsonServiceName => $cookieEntries) {
-            if ($jsonServiceName === $serviceName) {
+            if (self::normalizeServiceName($jsonServiceName) === $normalizedSearch) {
                 return $cookieEntries;
             }
         }
@@ -127,11 +170,13 @@ class CookieService extends DataObject
     {
         parent::onAfterWrite();
         CookieConsentConfigCache::clear();
+        CookieConsentServiceOptionsCache::clear();
     }
 
     public function onAfterDelete()
     {
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
+        CookieConsentServiceOptionsCache::clear();
     }
 }

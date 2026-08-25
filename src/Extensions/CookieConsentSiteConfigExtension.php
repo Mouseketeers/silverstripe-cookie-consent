@@ -76,7 +76,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
                     sort($names);
 
                     foreach ($names as $serviceName) {
-                        $options[$serviceName] = $serviceName;
+                        $normalizedKey = CookieService::normalizeServiceName($serviceName);
+                        $options[$normalizedKey] = $serviceName;
                     }
                 }
             }
@@ -98,10 +99,6 @@ class CookieConsentSiteConfigExtension extends DataExtension
         }
 
         $serviceOptionsMap = $this->getServicesOptionsFromCookieRegistry();
-        foreach ($this->owner->CookieServices() as $selectedService) {
-            $serviceName = $selectedService->Name;
-            $serviceOptionsMap[$serviceName] = $serviceName;
-        }
 
         CookieConsentServiceOptionsCache::save($serviceOptionsMap, $cacheKey);
 
