@@ -100,7 +100,7 @@ class CookieConsentConfigBuilder
 
             if ($categoryKey === $externalMediaCategory) {
                 // external media category is kept even if no cookies, but we add services
-                $categoryVM = CookieCategoryViewModel::create($categoryKey, $categoryData, $cookies);
+                $categoryVM = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies);
                 $categories[$categoryKey] = $categoryVM;
 
                 foreach ($selectedExternalMedia as $key) {
@@ -114,7 +114,7 @@ class CookieConsentConfigBuilder
                 continue;
             }
 
-            $categories[$categoryKey] = CookieCategoryViewModel::create($categoryKey, $categoryData, $cookies);
+            $categories[$categoryKey] = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies);
         }
 
         return $categories;

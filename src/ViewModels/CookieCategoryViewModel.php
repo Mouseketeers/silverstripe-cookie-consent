@@ -14,7 +14,7 @@ class CookieCategoryViewModel extends ViewableData
         $this->CookieDescriptions = new ArrayList();
     }
 
-    public static function create($key, $config, ArrayList $cookies)
+    public static function create_instance($key, $config, ArrayList $cookies)
     {
         $vm = new self();
 

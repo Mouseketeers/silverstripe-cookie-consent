@@ -10,7 +10,6 @@ CookieConsent:
   enable_external_media_management: true
   external_media_category: 'embeds'
   cookie_registry_path: 'cookie-consent/cookie-registry/open-cookie-database.json'
-  clear_cookies_on_cookie_registry_update: true
   gui_options:
     consentModal:
       layout: 'cloud'
@@ -21,6 +20,7 @@ CookieConsent:
       readOnly: true
       cookies:
         - cc_cookie
+        - phpsesid
     personalization:
       enabled: false
     analytics:

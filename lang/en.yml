@@ -1,7 +1,7 @@
 en:
   CookieConsent:
     CookieConsentModalTitle: 'We use cookies'
-    CookieConsentModalContent: "<p>We use cookies to personalise content and ads, to provide social media features and to analyse our traffic. We also share information about your use of our site with our social media, advertising and analytics partners who may combine it with other information that you've provided to them or that they've collected from your use of their services.</p>"
+    CookieConsentModalContent: "<p>We use cookies to measure website traffic, personalise advertising, and support our marketing activities. We may share relevant information with our advertising, social media, and analytics partners.</p>"
     PreferencesCookieConsentModalTitle: 'Manage cookie preferences'
     ButtonsAcceptAll: 'Accept all'
     ButtonsRejectAll: 'Reject all'
@@ -28,17 +28,20 @@ en:
       Notice_vimeo: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://vimeo.com/terms" target="_blank">terms and conditions</a> of vimeo.com.'
       Notice_yumpu: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.yumpu.com/en/info/privacy_policy" target="_blank">privacy policy</a> of yumpu.com.'
     Cookies:
+      phpsesid: 
+        description: 'Preserves user session state across page requests.'
+        expiration: 'Session'
       cc_cookie:
-        description: "Stores the user's cookie preferences for this domain"
+        description: "Stores the user's cookie preferences for this domain."
         expiration: '1 year'
       im_youtube:
-        description: "Stores the user's accept to load external media content from YouTube"
+        description: "Stores the user's accept to load external media content from YouTube."
         expiration: '1 year'
       im_vimeo:
-        description: "Stores the user's accept to load external media content from Vimeo"
+        description: "Stores the user's accept to load external media content from Vimeo."
         expiration: '1 year'
       im_googlemaps:
-        description: "Stores the user's accept to load external media content from Google Maps"
+        description: "Stores the user's accept to load external media content from Google Maps."
         expiration: '1 year'
     CookieDeclaration:
       ConsentID: 'Consent ID'
