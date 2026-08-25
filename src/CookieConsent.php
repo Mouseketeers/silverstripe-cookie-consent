@@ -201,27 +201,7 @@ class CookieConsent
             return null;
         }
 
-        $basePath = BASE_PATH . '/' . ltrim($path, '/');
-
-        // look for a locale-specific variant, e.g. open-cookie-database.pl_PL.json
-        $locale = i18n::get_locale();
-        if ($locale) {
-            $info = pathinfo($basePath);
-            $localePath = sprintf(
-                '%s/%s.%s.%s',
-                $info['dirname'],
-                $info['filename'],
-                $locale,
-                $info['extension']
-            );
-
-            if (file_exists($localePath)) {
-                return $localePath;
-            }
-        }
-
-        // fall back to the default (English) file
-        return $basePath;
+        return BASE_PATH . '/' . ltrim($path, '/');
     }
 
     public static function getConsentCookie()

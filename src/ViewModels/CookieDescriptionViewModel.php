@@ -24,8 +24,14 @@ class CookieDescriptionViewModel extends ViewableData
         $vm->Service = $serviceName;
         $vm->Domain = $registryData->domain ?? '';
         $vm->PrivacyPolicyURL = $registryData->privacyLink ?? '';
-        $vm->Description = $registryData->description ?? '';
-        $vm->Expiration = $registryData->retentionPeriod ?? '';
+        $vm->Description = _t(
+            'CookieConsent.RegistryCookies.' . $registryData->id . '.description',
+            $registryData->description ?? ''
+        );
+        $vm->Expiration = _t(
+            'CookieConsent.RegistryCookies.' . $registryData->id . '.retentionPeriod',
+            $registryData->retentionPeriod ?? ''
+        );
 
         return $vm;
     }
