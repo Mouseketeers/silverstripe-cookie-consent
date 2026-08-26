@@ -32,6 +32,8 @@ function initCookieConsent() {
 
     const iframeManagerConfig = cookieConsentService.buildIframeManagerConfig();
 
+    cookieConsentService._runBeforeRunCallbacks(cookieConsentConfig);
+
     cookieConsentApi.run(cookieConsentConfig);
     iframeManagerApi.run(iframeManagerConfig);
 

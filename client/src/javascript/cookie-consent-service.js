@@ -33,6 +33,25 @@ const defaultExternalMediaServices = {
 };
 
 export const cookieConsentService = {
+    _beforeRunCallbacks: [],
+    /**
+     * Register a callback to modify the cookie consent config before CookieConsentApi.run() is called.
+     * The callback receives the config object and can mutate it (e.g. change mode, add callbacks, etc.).
+     *
+     * @param {function(object): void} callback
+     * @example
+     * window.cookieConsentService.beforeRun(function(config) {
+     *     config.mode = 'opt-out';
+     * });
+     */
+    beforeRun(callback) {
+        if (typeof callback === 'function') {
+            this._beforeRunCallbacks.push(callback);
+        }
+    },
+    _runBeforeRunCallbacks(config) {
+        this._beforeRunCallbacks.forEach(callback => callback(config));
+    },
     init() {
         if(this.isGoogleConsentModeEnabled()) {
             cookieConsentService.initializeGtagConsent();
@@ -41,26 +60,8 @@ export const cookieConsentService = {
     getCookieConsentApi() {
         return CookieConsent;
     },
-    isGoogleConsentModeEnabled() {
-        return this.getConsentSettings().isGoogleConsentModeEnabled;
-    },
-    isConsentRegistrationEnabled() {
-        return this.getConsentSettings().isConsentRegistrationEnabled;
-    },
-    getDefaultLanguage() {
-        return this.getConsentSettings().defaultLanguage;
-    },
-    getCookieConsentTranslations() {
-        return this.getConsentSettings().translations;
-    },
-    getExternalMediaTranslations() {
-        return this.getConsentSettings().externalMediaServices;
-    },
     getServerSideConfiguration() {
         return window.cookieConsentConfig || {};
-    },
-    getGuiOptions() {
-        return this.getConsentSettings().guiOptions;
     },
     getConsentSettings() {
         const serverSideConfig = this.getServerSideConfiguration();
@@ -80,7 +81,26 @@ export const cookieConsentService = {
             isExternalMediaManagementEnabled: serverSideConfig?.isExternalMediaManagementEnabled || false,
             externalMediaCategory: serverSideConfig?.externalMediaCategory || 'embeds',
         };
+    },        
+    isGoogleConsentModeEnabled() {
+        return this.getConsentSettings().isGoogleConsentModeEnabled;
     },
+    isConsentRegistrationEnabled() {
+        return this.getConsentSettings().isConsentRegistrationEnabled;
+    },
+    getDefaultLanguage() {
+        return this.getConsentSettings().defaultLanguage;
+    },
+    getCookieConsentTranslations() {
+        return this.getConsentSettings().translations;
+    },
+    getExternalMediaTranslations() {
+        return this.getConsentSettings().externalMediaServices;
+    },
+    getGuiOptions() {
+        return this.getConsentSettings().guiOptions;
+    },
+
     getConsentCategories() {
         const { categories, externalMediaCategory } = this.getConsentSettings();
 

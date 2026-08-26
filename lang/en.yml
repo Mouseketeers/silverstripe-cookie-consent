@@ -1,10 +1,10 @@
 en:
   CookieConsent:
-    CookieConsentModalTitle: 'We use cookies'
+    CookieConsentModalTitle: 'Your Cookie Preferences'
     CookieConsentModalContent: "<p>We use cookies to measure website traffic, personalise advertising, and support our marketing activities. We may share relevant information with our advertising, social media, and analytics partners.</p>"
-    PreferencesCookieConsentModalTitle: 'Manage cookie preferences'
-    ButtonsAcceptAll: 'Accept all'
-    ButtonsRejectAll: 'Reject all'
+    PreferencesCookieConsentModalTitle: 'Manage your cookie preferences'
+    ButtonsAcceptAll: 'Accept all cookies'
+    ButtonsRejectAll: 'Reject non-essential cookies'
     ButtonsManagePreferences: 'Manage preferences'
     ButtonsSavePreferences: 'Save preferences'
     PreferencesCloseIconLabel: 'Close'
