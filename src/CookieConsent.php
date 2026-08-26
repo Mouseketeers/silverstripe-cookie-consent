@@ -31,6 +31,10 @@ class CookieConsent
         return Config::inst()->get('CookieConsent', 'disable_cookie_consent') || !self::hasDataToRender();
     }
 
+    public static function isExternalMediaManagementEnabled() {
+        return Config::inst()->get('CookieConsent', 'enable_external_media_management');
+    }    
+
     public static function isDefaultJsDisabled()
     {
         return Config::inst()->get('CookieConsent', 'disable_default_js');
@@ -49,10 +53,6 @@ class CookieConsent
     public static function isConsentRegistrationEnabled()
     {
         return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
-    }
-
-    public static function isExternalMediaManagementEnabled() {
-        return Config::inst()->get('CookieConsent', 'enable_external_media_management');
     }
 
     public static function getCookieRegistryPath()

@@ -1,5 +1,5 @@
 import * as CookieConsent from 'vanilla-cookieconsent';
-import iframemanager from '@orestbida/iframemanager/src/iframemanager';
+import '@orestbida/iframemanager/src/iframemanager';
 
 const defaultExternalMediaServices = {
     youtube: {
@@ -29,44 +29,30 @@ const defaultExternalMediaServices = {
             allow: 'fullscreen; picture-in-picture;',
         },
         languages: {}
-    }    
+    }
 };
 
 export const cookieConsentService = {
     _beforeRunCallbacks: [],
-    _renderDisabled: false,
-    /**
-     * Disable rendering of the cookie consent modal (and skip running CookieConsentApi/iframemanager entirely).
-     * Useful when consent is not required for the current visitor (e.g. non-EU visitor without implied-consent rules).
-     */
-    disableRendering() {
-        this._renderDisabled = true;
+    _disableCookieConsent: false,
+    init() {
+        if (this.isGoogleConsentModeEnabled()) {
+            this.initializeGtagConsent();
+        }
+    },    
+    disableCookieConsent() {
+        this._disableCookieConsent = true;
     },
-    isRenderingDisabled() {
-        return this._renderDisabled;
+    isCookieConsentDisabled() {
+        return this._disableCookieConsent;
     },
-    /**
-     * Register a callback to modify the cookie consent config before CookieConsentApi.run() is called.
-     * The callback receives the config object and can mutate it (e.g. change mode, add callbacks, etc.).
-     *
-     * @param {function(object): void} callback
-     * @example
-     * window.cookieConsentService.beforeRun(function(config) {
-     *     config.mode = 'opt-out';
-     * });
-     */
     beforeRun(callback) {
         if (typeof callback === 'function') {
             this._beforeRunCallbacks.push(callback);
         }
     },
-    _runBeforeRunCallbacks(config) {
+    applyBeforeRunCallbacks(config) {
         this._beforeRunCallbacks.forEach(callback => callback(config));
-    },
-    init() {
-        if(this.isGoogleConsentModeEnabled()) {
-            cookieConsentService.initializeGtagConsent();
-        }
     },
     getCookieConsentApi() {
         return CookieConsent;
@@ -92,12 +78,16 @@ export const cookieConsentService = {
             isExternalMediaManagementEnabled: serverSideConfig?.isExternalMediaManagementEnabled || false,
             externalMediaCategory: serverSideConfig?.externalMediaCategory || 'embeds',
         };
-    },        
+    },
+
     isGoogleConsentModeEnabled() {
         return this.getConsentSettings().isGoogleConsentModeEnabled;
     },
     isConsentRegistrationEnabled() {
         return this.getConsentSettings().isConsentRegistrationEnabled;
+    },
+    isExternalMediaManagementEnabled() {
+        return this.getConsentSettings().isExternalMediaManagementEnabled;
     },
     getDefaultLanguage() {
         return this.getConsentSettings().defaultLanguage;
@@ -105,28 +95,28 @@ export const cookieConsentService = {
     getCookieConsentTranslations() {
         return this.getConsentSettings().translations;
     },
-    getExternalMediaTranslations() {
-        return this.getConsentSettings().externalMediaServices;
-    },
     getGuiOptions() {
         return this.getConsentSettings().guiOptions;
     },
 
     getConsentCategories() {
-        const { categories, externalMediaCategory } = this.getConsentSettings();
+        const { categories, externalMediaCategory, isExternalMediaManagementEnabled } = this.getConsentSettings();
 
-        if (!externalMediaCategory) {
+        if (!isExternalMediaManagementEnabled) {
             return categories;
         }
 
-        const categoryServices = categories?.[externalMediaCategory]?.services || {};
+        const externalCategory = categories?.[externalMediaCategory];
+        if (!externalCategory?.services) {
+            return categories;
+        }
 
-        const mergedCategories = {
+        return {
             ...categories,
             [externalMediaCategory]: {
-                ...(categories?.[externalMediaCategory] || {}),
+                ...externalCategory,
                 services: Object.fromEntries(
-                    Object.entries(categoryServices).map(([key, service]) => [
+                    Object.entries(externalCategory.services).map(([key, service]) => [
                         key,
                         {
                             ...service,
@@ -137,8 +127,8 @@ export const cookieConsentService = {
                 )
             }
         };
-        return mergedCategories;
     },
+
     initializeGtagConsent() {
         window.dataLayer = window.dataLayer || [];
         window.gtag = window.gtag || function () {
@@ -146,11 +136,10 @@ export const cookieConsentService = {
         };
     },
     updateGtagConsent() {
-
-        if(!this.isGoogleConsentModeEnabled()) {
+        if (!this.isGoogleConsentModeEnabled()) {
             return;
         }
-        
+
         window.gtag('consent', 'update', {
             functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
             personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
@@ -162,11 +151,10 @@ export const cookieConsentService = {
         });
     },
     registerConsent() {
-        
-        if(!this.isConsentRegistrationEnabled()) {
+        if (!this.isConsentRegistrationEnabled()) {
             return;
         }
-        
+
         const cookie = CookieConsent.getCookie();
         const preferences = CookieConsent.getUserPreferences();
 
@@ -176,7 +164,7 @@ export const cookieConsentService = {
 
         const consentData = [];
 
-        if(preferences.acceptType) {
+        if (preferences.acceptType) {
             consentData.push('Consent Type: ' + preferences.acceptType);
         }
 
@@ -190,16 +178,16 @@ export const cookieConsentService = {
 
         const acceptedServicesByCategory = Object.entries(preferences.acceptedServices || {})
             .filter(([, services]) => Array.isArray(services) && services.length > 0)
-            .map(([,services]) => `${services.join(', ')}`)
+            .map(([category, services]) => `${category}: ${services.join(', ')}`)
             .join('; ');
-        
+
         if (acceptedServicesByCategory) {
             consentData.push('Accepted Services: ' + acceptedServicesByCategory);
         }
 
         const rejectedServicesByCategory = Object.entries(preferences.rejectedServices || {})
             .filter(([, services]) => Array.isArray(services) && services.length > 0)
-            .map(([, services]) => `${services.join(', ')}`)
+            .map(([category, services]) => `${category}: ${services.join(', ')}`)
             .join('; ');
 
         if (rejectedServicesByCategory) {
@@ -232,10 +220,8 @@ export const cookieConsentService = {
             services: this.getExternalMediaServices(),
             onChange: ({ changedServices, eventSource }) => {
                 if (eventSource.type === 'click') {
-                    const servicesToAccept = [
-                        ...CookieConsent.getUserPreferences().acceptedServices[externalMediaCategory],
-                        ...changedServices
-                    ];
+                    const acceptedServices = CookieConsent.getUserPreferences().acceptedServices?.[externalMediaCategory] ?? [];
+                    const servicesToAccept = [...new Set([...acceptedServices, ...changedServices])];
                     CookieConsent.acceptService(servicesToAccept, externalMediaCategory);
                 }
             }
@@ -255,10 +241,10 @@ export const cookieConsentService = {
     getExternalMediaServices() {
         const { externalMediaServiceTranslations } = this.getConsentSettings();
 
-        if(!externalMediaServiceTranslations || Object.keys(externalMediaServiceTranslations).length === 0) {
+        if (!externalMediaServiceTranslations || Object.keys(externalMediaServiceTranslations).length === 0) {
             return {};
         }
-        const mergedExternalMediaServices = Object.fromEntries(
+        return Object.fromEntries(
             Object.entries(externalMediaServiceTranslations).map(([key, config]) => [
                 key,
                 {
@@ -271,24 +257,6 @@ export const cookieConsentService = {
                 }
             ])
         );
-        return mergedExternalMediaServices;
     },
-    addExternalMediaService(key, config) {
-        if (!key || !config) {
-            return null;
-        }
-
-        externalMediaServices[key] = {
-            ...config,
-            iframe: {
-                ...(config.iframe || {})
-            },
-            languages: {
-                ...(config.languages || {})
-            }
-        };
-
-        return externalMediaServices[key];
-    }
 };
 window.cookieConsentService = cookieConsentService;
