@@ -26,7 +26,7 @@ async function initCookieConsent() {
         }
     };
 
-    cookieConsentService.applyBeforeRunCallbacks(cookieConsentConfig);
+    cookieConsentService.emit('beforeRun', cookieConsentConfig);
 
     await cookieConsentApi.run(cookieConsentConfig);
 
@@ -34,7 +34,7 @@ async function initCookieConsent() {
         window.iframemanager().run(cookieConsentService.buildIframeManagerConfig());
     }
 
-    cookieConsentService.applyAfterRunCallbacks();
+    cookieConsentService.emit('afterRun');
 }
 
 function updateCookieConsentDeclaration() {

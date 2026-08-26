@@ -33,23 +33,18 @@ const defaultExternalMediaServices = {
 };
 
 export const cookieConsentService = {
-    _beforeRunCallbacks: [],
-    _afterRunCallbacks: [],
-    beforeRun(callback) {
-        if (typeof callback === 'function') {
-            this._beforeRunCallbacks.push(callback);
+    _hooks: {},
+    on(hookName, callback) {
+        if (typeof callback !== 'function') {
+            return;
         }
-    },
-    applyBeforeRunCallbacks(config) {
-        this._beforeRunCallbacks.forEach(callback => callback(config));
-    },
-    afterRun(callback) {
-        if (typeof callback === 'function') {
-            this._afterRunCallbacks.push(callback);
+        if (!this._hooks[hookName]) {
+            this._hooks[hookName] = [];
         }
+        this._hooks[hookName].push(callback);
     },
-    applyAfterRunCallbacks() {
-        this._afterRunCallbacks.forEach(callback => callback());
+    emit(hookName, ...args) {
+        (this._hooks[hookName] || []).forEach(callback => callback(...args));
     },
     getCookieConsentApi() {
         return CookieConsent;
