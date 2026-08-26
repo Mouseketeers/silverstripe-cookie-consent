@@ -29,7 +29,7 @@ class CookieConsentConfigBuilder
 
         $categories = $this->buildCategories();
 
-        $isExternalMediaManagementEnabled = CookieConsent::isExternalMediaManagementEnabled();
+        $isIframeManagerDisabled = CookieConsent::isIframeManagerDisabled();
 
         $config = [
             'defaultLanguage' => $languageCode,
@@ -40,9 +40,9 @@ class CookieConsentConfigBuilder
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
-            'isExternalMediaManagementEnabled' => $isExternalMediaManagementEnabled,
+            'isIframeManagerDisabled' => $isIframeManagerDisabled,
         ];
-        if ($isExternalMediaManagementEnabled) {
+        if (!$isIframeManagerDisabled) {
             $config['externalMediaCategory'] = $this->externalMediaCategory;
             $config['externalMediaServices'] = [
                 'services' => $this->buildExternalMediaServices($languageCode)

@@ -3,12 +3,11 @@ Name: cookie-consent--config
 ---
 CookieConsent:
   disable_cookie_consent: false
-  enable_external_media_management: true
+  disable_iframe_manager: false
   disable_default_css: false
   disable_default_js: false
   enable_google_consent_mode: false
   enable_consent_logging: true
-
   external_media_category: 'embeds'
   cookie_registry_path: 'cookie-consent/cookie-registry/open-cookie-database.json'
   gui_options:

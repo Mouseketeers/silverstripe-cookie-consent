@@ -1,20 +1,8 @@
 import { cookieConsentService } from './cookie-consent-service';
 
-function initCookieConsent() {
-
-
-    if (cookieConsentService.isExternalMediaManagementEnabled()) {
-        window.iframemanager().run(cookieConsentService.buildIframeManagerConfig());
-    }
-
-    if (cookieConsentService.isCookieConsentDisabled()) {
-        window.iframemanager().acceptService('all');
-        return;
-    }
+async function initCookieConsent() {
 
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
-
-    // cookieConsentService.init();
 
     const cookieConsentConfig = {
         guiOptions: cookieConsentService.getGuiOptions(),
@@ -40,13 +28,13 @@ function initCookieConsent() {
 
     cookieConsentService.applyBeforeRunCallbacks(cookieConsentConfig);
 
-    cookieConsentApi.run(cookieConsentConfig);
+    await cookieConsentApi.run(cookieConsentConfig);
 
-    // if (cookieConsentService.isExternalMediaManagementEnabled()) {
-    //     window.iframemanager().run(cookieConsentService.buildIframeManagerConfig());
-    // }
+    if (!cookieConsentService.isIframeManagerDisabled()) {
+        window.iframemanager().run(cookieConsentService.buildIframeManagerConfig());
+    }
 
-    updateCookieConsentDeclaration();
+    cookieConsentService.applyAfterRunCallbacks();
 }
 
 function updateCookieConsentDeclaration() {
@@ -80,5 +68,4 @@ function updateCookieConsentDeclaration() {
         acceptedCategoriesElement.textContent = acceptedCategoryTitles.join(', ') || '';
     }
 }
-
 document.addEventListener('DOMContentLoaded', initCookieConsent);

@@ -34,18 +34,7 @@ const defaultExternalMediaServices = {
 
 export const cookieConsentService = {
     _beforeRunCallbacks: [],
-    _disableCookieConsent: false,
-    init() {
-        if (this.isGoogleConsentModeEnabled()) {
-            this.initializeGtagConsent();
-        }
-    },    
-    disableCookieConsent() {
-        this._disableCookieConsent = true;
-    },
-    isCookieConsentDisabled() {
-        return this._disableCookieConsent;
-    },
+    _afterRunCallbacks: [],
     beforeRun(callback) {
         if (typeof callback === 'function') {
             this._beforeRunCallbacks.push(callback);
@@ -53,6 +42,14 @@ export const cookieConsentService = {
     },
     applyBeforeRunCallbacks(config) {
         this._beforeRunCallbacks.forEach(callback => callback(config));
+    },
+    afterRun(callback) {
+        if (typeof callback === 'function') {
+            this._afterRunCallbacks.push(callback);
+        }
+    },
+    applyAfterRunCallbacks() {
+        this._afterRunCallbacks.forEach(callback => callback());
     },
     getCookieConsentApi() {
         return CookieConsent;
@@ -75,7 +72,7 @@ export const cookieConsentService = {
             externalMediaServiceTranslations: serverSideConfig?.externalMediaServices?.services || {},
             isGoogleConsentModeEnabled: serverSideConfig?.isGoogleConsentModeEnabled || false,
             isConsentRegistrationEnabled: serverSideConfig?.isConsentRegistrationEnabled || false,
-            isExternalMediaManagementEnabled: serverSideConfig?.isExternalMediaManagementEnabled || false,
+            isIframeManagerDisabled: serverSideConfig?.isIframeManagerDisabled || false,
             externalMediaCategory: serverSideConfig?.externalMediaCategory || 'embeds',
         };
     },
@@ -86,8 +83,8 @@ export const cookieConsentService = {
     isConsentRegistrationEnabled() {
         return this.getConsentSettings().isConsentRegistrationEnabled;
     },
-    isExternalMediaManagementEnabled() {
-        return this.getConsentSettings().isExternalMediaManagementEnabled;
+    isIframeManagerDisabled() {
+        return this.getConsentSettings().isIframeManagerDisabled;
     },
     getDefaultLanguage() {
         return this.getConsentSettings().defaultLanguage;
@@ -100,9 +97,9 @@ export const cookieConsentService = {
     },
 
     getConsentCategories() {
-        const { categories, externalMediaCategory, isExternalMediaManagementEnabled } = this.getConsentSettings();
+        const { categories, externalMediaCategory, isIframeManagerDisabled } = this.getConsentSettings();
 
-        if (!isExternalMediaManagementEnabled) {
+        if (isIframeManagerDisabled) {
             return categories;
         }
 
@@ -128,18 +125,10 @@ export const cookieConsentService = {
             }
         };
     },
-
-    initializeGtagConsent() {
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = window.gtag || function () {
-            window.dataLayer.push(arguments);
-        };
-    },
     updateGtagConsent() {
         if (!this.isGoogleConsentModeEnabled()) {
             return;
         }
-
         window.gtag('consent', 'update', {
             functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
             personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',

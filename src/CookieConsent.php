@@ -4,6 +4,7 @@ class CookieConsent
 {
 
     private static $disable_cookie_consent = false;
+    private static $disable_iframe_manager = false;
     private static $disable_default_js = false;
     private static $disable_default_css = false;
     private static $enable_google_consent_mode = false;
@@ -31,8 +32,8 @@ class CookieConsent
         return Config::inst()->get('CookieConsent', 'disable_cookie_consent') || !self::hasDataToRender();
     }
 
-    public static function isExternalMediaManagementEnabled() {
-        return Config::inst()->get('CookieConsent', 'enable_external_media_management');
+    public static function isIframeManagerDisabled() {
+        return Config::inst()->get('CookieConsent', 'disable_iframe_manager');
     }    
 
     public static function isDefaultJsDisabled()

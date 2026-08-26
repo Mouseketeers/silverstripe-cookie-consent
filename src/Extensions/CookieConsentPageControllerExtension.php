@@ -8,7 +8,7 @@ class CookieConsentPageControllerExtension extends Extension
     }
     public function onAfterInit()
     {
-        if (!CookieConsent::isCookieConsentDisabled() && CookieConsent::hasDataToRender()) {
+        if (CookieConsent::hasDataToRender()) {
             if (!CookieConsent::isDefaultJsDisabled()) {
                 $config = CookieConsent::createConfigBuilder()->buildConsentConfig();
                 $configJson = json_encode(
