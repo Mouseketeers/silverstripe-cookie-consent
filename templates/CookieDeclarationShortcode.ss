@@ -1,6 +1,6 @@
 <div class="cookie-consent">
-    <% if $ConsentID %>
-        <p class="cookie-consent__meta">
+    <div id="cookie-consent__header" class="cookie-consent__header" style="display: <% if $ConsentID %>block<% else %>none<% end_if %>">
+        <p class="cookie-consent__user-consent-data">
             <span class="cookie-consent__label cookie-consent__label--id"><%t CookieConsent.ConsentID 'Consent ID' %></span>: <span class="cookie-consent__value cookie-consent__value--id" id="cookie-consent-id">$ConsentID</span><br/>
             <span class="cookie-consent__label cookie-consent__label--date"><%t CookieConsent.ConsentDate 'Consent given on' %></span>: <span class="cookie-consent__value cookie-consent__value--date" id="cookie-consent-timestamp">$ConsentDate</span><br/>
             <span class="cookie-consent__label cookie-consent__label--categories"><%t CookieConsent.AcceptedCategories 'Accepted Categories' %></span>: <span class="cookie-consent__value cookie-consent__value--categories" id="cookie-consent-accepted-categories">$AcceptedCategories</span>
@@ -8,8 +8,7 @@
         <p class="cookie-consent__actions">
             <a class="cookie-consent__button" type="button" data-cc="show-preferencesModal"><%t CookieConsent.ShowPreferencesModal 'Change Your Cookie Preferences' %></a>
         </p>
-    <% end_if %>
-
+    </div>
     <% loop $Categories %>
         <section class="cookie-consent__category">
             <h3 class="cookie-consent__category-title">$Title</h3>

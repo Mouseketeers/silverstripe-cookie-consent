@@ -2,6 +2,11 @@ import { cookieConsentService } from './cookie-consent-service';
 
 function initCookieConsent() {
 
+    if (cookieConsentService.isRenderingDisabled()) {
+        console.info('[cookie-consent] Rendering disabled - skipping cookie consent setup.');
+        return;
+    }
+
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
     const iframeManagerApi = iframemanager();
 
@@ -39,16 +44,28 @@ function initCookieConsent() {
 
     function updateCookieConsentDeclaration() {
 
+        const consentHeaderElement = document.getElementById('cookie-consent__header');
+
+        if (!consentHeaderElement) {
+            return;
+        }
+
         const cookie = cookieConsentApi.getCookie();
+
+        if (!cookie) {
+            return;
+        }
         const consentIdElement = document.getElementById('cookie-consent-id');
         const consentTimestampElement = document.getElementById('cookie-consent-timestamp');
         const acceptedCategoriesElement = document.getElementById('cookie-consent-accepted-categories');
 
+        consentHeaderElement.style.display = 'block';
+
         if (consentIdElement) {
-            consentIdElement.textContent = cookie?.consentId || '';
+            consentIdElement.textContent = cookie.consentId || '';
         }
         if (consentTimestampElement) {
-            consentTimestampElement.textContent = cookie?.consentTimestamp || '';
+            consentTimestampElement.textContent = cookie.consentTimestamp || '';
         }
 
         if (acceptedCategoriesElement) {

@@ -34,6 +34,17 @@ const defaultExternalMediaServices = {
 
 export const cookieConsentService = {
     _beforeRunCallbacks: [],
+    _renderDisabled: false,
+    /**
+     * Disable rendering of the cookie consent modal (and skip running CookieConsentApi/iframemanager entirely).
+     * Useful when consent is not required for the current visitor (e.g. non-EU visitor without implied-consent rules).
+     */
+    disableRendering() {
+        this._renderDisabled = true;
+    },
+    isRenderingDisabled() {
+        return this._renderDisabled;
+    },
     /**
      * Register a callback to modify the cookie consent config before CookieConsentApi.run() is called.
      * The callback receives the config object and can mutate it (e.g. change mode, add callbacks, etc.).
