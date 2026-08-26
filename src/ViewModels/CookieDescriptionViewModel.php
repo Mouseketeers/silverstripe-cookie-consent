@@ -50,17 +50,24 @@ class CookieDescriptionViewModel extends ViewableData
         return $vm;
     }
 
-    public static function fromConfig($cookieName, $host)
+    public static function fromConfig($cookieName, $host, $config = [])
     {
         $vm = new self();
+
+        $defaultDescription = isset($config['description']) && is_string($config['description'])
+            ? $config['description']
+            : '';
+        $defaultExpiration = isset($config['expiration']) && is_string($config['expiration'])
+            ? $config['expiration']
+            : '';
 
         $vm->Name = $cookieName;
         $vm->Provider = $host;
         $vm->Service = $host;
         $vm->Domain = $host;
         $vm->PrivacyPolicyURL = '';
-        $vm->Description = _t('CookieConsent.Cookies.' . $cookieName . '.description', '');
-        $vm->Expiration = _t('CookieConsent.Cookies.' . $cookieName . '.expiration', '');
+        $vm->Description = _t('CookieConsent.Cookies.' . $cookieName . '.description', $defaultDescription);
+        $vm->Expiration = _t('CookieConsent.Cookies.' . $cookieName . '.expiration', $defaultExpiration);
 
         return $vm;
     }

@@ -76,8 +76,8 @@ class CookieConsentConfigBuilder
                 continue;
             }
 
-            foreach ($defaultCookies as $cookieName) {
-                $cookies->push(CookieDescriptionViewModel::fromConfig($cookieName, $host)->forTemplate());
+            foreach ($defaultCookies as $cookieName => $cookieConfig) {
+                $cookies->push(CookieDescriptionViewModel::fromConfig($cookieName, $host, $cookieConfig)->forTemplate());
             }
 
             // add cookies from selected services

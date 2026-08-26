@@ -3,6 +3,7 @@ pl_PL:
     CookieConsentModalTitle: 'Twoje preferencje dotyczące plików cookie'
     CookieConsentModalContent: '<p>Używamy plików cookie do mierzenia ruchu na stronie, personalizowania reklam i wspierania naszych działań marketingowych. Możemy udostępniać istotne informacje naszym partnerom reklamowym, społecznościowym i analitycznym.</p>'
     PreferencesCookieConsentModalTitle: 'Zarządzaj preferencjami plików cookie'
+    ButtonsAcceptAll: 'Zaakceptuj wszystkie'
     ButtonsRejectAll: 'Odrzuć niekonieczne'
     ButtonsManagePreferences: 'Zarządzaj preferencjami'
     ButtonsSavePreferences: 'Zapisz preferencje'

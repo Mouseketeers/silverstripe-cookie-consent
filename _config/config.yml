@@ -19,8 +19,12 @@ CookieConsent:
       enabled: true
       readOnly: true
       cookies:
-        - cc_cookie
-        - phpsesid
+        PHPSESSID:
+          description: 'Preserves user session state across page requests.'
+          expiration: 'Session'
+        cc_cookie:
+          description: "Stores the user's cookie preferences for this domain."
+          expiration: '1 year'
     personalization:
       enabled: false
     analytics:

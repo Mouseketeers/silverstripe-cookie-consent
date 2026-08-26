@@ -26,7 +26,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
         $externalMediaField = CookieServiceListboxField::create(
             'SelectedExternalMedia',
-            $this->owner->fieldLabel('ExternalMedia'),
+            'External Media',
             $this->getExternalMediaOptionsMap()
         )
             ->setRelationName('ExternalMedia')
@@ -71,11 +71,14 @@ class CookieConsentSiteConfigExtension extends DataExtension
             $raw = @file_get_contents($jsonPath);
             if ($raw !== false) {
                 $data = json_decode($raw, true);
+                
                 if (is_array($data)) {
                     $names = array_keys($data);
-                    sort($names);
-
+                    // sort($names);
                     foreach ($names as $serviceName) {
+                        if(!$serviceName) {
+                            continue;
+                        }
                         $normalizedKey = CookieService::normalizeServiceName($serviceName);
                         $options[$normalizedKey] = $serviceName;
                     }
