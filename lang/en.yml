@@ -12,8 +12,6 @@ en:
     CookieProvider: 'Provider'
     CookieDescription: 'Description'
     CookieExpiration: 'Expiration'
-    CookieConsentCookieDecrtiption:	"Stores the user's cookie preferences for this domain"
-    ExternalMediaCookieDescription: "Stores the user's accept to load external media content from third party providers"
     Category:
       functional: 'Necessary'
       analytics: 'Analytics'
@@ -52,4 +50,5 @@ en:
       youtube: 'Youtube'
       vimeo: 'Vimeo'
       googlemaps: 'Google Maps'
+      twitch: 'Twitch'
 

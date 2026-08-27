@@ -1,7 +1,7 @@
 import * as CookieConsent from 'vanilla-cookieconsent';
 import '@orestbida/iframemanager/src/iframemanager';
 
-const defaultExternalMediaServices = {
+const externalMediaServices = {
     youtube: {
         embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
         thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
@@ -124,6 +124,9 @@ export const cookieConsentService = {
         if (!this.isGoogleConsentModeEnabled()) {
             return;
         }
+        window.gtag = window.gtag || function () {
+            window.dataLayer.push(arguments);
+        };
         window.gtag('consent', 'update', {
             functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
             personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
@@ -232,15 +235,32 @@ export const cookieConsentService = {
             Object.entries(externalMediaServiceTranslations).map(([key, config]) => [
                 key,
                 {
-                    ...defaultExternalMediaServices[key],
+                    ...externalMediaServices[key],
                     ...config,
                     languages: {
-                        ...(defaultExternalMediaServices[key]?.languages || {}),
+                        ...(externalMediaServices[key]?.languages || {}),
                         ...(config.languages || {})
                     }
                 }
             ])
         );
     },
+    addExternalMediaService(key, config) {
+        if (!key || !config) {
+            return null;
+        }
+
+        externalMediaServices[key] = {
+            ...config,
+            iframe: {
+                ...(config.iframe || {})
+            },
+            languages: {
+                ...(config.languages || {})
+            }
+        };
+
+        return externalMediaServices[key];
+    }    
 };
 window.cookieConsentService = cookieConsentService;
