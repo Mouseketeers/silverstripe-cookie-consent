@@ -202,22 +202,20 @@ export const cookieConsentService = {
             consentData.push('Rejected Categories: ' + preferences.rejectedCategories.join(', '));
         }
 
-        const acceptedServicesByCategory = Object.entries(preferences.acceptedServices || {})
-            .filter(([, services]) => Array.isArray(services) && services.length > 0)
-            .map(([category, services]) => `${category}: ${services.join(', ')}`)
-            .join('; ');
+        const acceptedServices = Object.values(preferences.acceptedServices || {})
+            .filter((services) => Array.isArray(services))
+            .reduce((all, services) => all.concat(services), []);
 
-        if (acceptedServicesByCategory) {
-            consentData.push('Accepted Services: ' + acceptedServicesByCategory);
+        if (acceptedServices.length > 0) {
+            consentData.push('Accepted Services: ' + acceptedServices.join(', '));
         }
 
-        const rejectedServicesByCategory = Object.entries(preferences.rejectedServices || {})
-            .filter(([, services]) => Array.isArray(services) && services.length > 0)
-            .map(([category, services]) => `${category}: ${services.join(', ')}`)
-            .join('; ');
+        const rejectedServices = Object.values(preferences.rejectedServices || {})
+            .filter((services) => Array.isArray(services))
+            .reduce((all, services) => all.concat(services), []);
 
-        if (rejectedServicesByCategory) {
-            consentData.push('Rejected Services: ' + rejectedServicesByCategory);
+        if (rejectedServices.length > 0) {
+            consentData.push('Rejected Services: ' + rejectedServices.join(', '));
         }
 
         const userConsent = {
