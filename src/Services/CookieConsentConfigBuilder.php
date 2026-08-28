@@ -42,7 +42,7 @@ class CookieConsentConfigBuilder
                 'services' => $this->buildExternalMediaServices($languageCode)
             ]
         ];
-        CookieConsentConfigCache::getCache()->save(json_encode($config), $cacheKey);
+        CookieConsentConfigCache::getCache()->save(json_encode($config, JSON_UNESCAPED_SLASHES), $cacheKey);
         return $config;
     }
     protected function buildCategories()
@@ -58,10 +58,8 @@ class CookieConsentConfigBuilder
 
         foreach ($configCategories as $categoryKey => $categoryData) {
 
-            $readOnlyCategory = $categoryData['readOnly'] ?? false;
-
             $cookies = new ArrayList();
-            $autoClear = [];
+            $cookieViewModels = [];
 
             // get cookies defined in yml config
             $defaultCookies = is_array($categoryData['cookies'] ?? null)
@@ -74,22 +72,17 @@ class CookieConsentConfigBuilder
             }
 
             foreach ($defaultCookies as $cookieName => $cookieConfig) {
-                $cookies->push(CookieDescriptionViewModel::fromConfig($cookieName, $host, $cookieConfig)->forTemplate());
-                if(!$readOnlyCategory) {
-                    $autoClearName = ($cookieConfig['wildcard'] ?? false) ? '/^(' . $cookieName . ')$/' : $cookieName;
-                     $autoClear[] = ['name' => $autoClearName];
-                }
+                $vm = CookieDescriptionViewModel::fromConfig($cookieName, $host, $cookieConfig);
+                $cookies->push($vm->forTemplate());
+                $cookieViewModels[] = $vm;
             }
 
             // add cookies from selected services
             if ($services) {
                 foreach ($services as $service) {
-                    foreach ($service->getCookieViewModelsByCategoryKey($categoryKey) as $cookieVM) {
-                        $cookies->push($cookieVM->forTemplate());
-                        if (!$readOnlyCategory) {
-                            $autoClearName = $cookieVM->Wildcard ? '/^(' . $cookieVM->Name . ')$/' : $cookieVM->Name;
-                            $autoClear[] = ['name' => $autoClearName];
-                        }
+                    foreach ($service->getCookieViewModelsByCategoryKey($categoryKey) as $cookieViewModel) {
+                        $cookies->push($cookieViewModel->forTemplate());
+                        $cookieViewModels[] = $cookieViewModel;
                     }
                 }
             }
@@ -98,18 +91,16 @@ class CookieConsentConfigBuilder
             if ($customCookies) {
                 foreach ($customCookies as $customCookie) {
                     if ($customCookie->Category === $categoryKey) {
-                        $cookies->push(CookieDescriptionViewModel::fromDataObject($customCookie)->forTemplate());
-                        if (!$readOnlyCategory) {
-                            $autoClearName = $customCookie->Wildcard ? '/^(' . $customCookie->Name . ')$/' : $customCookie->Name;
-                            $autoClear[] = ['name' => $autoClearName];
-                        }
+                        $vm = CookieDescriptionViewModel::fromDataObject($customCookie);
+                        $cookies->push($vm->forTemplate());
+                        $cookieViewModels[] = $vm;
                     }
                 }
             }
 
             if ($categoryKey === $externalMediaCategory) {
                 // external media category is kept even if no cookies, but we add services
-                $categoryViewModel = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies);
+                $categoryViewModel = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies, $cookieViewModels);
                 $categories[$categoryKey] = $categoryViewModel;
 
                 foreach ($selectedExternalMedia as $key) {
@@ -122,8 +113,7 @@ class CookieConsentConfigBuilder
             if (!$cookies->exists()) {
                 continue;
             }
-            $categoryData['autoClear']['cookies'] = $autoClear;
-            $categories[$categoryKey] = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies);
+            $categories[$categoryKey] = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies, $cookieViewModels);
         }
         return $categories;
     }
@@ -197,7 +187,7 @@ class CookieConsentConfigBuilder
         $categories = $this->buildCategories();
         $templateData = $this->buildDeclarationTemplateData($categories);
 
-        CookieConsentConfigCache::getCache()->save(json_encode($templateData), $cacheKey);
+        CookieConsentConfigCache::getCache()->save(json_encode($templateData, JSON_UNESCAPED_SLASHES), $cacheKey);
 
         return $templateData;
     }

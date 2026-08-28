@@ -17,8 +17,6 @@ class CookieDescriptionViewModel extends ViewableData
 
         $provider = $serviceName;
         $vm->Name = $registryData->cookie ?? '';
-        // Note: Wildcard suffix is not appended to the display name,
-        // but $vm->Wildcard is set below so autoClear can use regex pattern.
         $vm->Provider = $provider;
         $vm->Service = $serviceName;
         $vm->Domain = $registryData->domain ?? '';
@@ -40,13 +38,14 @@ class CookieDescriptionViewModel extends ViewableData
     {
         $vm = new self();
 
-        $vm->Name = $cookie->getName();
+        $vm->Name = $cookie->getField('Name');
         $vm->Provider = $cookie->Provider;
         $vm->Service = $cookie->Service;
         $vm->Domain = $cookie->Domain;
         $vm->PrivacyPolicyURL = $cookie->PrivacyPolicyURL;
         $vm->Description = $cookie->Description;
         $vm->Expiration = $cookie->Expiration;
+        $vm->Wildcard = (bool) $cookie->Wildcard;
 
         return $vm;
     }
@@ -54,48 +53,60 @@ class CookieDescriptionViewModel extends ViewableData
     public static function fromConfig($cookieName, $host, $config = [])
     {
         $vm = new self();
-
-        $defaultDescription = isset($config['description']) && is_string($config['description'])
-            ? $config['description']
-            : '';
-        $defaultExpiration = isset($config['expiration']) && is_string($config['expiration'])
-            ? $config['expiration']
-            : '';
+        
+        $defaultDescription = $config['description'] ?? '';
+        $defaultExpiration = $config['expiration'] ?? '';
+        $provider = $config['provider'] ?? $host;
 
         $vm->Name = $cookieName;
-        $vm->Provider = $host;
-        $vm->Service = $host;
-        $vm->Domain = $host;
-        $vm->PrivacyPolicyURL = '';
+        $vm->Provider = $provider;
+        $vm->Service = $provider;
+        $vm->Domain = $config['domain'] ?? $host;
+        $vm->PrivacyPolicyURL = 'privacy_url';
         $vm->Description = _t('CookieConsent.Cookies.' . $cookieName . '.description', $defaultDescription);
         $vm->Expiration = _t('CookieConsent.Cookies.' . $cookieName . '.expiration', $defaultExpiration);
+        $vm->Wildcard = ($config['wildcard'] ?? false) === true;
 
         return $vm;
     }
 
     public function forTemplate()
     {
+        $displayName = $this->Wildcard ? $this->Name . '*' : $this->Name;
+
         return ArrayData::create([
-            'Name' => $this->Name,
+            'Name' => $displayName,
             'Provider' => $this->Provider,
             'Service' => $this->Service,
             'Domain' => $this->Domain,
             'PrivacyPolicyURL' => $this->PrivacyPolicyURL,
             'Description' => $this->Description,
             'Expiration' => $this->Expiration,
+            'Wildcard' => $this->Wildcard,
         ]);
     }
 
     public function toArray()
     {
+        $displayName = $this->Wildcard ? $this->Name . '*' : $this->Name;
+
         return [
-            'name' => $this->Name,
+            'name' => $displayName,
             'provider' => $this->Provider,
             'service' => $this->Service,
             'domain' => $this->Domain,
             'privacyPolicyURL' => $this->PrivacyPolicyURL,
             'description' => $this->Description,
             'expiration' => $this->Expiration,
+        ];
+    }
+
+    public function toAutoClearArray()
+    {
+        return [
+            'name' => $this->Wildcard
+                ? '/^(' . $this->Name . ')/'
+                : $this->Name
         ];
     }
 }

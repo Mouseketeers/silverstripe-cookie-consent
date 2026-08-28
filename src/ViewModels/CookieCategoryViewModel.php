@@ -7,14 +7,16 @@ class CookieCategoryViewModel extends ViewableData
     public $Content;
     public $Config;
     public $CookieDescriptions;
+    protected $cookieViewModels;
 
     public function __construct()
     {
         parent::__construct();
         $this->CookieDescriptions = new ArrayList();
+        $this->cookieViewModels = [];
     }
 
-    public static function create_instance($key, $config, ArrayList $cookies)
+    public static function create_instance($key, $config, ArrayList $cookies, $cookieViewModels = [])
     {
         $vm = new self();
 
@@ -23,6 +25,7 @@ class CookieCategoryViewModel extends ViewableData
         $vm->Title = isset($config['title']) ? $config['title'] : _t(CookieConsent::getCategoryTranslationKey($key), '');
         $vm->Content = _t(sprintf('CookieConsent.Category.%s.Description', $key), '');
         $vm->CookieDescriptions = $cookies;
+        $vm->cookieViewModels = $cookieViewModels;
 
         return $vm;
     }
@@ -62,10 +65,30 @@ class CookieCategoryViewModel extends ViewableData
 
     public function toJsCategoryArray()
     {
-        return array_merge(
+        $categoryArray = array_merge(
             $this->Config,
             $this->toArray()
         );
+
+        $autoClearCookies = $this->buildAutoClearCookies();
+        if ($autoClearCookies !== []) {
+            $categoryArray['autoClear']['cookies'] = $autoClearCookies;
+        }
+
+        return $categoryArray;
+    }
+
+    protected function buildAutoClearCookies()
+    {
+        if (($this->Config['readOnly'] ?? false) === true) {
+            return [];
+        }
+
+        $cookies = [];
+        foreach ($this->cookieViewModels as $cookieViewModel) {
+            $cookies[] = $cookieViewModel->toAutoClearArray();
+        }
+        return $cookies;
     }
 
     public static function buildSections($categoryVMs, $locale)

@@ -8,7 +8,7 @@ class CookieConsentPageControllerExtension extends Extension
             $config = CookieConsent::createConfigBuilder()->buildConsentConfig();
             $configJson = json_encode(
                 $config,
-                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             );
             
             if ($configJson !== false) {
