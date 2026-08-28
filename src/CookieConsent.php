@@ -7,14 +7,10 @@ class CookieConsent
     private static $disable_iframe_manager = false;
     private static $disable_default_js = false;
     private static $disable_default_css = false;
+    private static $enable_consent_logging = true;
     private static $enable_google_consent_mode = false;
-    private static $enable_consent_logging = false;
     private static $cookie_registry_path = 'cookie-consent/open-cookie-database.json';
-    private static $categories = [
-        'functional' => [
-            'readOnly' => true
-        ]
-    ];
+
     private static $cookie_consent_values_cache = null;
     private static $site_config_cache = null;
     private static $cookie_services_cache = null;
@@ -25,16 +21,7 @@ class CookieConsent
     public static function createConfigBuilder()
     {
         return new CookieConsentConfigBuilder();
-    }    
-
-    public static function isCookieConsentDisabled()
-    {
-        return Config::inst()->get('CookieConsent', 'disable_cookie_consent') || !self::hasDataToRender();
     }
-
-    public static function isIframeManagerDisabled() {
-        return Config::inst()->get('CookieConsent', 'disable_iframe_manager');
-    }    
 
     public static function isDefaultJsDisabled()
     {
@@ -45,11 +32,11 @@ class CookieConsent
     {
         return Config::inst()->get('CookieConsent', 'disable_default_css');
     }
-    
+
     public static function isGoogleConsentModeEnabled()
     {
         return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
-    }  
+    }
 
     public static function isConsentRegistrationEnabled()
     {
@@ -65,14 +52,14 @@ class CookieConsent
 
         return $path;
     }
-    
+
     public static function getCategoryConfig()
     {
-        $categories = Config::inst()->get('CookieConsent', 'categories');  
+        $categories = Config::inst()->get('CookieConsent', 'categories');
         return is_array($categories) ? $categories : [];
     }
 
-    public static function getGuiOptions() 
+    public static function getGuiOptions()
     {
         $guiOptions = Config::inst()->get('CookieConsent', 'gui_options');
         return is_array($guiOptions) ? $guiOptions : [];
@@ -85,46 +72,46 @@ class CookieConsent
 
     public static function getExternalMediaConfig()
     {
-        $externalMediaConfig = Config::inst()->get('CookieConsent', 'external_media_services');
+        $externalMediaConfig = Config::inst()->get('CookieConsent', 'external_media_service_options');
         return is_array($externalMediaConfig) ? $externalMediaConfig : [];
-    }    
+    }
 
-    public static function hasDataToRender()
-    {
-        $siteConfig = self::getSiteConfig();
+    // public static function hasCookies()
+    // {
+    //     $siteConfig = self::getSiteConfig();
 
-        if (!$siteConfig || empty($siteConfig->CookieConsentModalTitle) || empty($siteConfig->CookieConsentModalContent)) {
-            return false;
-        }
+    //     if (!$siteConfig || empty($siteConfig->CookieConsentModalTitle) || empty($siteConfig->CookieConsentModalContent)) {
+    //         return false;
+    //     }
 
-        // Check for selected cookie services
-        $cookieServices = self::getCookieServices();
-        if ($cookieServices && $cookieServices->exists()) {
-            return true;
-        }
+    //     // Check for selected cookie services
+    //     $cookieServices = self::getCookieServices();
+    //     if ($cookieServices && $cookieServices->exists()) {
+    //         return true;
+    //     }
 
-        // Check for custom cookies
-        $customCookies = self::getCustomCookies();
-        if ($customCookies && $customCookies->exists()) {
-            return true;
-        }
+    //     // Check for custom cookies
+    //     $customCookies = self::getCustomCookies();
+    //     if ($customCookies && $customCookies->exists()) {
+    //         return true;
+    //     }
 
-        // Check for selected external media
-        $selectedExternalMedia = self::getSelectedExternalMedia();
-        if (!empty($selectedExternalMedia)) {
-            return true;
-        }
+    //     // Check for selected external media
+    //     $selectedExternalMedia = self::getSelectedExternalMedia();
+    //     if (!empty($selectedExternalMedia)) {
+    //         return true;
+    //     }
 
-        // Check if any categories have default cookies configured
-        $categories = self::getCategoryConfig();
-        foreach ($categories as $categoryData) {
-            if (!empty($categoryData['cookies'])) {
-                return true;
-            }
-        }
+    //     // Check if any categories have default cookies configured
+    //     $categories = self::getCategoryConfig();
+    //     foreach ($categories as $categoryData) {
+    //         if (!empty($categoryData['cookies'])) {
+    //             return true;
+    //         }
+    //     }
 
-        return false;
-    }    
+    //     return false;
+    // }
 
     public static function getSiteConfig()
     {
@@ -253,10 +240,10 @@ class CookieConsent
         }
         return $categories;
     }
-    
+
     private static function getCosentCookieValue($key)
     {
-        
+
         $decodedData = self::getConsentCookieValues();
 
         if (is_array($decodedData) && isset($decodedData[$key])) {
@@ -264,5 +251,5 @@ class CookieConsent
         }
 
         return null;
-    }    
+    }
 }

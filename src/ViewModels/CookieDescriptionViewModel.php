@@ -9,6 +9,7 @@ class CookieDescriptionViewModel extends ViewableData
     public $PrivacyPolicyURL;
     public $Description;
     public $Expiration;
+    public $Wildcard;
 
     public static function fromRegistry($registryData, $serviceName)
     {
@@ -16,9 +17,8 @@ class CookieDescriptionViewModel extends ViewableData
 
         $provider = $serviceName;
         $vm->Name = $registryData->cookie ?? '';
-        if (!empty($registryData->wildcardMatch) && $registryData->wildcardMatch !== '0') {
-            $vm->Name .= '*';
-        }
+        // Note: Wildcard suffix is not appended to the display name,
+        // but $vm->Wildcard is set below so autoClear can use regex pattern.
         $vm->Provider = $provider;
         $vm->Service = $serviceName;
         $vm->Domain = $registryData->domain ?? '';
@@ -31,6 +31,7 @@ class CookieDescriptionViewModel extends ViewableData
             'CookieConsent.RegistryCookies.' . $registryData->id . '.retentionPeriod',
             $registryData->retentionPeriod ?? ''
         );
+        $vm->Wildcard = $registryData->wildcardMatch ?? false;
 
         return $vm;
     }

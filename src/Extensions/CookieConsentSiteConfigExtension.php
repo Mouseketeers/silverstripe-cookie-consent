@@ -52,8 +52,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
     {
         $availableMediaServices = CookieConsent::getExternalMediaConfig();
         $options = [];
-        foreach ($availableMediaServices as $serviceKey) {
-            $options[$serviceKey] = _t('CookieConsent.ExternalMediaServices.' . $serviceKey, $serviceKey);
+        foreach ($availableMediaServices as $serviceKey => $serviceConfig) {
+            $options[$serviceKey] = $serviceConfig['label'];
         }
         return $options;
     }

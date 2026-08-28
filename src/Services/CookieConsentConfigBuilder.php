@@ -14,22 +14,19 @@ class CookieConsentConfigBuilder
 
     public function buildConsentConfig()
     {
-        
         $cacheKey = CookieConsentConfigCache::getJsCacheKey();
-        $cachedConfig = $this->loadFromCache($cacheKey);
+        $cachedConfig = $this->loadJsonFromCache($cacheKey);
 
         if ($cachedConfig !== null) {
             return $cachedConfig;
         }
 
         $currentLocale = i18n::get_locale();
-        $languageCode = !empty($currentLocale)
+        $languageCode = $currentLocale !== null && $currentLocale !== ''
             ? strtolower(substr($currentLocale, 0, 2))
             : 'en';
 
         $categories = $this->buildCategories();
-
-        $isIframeManagerDisabled = CookieConsent::isIframeManagerDisabled();
 
         $config = [
             'defaultLanguage' => $languageCode,
@@ -40,18 +37,14 @@ class CookieConsentConfigBuilder
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
-            'isIframeManagerDisabled' => $isIframeManagerDisabled,
-        ];
-        if (!$isIframeManagerDisabled) {
-            $config['externalMediaCategory'] = $this->externalMediaCategory;
-            $config['externalMediaServices'] = [
+            'externalMediaCategory' => $this->externalMediaCategory,
+            'externalMediaServices' => [
                 'services' => $this->buildExternalMediaServices($languageCode)
-            ];
-        }
-        CookieConsentConfigCache::getCache()->save(serialize($config), $cacheKey);
+            ]
+        ];
+        CookieConsentConfigCache::getCache()->save(json_encode($config), $cacheKey);
         return $config;
     }
-
     protected function buildCategories()
     {
         $configCategories = $this->configCategories;
@@ -64,20 +57,28 @@ class CookieConsentConfigBuilder
         $categories = [];
 
         foreach ($configCategories as $categoryKey => $categoryData) {
-            $cookies = new ArrayList();
 
-            // add cookies defined in yml config
-            $defaultCookies = isset($categoryData['cookies']) && is_array($categoryData['cookies'])
+            $readOnlyCategory = $categoryData['readOnly'] ?? false;
+
+            $cookies = new ArrayList();
+            $autoClear = [];
+
+            // get cookies defined in yml config
+            $defaultCookies = is_array($categoryData['cookies'] ?? null)
                 ? $categoryData['cookies']
                 : [];
 
             // no further processing needed if it's the external media category and no external media services are selected
-            if ($categoryKey === $externalMediaCategory && empty($selectedExternalMedia) && empty($defaultCookies)) {
+            if ($categoryKey === $externalMediaCategory && $selectedExternalMedia === [] && $defaultCookies === []) {
                 continue;
             }
 
             foreach ($defaultCookies as $cookieName => $cookieConfig) {
                 $cookies->push(CookieDescriptionViewModel::fromConfig($cookieName, $host, $cookieConfig)->forTemplate());
+                if(!$readOnlyCategory) {
+                    $autoClearName = ($cookieConfig['wildcard'] ?? false) ? '/^(' . $cookieName . ')$/' : $cookieName;
+                     $autoClear[] = ['name' => $autoClearName];
+                }
             }
 
             // add cookies from selected services
@@ -85,6 +86,10 @@ class CookieConsentConfigBuilder
                 foreach ($services as $service) {
                     foreach ($service->getCookieViewModelsByCategoryKey($categoryKey) as $cookieVM) {
                         $cookies->push($cookieVM->forTemplate());
+                        if (!$readOnlyCategory) {
+                            $autoClearName = $cookieVM->Wildcard ? '/^(' . $cookieVM->Name . ')$/' : $cookieVM->Name;
+                            $autoClear[] = ['name' => $autoClearName];
+                        }
                     }
                 }
             }
@@ -94,14 +99,18 @@ class CookieConsentConfigBuilder
                 foreach ($customCookies as $customCookie) {
                     if ($customCookie->Category === $categoryKey) {
                         $cookies->push(CookieDescriptionViewModel::fromDataObject($customCookie)->forTemplate());
+                        if (!$readOnlyCategory) {
+                            $autoClearName = $customCookie->Wildcard ? '/^(' . $customCookie->Name . ')$/' : $customCookie->Name;
+                            $autoClear[] = ['name' => $autoClearName];
+                        }
                     }
                 }
             }
 
             if ($categoryKey === $externalMediaCategory) {
                 // external media category is kept even if no cookies, but we add services
-                $categoryVM = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies);
-                $categories[$categoryKey] = $categoryVM;
+                $categoryViewModel = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies);
+                $categories[$categoryKey] = $categoryViewModel;
 
                 foreach ($selectedExternalMedia as $key) {
                     $categories[$categoryKey]->addService($key, ExternalMediaServiceViewModel::fromString($key)->toCategoryServiceArray());
@@ -113,18 +122,17 @@ class CookieConsentConfigBuilder
             if (!$cookies->exists()) {
                 continue;
             }
-
+            $categoryData['autoClear']['cookies'] = $autoClear;
             $categories[$categoryKey] = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies);
         }
-
         return $categories;
     }
 
     protected function categoriesToArray($categories)
     {
         $result = [];
-        foreach ($categories as $key => $categoryVM) {
-            $result[$key] = $categoryVM->toJsCategoryArray();
+        foreach ($categories as $key => $categoryViewModel) {
+            $result[$key] = $categoryViewModel->toJsCategoryArray();
         }
         return $result;
     }
@@ -133,11 +141,11 @@ class CookieConsentConfigBuilder
     {
         $siteConfig = CookieConsent::getSiteConfig();
 
-        $consentTitle = !empty($siteConfig->CookieConsentModalTitle)
+        $consentTitle = $siteConfig->CookieConsentModalTitle !== null && $siteConfig->CookieConsentModalTitle !== ''
             ? $siteConfig->CookieConsentModalTitle
             : _t('CookieConsent.CookieConsentModalTitle');
 
-        $consentDescription = !empty($siteConfig->CookieConsentModalContent)
+        $consentDescription = $siteConfig->CookieConsentModalContent !== null && $siteConfig->CookieConsentModalContent !== ''
             ? $siteConfig->CookieConsentModalContent
             : _t('CookieConsent.CookieConsentModalContent');
 
@@ -164,7 +172,7 @@ class CookieConsentConfigBuilder
     {
         $selectedExternalMedia = CookieConsent::getSelectedExternalMedia();
 
-        if (!$selectedExternalMedia) {
+        if ($selectedExternalMedia === []) {
             return [];
         }
         $externalMediaServices = [];
@@ -180,7 +188,7 @@ class CookieConsentConfigBuilder
     public function buildCookieDeclarationData()
     {
         $cacheKey = CookieConsentConfigCache::getDeclarationCacheKey();
-        $cachedDeclaration = $this->loadFromCache($cacheKey);
+        $cachedDeclaration = $this->loadJsonFromCache($cacheKey);
 
         if ($cachedDeclaration !== null) {
             return $cachedDeclaration;
@@ -189,25 +197,40 @@ class CookieConsentConfigBuilder
         $categories = $this->buildCategories();
         $templateData = $this->buildDeclarationTemplateData($categories);
 
-        CookieConsentConfigCache::getCache()->save(serialize($templateData), $cacheKey);
+        CookieConsentConfigCache::getCache()->save(json_encode($templateData), $cacheKey);
 
         return $templateData;
     }
 
     public function buildDeclarationTemplateData($categories)
     {
-        $resultCategories = new ArrayList();
+        $resultCategories = [];
 
-        foreach ($categories as $categoryVM) {
-            if (!($categoryVM instanceof CookieCategoryViewModel)) {
+        foreach ($categories as $categoryViewModel) {
+            if (!($categoryViewModel instanceof CookieCategoryViewModel)) {
                 continue;
             }
 
-            if (!$categoryVM->CookieDescriptions->exists()) {
+            if (!$categoryViewModel->CookieDescriptions->exists()) {
                 continue;
             }
 
-            $resultCategories->push($categoryVM->forTemplate());
+            $cookieDescriptions = [];
+            foreach ($categoryViewModel->CookieDescriptions as $cookieData) {
+                $cookieDescriptions[] = [
+                    'Name' => $cookieData->Name,
+                    'Provider' => $cookieData->Provider,
+                    'PrivacyPolicyURL' => $cookieData->PrivacyPolicyURL,
+                    'Description' => $cookieData->Description,
+                    'Expiration' => $cookieData->Expiration,
+                ];
+            }
+
+            $resultCategories[] = [
+                'Title' => $categoryViewModel->Title,
+                'Content' => $categoryViewModel->Content,
+                'CookieDescriptions' => $cookieDescriptions,
+            ];
         }
 
         return [
@@ -215,7 +238,7 @@ class CookieConsentConfigBuilder
         ];
     }
 
-    protected function loadFromCache($cacheKey)
+    protected function loadJsonFromCache($cacheKey)
     {
         $cachedConfig = CookieConsentConfigCache::getCache()->load($cacheKey);
 
@@ -223,7 +246,7 @@ class CookieConsentConfigBuilder
             return null;
         }
 
-        $decodedConfig = @unserialize($cachedConfig);
+        $decodedConfig = json_decode($cachedConfig, true);
 
         return is_array($decodedConfig) ? $decodedConfig : null;
     }

@@ -6,9 +6,20 @@ class CookieDeclarationShortcode
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
             $cookieDeclarationData = CookieConsent::createConfigBuilder()->buildCookieDeclarationData();
-            $categories = isset($cookieDeclarationData['categories']) && $cookieDeclarationData['categories'] instanceof ArrayList
-                ? $cookieDeclarationData['categories']
-                : new ArrayList();
+
+            $categories = new ArrayList();
+            foreach ($cookieDeclarationData['categories'] ?? [] as $categoryData) {
+                $cookieDescriptions = new ArrayList();
+                foreach ($categoryData['CookieDescriptions'] ?? [] as $cookieData) {
+                    $cookieDescriptions->push(ArrayData::create($cookieData));
+                }
+
+                $categories->push(ArrayData::create([
+                    'Title' => $categoryData['Title'],
+                    'Content' => $categoryData['Content'],
+                    'CookieDescriptions' => $cookieDescriptions,
+                ]));
+            }
 
             if (!$categories->exists()) {
                 return '';

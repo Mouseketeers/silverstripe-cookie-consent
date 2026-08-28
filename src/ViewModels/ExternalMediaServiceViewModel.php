@@ -20,8 +20,9 @@ class ExternalMediaServiceViewModel extends ViewableData
 
     public function toCategoryServiceArray()
     {
+        $mediaConfig = CookieConsent::getExternalMediaConfig();
         return [
-            'label' => _t('CookieConsent.ExternalMediaServices.' . $this->Key, $this->Key)
+            'label' => $mediaConfig[$this->Key]['label']
         ];
     }
 

@@ -46,9 +46,4 @@ en:
       ConsentDate: 'Consent given on'
       AcceptedCategories: 'Accepted Categories'
       ShowPreferencesModal: 'Change Your Cookie Preferences'
-    ExternalMediaServices:
-      youtube: 'Youtube'
-      vimeo: 'Vimeo'
-      googlemaps: 'Google Maps'
-      twitch: 'Twitch'
 
