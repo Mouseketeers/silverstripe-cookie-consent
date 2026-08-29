@@ -1,22 +1,36 @@
 <div class="cookie-consent">
-    <div id="cookie-consent__header" class="cookie-consent__header" style="display: <% if $ConsentID %>block<% else %>none<% end_if %>">
-        <p class="cookie-consent__user-consent-data">
-            <span class="cookie-consent__label cookie-consent__label--id"><%t CookieConsent.ConsentID 'Consent ID' %></span>: <span class="cookie-consent__value cookie-consent__value--id" id="cookie-consent-id">$ConsentID</span><br/>
-            <span class="cookie-consent__label cookie-consent__label--date"><%t CookieConsent.ConsentDate 'Consent given on' %></span>: <span class="cookie-consent__value cookie-consent__value--date" id="cookie-consent-timestamp">$ConsentDate</span><br/>
-            <span class="cookie-consent__label cookie-consent__label--categories"><%t CookieConsent.AcceptedCategories 'Accepted Categories' %></span>: <span class="cookie-consent__value cookie-consent__value--categories" id="cookie-consent-accepted-categories">$AcceptedCategories</span>
+    <div id="cookie-consent__header" style="display: none;">
+        <p>
+            <span id="cookie-consent-row-id">
+                <%t CookieConsent.ConsentID 'Consent ID' %>: <span id="cookie-consent-id"></span><br/>
+            </span>
+            <span id="cookie-consent-row-timestamp">
+                <%t CookieConsent.ConsentDate 'Consent given on' %>: <span id="cookie-consent-timestamp"></span><br/>
+            </span>
+            <span id="cookie-consent-row-accepted-categories">
+                <%t CookieConsent.AcceptedCategories 'Accepted Categories' %>: <span id="cookie-consent-accepted-categories"></span><br/>
+            </span>
+            <span id="cookie-consent-row-rejected-categories">
+                <%t CookieConsent.RejectedCategories 'Rejected Categories' %>: <span id="cookie-consent-rejected-categories"></span><br/>
+            </span>
+            <span id="cookie-consent-row-accepted-services">
+                <%t CookieConsent.AcceptedServices 'Accepted Services' %>: <span id="cookie-consent-accepted-services"></span><br/>
+            </span>
+            <span id="cookie-consent-row-rejected-services">
+                <%t CookieConsent.RejectedServices 'Rejected Services' %>: <span id="cookie-consent-rejected-services"></span>
+            </span>
         </p>
-        <p class="cookie-consent__actions">
+        <p>
             <a class="cookie-consent__button" type="button" data-cc="show-preferencesModal"><%t CookieConsent.ShowPreferencesModal 'Change Your Cookie Preferences' %></a>
         </p>
     </div>
+
     <% loop $Categories %>
         <section class="cookie-consent__category">
-            <h3 class="cookie-consent__category-title">$Title</h3>
-            <div class="cookie-consent__category-content">
-                $Content
-            </div>
+            <h3>$Title</h3>
+            <div>$Content</div>
             <table class="cookie-consent__table">
-                <thead class="cookie-consent__table-head">
+                <thead>
                     <tr>
                         <th><%t CookieConsent.CookieName 'Name' %></th>
                         <th><%t CookieConsent.CookieProvider  'Provider' %></th>
@@ -24,19 +38,19 @@
                         <th><%t CookieConsent.CookieExpiration 'Expiration' %></th>
                     </tr>
                 </thead>
-                <tbody class="cookie-consent__table-body">
+                <tbody>
                     <% loop $CookieDescriptions %>
-                        <tr class="cookie-consent__table-row">
-                            <td class="cookie-consent__table-cell cookie-consent__table-cell--name">$Name</td>
-                            <td class="cookie-consent__table-cell cookie-consent__table-cell--provider">
+                        <tr>
+                            <td>$Name</td>
+                            <td>
                                 <% if $PrivacyPolicyURL && $Provider %>
                                     <a href="$PrivacyPolicyURL" target="_blank" rel="noopener noreferrer">$Provider</a>
                                 <% else %>
                                     $Provider
                                 <% end_if %>
                             </td>
-                            <td class="cookie-consent__table-cell cookie-consent__table-cell--description">$Description</td>
-                            <td class="cookie-consent__table-cell cookie-consent__table-cell--expiration">$Expiration</td>
+                            <td>$Description</td>
+                            <td>$Expiration</td>
                         </tr>
                     <% end_loop %>
                 </tbody>

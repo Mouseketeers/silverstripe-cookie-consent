@@ -2,6 +2,8 @@ import { cookieConsentService } from './cookie-consent-service';
 
 async function initCookieConsent() {
 
+    updateCookieConsentDeclaration();
+
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
 
     const cookieConsentConfig = {
@@ -34,6 +36,8 @@ async function initCookieConsent() {
         window.iframemanager().run(cookieConsentService.buildIframeManagerConfig());
     }
 
+    updateCookieConsentDeclaration();
+
     cookieConsentService.emit('afterRun');
 }
 
@@ -50,22 +54,52 @@ function updateCookieConsentDeclaration() {
         return;
     }
 
-    const consentIdElement = document.getElementById('cookie-consent-id');
-    const consentTimestampElement = document.getElementById('cookie-consent-timestamp');
-    const acceptedCategoriesElement = document.getElementById('cookie-consent-accepted-categories');
+    const preferences = cookieConsentService.getCookieConsentApi().getUserPreferences();
+
+    if (!preferences) {
+        return;
+    }
 
     consentHeaderElement.style.display = 'block';
 
-    if (consentIdElement) {
-        consentIdElement.textContent = cookie.consentId || '';
-    }
-    if (consentTimestampElement) {
-        consentTimestampElement.textContent = cookie.consentTimestamp || '';
+    updateCookieConsentRow('cookie-consent-row-id', 'cookie-consent-id', cookie.consentId || '');
+    updateCookieConsentRow('cookie-consent-row-timestamp', 'cookie-consent-timestamp', cookie.consentTimestamp || '');
+    updateCookieConsentRow(
+        'cookie-consent-row-accepted-categories',
+        'cookie-consent-accepted-categories',
+        cookieConsentService.getAcceptedCategoryTitles(cookie).join(', ')
+    );
+    updateCookieConsentRow(
+        'cookie-consent-row-rejected-categories',
+        'cookie-consent-rejected-categories',
+        cookieConsentService.getRejectedCategoryTitles(cookie).join(', ')
+    );    
+    updateCookieConsentRow(
+        'cookie-consent-row-accepted-services',
+        'cookie-consent-accepted-services',
+        cookieConsentService.getAcceptedServiceLabels(preferences).join(', ')
+    );
+    updateCookieConsentRow(
+        'cookie-consent-row-rejected-services',
+        'cookie-consent-rejected-services',
+        cookieConsentService.getRejectedServiceLabels(preferences).join(', ')
+    );
+}
+
+function updateCookieConsentRow(rowId, valueId, value) {
+    const rowElement = document.getElementById(rowId);
+    const valueElement = document.getElementById(valueId);
+
+    if (!rowElement || !valueElement) {
+        return;
     }
 
-    if (acceptedCategoriesElement) {
-        const acceptedCategoryTitles = cookieConsentService.getAcceptedCategoryTitles(cookie);
-        acceptedCategoriesElement.textContent = acceptedCategoryTitles.join(', ') || '';
+    if (value === '') {
+        rowElement.style.display = 'none';
+        return;
     }
+
+    rowElement.style.display = '';
+    valueElement.textContent = value;
 }
 document.addEventListener('DOMContentLoaded', initCookieConsent);

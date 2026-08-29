@@ -194,28 +194,28 @@ export const cookieConsentService = {
             consentData.push('Consent Type: ' + preferences.acceptType);
         }
 
-        if (preferences.acceptedCategories && preferences.acceptedCategories.length) {
-            consentData.push('Accepted Categories: ' + preferences.acceptedCategories.join(', '));
+        const acceptedCategoryTitles = this.getAcceptedCategoryTitles(cookie);
+
+        if (acceptedCategoryTitles.length > 0) {
+            consentData.push('Accepted Categories: ' + acceptedCategoryTitles.join(', '));
         }
 
-        if (preferences.rejectedCategories && preferences.rejectedCategories.length) {
-            consentData.push('Rejected Categories: ' + preferences.rejectedCategories.join(', '));
+        const rejectedCategoryTitles = this.getRejectedCategoryTitles(cookie);
+
+        if (rejectedCategoryTitles.length > 0) {
+            consentData.push('Rejected Categories: ' + rejectedCategoryTitles.join(', '));
         }
 
-        const acceptedServices = Object.values(preferences.acceptedServices || {})
-            .filter((services) => Array.isArray(services))
-            .reduce((all, services) => all.concat(services), []);
+        const acceptedServiceLabels = this.getAcceptedServiceLabels(preferences);
 
-        if (acceptedServices.length > 0) {
-            consentData.push('Accepted Services: ' + acceptedServices.join(', '));
+        if (acceptedServiceLabels.length > 0) {
+            consentData.push('Accepted Services: ' + acceptedServiceLabels.join(', '));
         }
 
-        const rejectedServices = Object.values(preferences.rejectedServices || {})
-            .filter((services) => Array.isArray(services))
-            .reduce((all, services) => all.concat(services), []);
+        const rejectedServiceLabels = this.getRejectedServiceLabels(preferences);
 
-        if (rejectedServices.length > 0) {
-            consentData.push('Rejected Services: ' + rejectedServices.join(', '));
+        if (rejectedServiceLabels.length > 0) {
+            consentData.push('Rejected Services: ' + rejectedServiceLabels.join(', '));
         }
 
         const userConsent = {
@@ -236,6 +236,21 @@ export const cookieConsentService = {
             console.error('Failed to register consent', error);
         });
     },
+    getAcceptedServiceLabels(preferences) {
+        return this._getServiceLabels(preferences?.acceptedServices);
+    },
+    getRejectedServiceLabels(preferences) {
+        return this._getServiceLabels(preferences?.rejectedServices);
+    },
+    _getServiceLabels(servicesByCategory) {
+        const { categories } = this.getConsentSettings();
+
+        return Object.entries(servicesByCategory || {})
+            .filter(([, services]) => Array.isArray(services))
+            .reduce((all, [category, services]) => all.concat(
+                services.map((service) => categories?.[category]?.services?.[service]?.label || service)
+            ), []);
+    },
     buildIframeManagerConfig() {
         const { externalMediaCategory } = this.getConsentSettings();
 
@@ -252,14 +267,22 @@ export const cookieConsentService = {
         };
     },
     getAcceptedCategoryTitles(cookie) {
+        return this._getCategoryTitles(cookie?.categories || []);
+    },
+    getRejectedCategoryTitles(cookie) {
+        const acceptedCategories = cookie?.categories || [];
+        const allCategories = Object.keys(this.getConsentCategories() || {});
+
+        return this._getCategoryTitles(
+            allCategories.filter((category) => !acceptedCategories.includes(category))
+        );
+    },
+    _getCategoryTitles(categories) {
         const { translations, defaultLanguage } = this.getConsentSettings();
         const sections = translations?.[defaultLanguage]?.preferencesModal?.sections || [];
 
-        const getSectionTitleByCategory = (category) =>
-            sections.find((item) => item.linkedCategory === category)?.title;
-
-        return (cookie?.categories || [])
-            .map((category) => getSectionTitleByCategory(category))
+        return categories
+            .map((category) => sections.find((item) => item.linkedCategory === category)?.title)
             .filter(Boolean);
     },
     getExternalMediaServices() {
