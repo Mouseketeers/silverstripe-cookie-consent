@@ -4,6 +4,11 @@ class CookieConsentPageControllerExtension extends Extension
 {
     public function onAfterInit()
     {
+        
+        if(CookieConsent::isModuleDisabled()) {
+            return;
+        }
+        
         if (!CookieConsent::isDefaultJsDisabled()) {
             $config = CookieConsent::createConfigBuilder()->buildConsentConfig();
             $configJson = json_encode(

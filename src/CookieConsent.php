@@ -3,7 +3,7 @@
 class CookieConsent
 {
 
-    private static $disable_cookie_consent = false;
+    private static $disable_module = false;
     private static $disable_iframe_manager = false;
     private static $disable_default_js = false;
     private static $disable_default_css = false;
@@ -21,6 +21,11 @@ class CookieConsent
     public static function createConfigBuilder()
     {
         return new CookieConsentConfigBuilder();
+    }
+
+    public static function isModuleDisabled()
+    {
+        return Config::inst()->get('CookieConsent', 'disable_module');
     }
 
     public static function isDefaultJsDisabled()

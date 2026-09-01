@@ -4,7 +4,8 @@ class CookieConsentSiteConfigExtension extends DataExtension
 {
     private static $db = [
         'CookieConsentModalTitle' => 'Varchar(255)',
-        'CookieConsentModalContent' => 'HTMLText'
+        'CookieConsentModalContent' => 'HTMLText',
+        'DeactivateCookieConsent' => 'Boolean'
     ];
 
     private static $has_many = [
@@ -108,21 +109,47 @@ class CookieConsentSiteConfigExtension extends DataExtension
         return $serviceOptionsMap;
     }
 
+    // Set the defaults using requireDefaultRecords instead of populateDefaults
+    // because the SiteConfig records are likely already created
+    // Loops though SiteConfig records to support Subsites module
     public function requireDefaultRecords()
     {
-        if ($config = SiteConfig::current_site_config()) {
-            if (empty($config->CookieConsentModalTitle)) {
-                $config->CookieConsentModalTitle = _t('CookieConsent.CookieConsentModalTitle');
+
+
+        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle');
+        $defaultContent = _t('CookieConsent.CookieConsentModalContent');
+
+
+        if (class_exists('Subsite')) {
+            Subsite::disable_subsite_filter(true);
+        }
+
+        foreach (SiteConfig::get() as $config) {
+            
+            $hasChanges = false;
+
+            if ($config->CookieConsentModalTitle == '') {               
+                $config->CookieConsentModalTitle = $defaultTitle;
+                $hasChanges = true;
             }
 
-            if (empty($config->CookieConsentModalContent)) {
-                $config->CookieConsentModalContent = _t('CookieConsent.CookieConsentModalContent');
+            if ($config->CookieConsentModalContent == '') {
+                $config->CookieConsentModalContent = $defaultContent;
+                $hasChanges = true;
             }
 
-            $config->write();
+            if ($hasChanges) {
+                $config->write();
+            }
+        }
+
+        if (class_exists('Subsite')) {
+            Subsite::disable_subsite_filter(false);
         }
     }
-
+    public function isCookieConsentDeactivatedForSite() {
+        return self::DeactivateCookieConsent();
+    }
     public function onAfterWrite()
     {
         CookieConsentConfigCache::clear();

@@ -31,4 +31,7 @@ pl_PL:
     ConsentID: 'Identyfikator zgody'
     ConsentDate: 'Data wyrażenia zgody'
     AcceptedCategories: 'Zaakceptowane kategorie'
+    RejectedCategories: 'Odrzucone kategorie'
+    AcceptedServices: 'Zaakceptowane usługi'
+    RejectedServices: 'Odrzucone usługi'
     ShowPreferencesModal: 'Zmień preferencje dotyczące plików cookie'

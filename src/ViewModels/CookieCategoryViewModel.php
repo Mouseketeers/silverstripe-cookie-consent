@@ -22,8 +22,10 @@ class CookieCategoryViewModel extends ViewableData
 
         $vm->Key = $key;
         $vm->Config = $config;
-        $vm->Title = isset($config['title']) ? $config['title'] : _t(CookieConsent::getCategoryTranslationKey($key), '');
-        $vm->Content = _t(sprintf('CookieConsent.Category.%s.Description', $key), '');
+        $vm->Title = isset($config['title']) && $config['title'] !== ''
+            ? $config['title']
+            : self::translateWithEnglishFallback(CookieConsent::getCategoryTranslationKey($key));
+        $vm->Content = self::translateWithEnglishFallback(sprintf('CookieConsent.Category.%s.Description', $key));
         $vm->CookieDescriptions = $cookies;
         $vm->cookieViewModels = $cookieViewModels;
 
@@ -89,6 +91,29 @@ class CookieCategoryViewModel extends ViewableData
             $cookies[] = $cookieViewModel->toAutoClearArray();
         }
         return $cookies;
+    }
+
+    /**
+     * Translate an entity for the current locale, falling back to the English
+     * translation when the current locale has no lang yml. An empty title in a
+     * preferences modal section crashes vanilla-cookieconsent (it attaches a
+     * toggle listener to a heading element that is only created for non-empty
+     * titles), so an empty result must never reach the JS config.
+     */
+    public static function translateWithEnglishFallback($entity)
+    {
+        $translated = _t($entity, '');
+
+        if ($translated !== null && $translated !== '') {
+            return $translated;
+        }
+
+        $currentLocale = i18n::get_locale();
+        i18n::set_locale('en_US');
+        $english = _t($entity, '');
+        i18n::set_locale($currentLocale);
+
+        return $english;
     }
 
     public static function buildSections($categoryVMs, $locale)

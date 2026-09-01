@@ -41,9 +41,11 @@ en:
       im_googlemaps:
         description: "Stores the user's accept to load external media content from Google Maps."
         expiration: '1 year'
-    CookieDeclaration:
-      ConsentID: 'Consent ID'
-      ConsentDate: 'Consent given on'
-      AcceptedCategories: 'Accepted Categories'
-      ShowPreferencesModal: 'Change Your Cookie Preferences'
+    ConsentID: 'Consent ID'
+    ConsentDate: 'Consent given on'
+    AcceptedCategories: 'Accepted Categories'
+    RejectedCategories: 'Rejected Categories'
+    AcceptedServices: 'Accepted Services'
+    RejectedServices: 'Rejected Services'      
+    ShowPreferencesModal: 'Change Your Cookie Preferences'
 
