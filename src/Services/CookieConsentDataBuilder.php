@@ -1,6 +1,6 @@
 <?php
 
-class CookieConsentConfigBuilder
+class CookieConsentDataBuilder
 {
 
     protected $configCategories;

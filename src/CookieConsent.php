@@ -18,14 +18,14 @@ class CookieConsent
     private static $external_media_cache = null;
     private static $selected_external_media_cache = null;
 
-    public static function createConfigBuilder()
-    {
-        return new CookieConsentConfigBuilder();
-    }
 
     public static function isModuleDisabled()
     {
-        return Config::inst()->get('CookieConsent', 'disable_module');
+        $isDisabled = Config::inst()->get('CookieConsent', 'disable_module');
+        if(!$isDisabled) {
+            $siteConfig = self::getSiteConfig();
+            return $siteConfig->DeactivateCookieConsentManager;
+        }
     }
 
     public static function isDefaultJsDisabled()
@@ -222,39 +222,9 @@ class CookieConsent
         return self::$cookie_consent_values_cache;
     }
 
-    public static function getLastConsentTimestamp()
+    public static function createDataBuilder()
     {
-        return self::getCosentCookieValue('lastConsentTimestamp');
+        return new CookieConsentDataBuilder();
     }
 
-    public static function getConsentId()
-    {
-        return self::getCosentCookieValue('consentId');
-    }
-
-    public static function getCategoryLabels()
-    {
-        $categories = self::getCosentCookieValue('categories');
-
-        if (is_array($categories)) {
-            $translationsMap = self::getCategoryTranslationsMap();
-            $translated = array_map(function ($key) use ($translationsMap) {
-                return isset($translationsMap[$key]) ? $translationsMap[$key] : $key;
-            }, $categories);
-            return implode(', ', $translated);
-        }
-        return $categories;
-    }
-
-    private static function getCosentCookieValue($key)
-    {
-
-        $decodedData = self::getConsentCookieValues();
-
-        if (is_array($decodedData) && isset($decodedData[$key])) {
-            return $decodedData[$key];
-        }
-
-        return null;
-    }
 }

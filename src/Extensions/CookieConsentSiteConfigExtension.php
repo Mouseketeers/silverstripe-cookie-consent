@@ -5,7 +5,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
     private static $db = [
         'CookieConsentModalTitle' => 'Varchar(255)',
         'CookieConsentModalContent' => 'HTMLText',
-        'DeactivateCookieConsent' => 'Boolean'
+        'DeactivateCookieConsentManager' => 'Boolean'
     ];
 
     private static $has_many = [
@@ -45,7 +45,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
             $externalMediaField,
             HeaderField::create('CustomCookiesHeader', 'Custom Cookies'),
             GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create()),
-            CheckboxField::create('DeactivateCookieConsent', 'Deactivate Cookie Consent for this Site')
+            CheckboxField::create('DeactivateCookieConsentManager', 'Deactivate Cookie Consent Manager for this Site')
         ]);
     }
 
@@ -115,14 +115,11 @@ class CookieConsentSiteConfigExtension extends DataExtension
     public function requireDefaultRecords()
     {
 
-
         $defaultTitle = _t('CookieConsent.CookieConsentModalTitle');
         $defaultContent = _t('CookieConsent.CookieConsentModalContent');
 
+        Subsite::disable_subsite_filter(true);
 
-        if (class_exists('Subsite')) {
-            Subsite::disable_subsite_filter(true);
-        }
 
         foreach (SiteConfig::get() as $config) {
             
@@ -143,9 +140,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
             }
         }
 
-        if (class_exists('Subsite')) {
-            Subsite::disable_subsite_filter(false);
-        }
+        Subsite::disable_subsite_filter(false);
     }
     public function isCookieConsentDeactivatedForSite() {
         return self::DeactivateCookieConsent();

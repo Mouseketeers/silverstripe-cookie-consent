@@ -5,7 +5,7 @@ class CookieDeclarationShortcode
     public static function register()
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
-            $cookieDeclarationData = CookieConsent::createConfigBuilder()->buildCookieDeclarationData();
+            $cookieDeclarationData = CookieConsent::createDataBuilder()->buildCookieDeclarationData();
 
             $categories = new ArrayList();
             foreach ($cookieDeclarationData['categories'] ?? [] as $categoryData) {
@@ -26,9 +26,6 @@ class CookieDeclarationShortcode
             }
 
             $data = ArrayData::create([
-                'ConsentID' => CookieConsent::getConsentId(),
-                'ConsentDate' => CookieConsent::getLastConsentTimestamp(),
-                'AcceptedCategories' => CookieConsent::getCategoryLabels(),
                 'Categories' => $categories
             ]);
 
