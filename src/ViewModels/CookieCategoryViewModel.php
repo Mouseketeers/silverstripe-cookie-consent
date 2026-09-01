@@ -72,25 +72,7 @@ class CookieCategoryViewModel extends ViewableData
             $this->toArray()
         );
 
-        $autoClearCookies = $this->buildAutoClearCookies();
-        if ($autoClearCookies !== []) {
-            $categoryArray['autoClear']['cookies'] = $autoClearCookies;
-        }
-
         return $categoryArray;
-    }
-
-    protected function buildAutoClearCookies()
-    {
-        if (($this->Config['readOnly'] ?? false) === true) {
-            return [];
-        }
-
-        $cookies = [];
-        foreach ($this->cookieViewModels as $cookieViewModel) {
-            $cookies[] = $cookieViewModel->toAutoClearArray();
-        }
-        return $cookies;
     }
 
     /**

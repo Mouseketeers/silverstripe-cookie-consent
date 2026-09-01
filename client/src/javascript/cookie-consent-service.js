@@ -94,19 +94,17 @@ export const cookieConsentService = {
     getConsentCategories() {
         const { categories, externalMediaCategory, isIframeManagerDisabled } = this.getConsentSettings();
 
-        const normalizedCategories = this._normalizeAutoClear(categories);
-
         if (isIframeManagerDisabled) {
-            return normalizedCategories;
+            return categories;
         }
 
-        const externalCategory = normalizedCategories?.[externalMediaCategory];
+        const externalCategory = categories?.[externalMediaCategory];
         if (!externalCategory?.services) {
-            return normalizedCategories;
+            return categories;
         }
 
         return {
-            ...normalizedCategories,
+            ...categories,
             [externalMediaCategory]: {
                 ...externalCategory,
                 services: Object.fromEntries(
@@ -121,43 +119,6 @@ export const cookieConsentService = {
                 )
             }
         };
-    },
-    _normalizeAutoClear(categories) {
-        if (!categories || typeof categories !== 'object') {
-            return categories;
-        }
-
-        const result = {};
-        for (const categoryKey of Object.keys(categories)) {
-            const category = categories[categoryKey];
-            if (!category || typeof category !== 'object') {
-                result[categoryKey] = category;
-                continue;
-            }
-
-            const autoClear = category.autoClear;
-            if (!autoClear || !Array.isArray(autoClear.cookies)) {
-                result[categoryKey] = category;
-                continue;
-            }
-
-            result[categoryKey] = {
-                ...category,
-                autoClear: {
-                    ...autoClear,
-                    cookies: autoClear.cookies.map(function (item) {
-                        if (typeof item.name === 'string' && item.name.indexOf('/^(') === 0) {
-                            var match = item.name.match(/^\/\^\((.+)\)\/$/);
-                            if (match) {
-                                return { ...item, name: new RegExp('^(' + match[1] + ')') };
-                            }
-                        }
-                        return item;
-                    })
-                }
-            };
-        }
-        return result;
     },
     updateGtagConsent() {
         if (!this.isGoogleConsentModeEnabled()) {
@@ -268,17 +229,17 @@ export const cookieConsentService = {
         };
     },
     getAcceptedCategoryTitles(cookie) {
-        return this._getCategoryTitles(cookie?.categories || []);
+        return this.getCategoryTitles(cookie?.categories || []);
     },
     getRejectedCategoryTitles(cookie) {
         const acceptedCategories = cookie?.categories || [];
         const allCategories = Object.keys(this.getConsentCategories() || {});
 
-        return this._getCategoryTitles(
+        return this.getCategoryTitles(
             allCategories.filter((category) => !acceptedCategories.includes(category))
         );
     },
-    _getCategoryTitles(categories) {
+    getCategoryTitles(categories) {
         const { translations, defaultLanguage } = this.getConsentSettings();
         const sections = translations?.[defaultLanguage]?.preferencesModal?.sections || [];
 
@@ -322,6 +283,6 @@ export const cookieConsentService = {
         };
 
         return externalMediaServices[key];
-    }    
+    }
 };
 window.cookieConsentService = cookieConsentService;

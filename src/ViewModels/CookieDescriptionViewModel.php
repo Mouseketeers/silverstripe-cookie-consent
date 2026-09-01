@@ -100,13 +100,4 @@ class CookieDescriptionViewModel extends ViewableData
             'expiration' => $this->Expiration,
         ];
     }
-
-    public function toAutoClearArray()
-    {
-        return [
-            'name' => $this->Wildcard
-                ? '/^(' . $this->Name . ')/'
-                : $this->Name
-        ];
-    }
 }
