@@ -38,11 +38,6 @@ class CookieServiceListboxField extends ListboxField
 
     public function saveInto(DataObjectInterface $record)
     {
-        if (!$this->multiple) {
-            parent::saveInto($record);
-            return;
-        }
-
         $fieldname = $this->getRelationName();
         $relation = ($fieldname && $record && $record->hasMethod($fieldname)) ? $record->$fieldname() : null;
         if (!($relation instanceof RelationList || $relation instanceof UnsavedRelationList)) {

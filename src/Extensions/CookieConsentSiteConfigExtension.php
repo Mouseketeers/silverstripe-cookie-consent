@@ -42,7 +42,6 @@ class CookieConsentSiteConfigExtension extends Extension
             'Services',
             $this->getServicesOptionsMap()
         )
-            ->setMultiple(true)
             ->setValue(array_values($this->owner->CookieServices()->column('Name')));
 
         $externalMediaField = CookieServiceListboxField::create(
@@ -52,7 +51,6 @@ class CookieConsentSiteConfigExtension extends Extension
         )
             ->setRelationName('ExternalMedia')
             ->setDataObjectClass(ExternalMedia::class)
-            ->setMultiple(true)
             ->setValue(array_values($this->owner->ExternalMedia()->column('Name')));
 
 
