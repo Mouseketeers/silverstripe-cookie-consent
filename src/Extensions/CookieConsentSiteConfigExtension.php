@@ -9,7 +9,6 @@ use Mouseketeers\CookieConsent\Models\CookieService;
 use Mouseketeers\CookieConsent\Models\ExternalMedia;
 use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
 use Mouseketeers\CookieConsent\Services\CookieConsentServiceOptionsCache;
-use SilverStripe\Core\Extension;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
@@ -17,10 +16,11 @@ use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 use SilverStripe\Forms\TextField;
+use SilverStripe\ORM\DataExtension;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Subsites\Model\Subsite;
 
-class CookieConsentSiteConfigExtension extends Extension
+class CookieConsentSiteConfigExtension extends DataExtension
 {
     private static $db = [
         'CookieConsentModalTitle' => 'Varchar(255)',
@@ -143,12 +143,12 @@ class CookieConsentSiteConfigExtension extends Extension
             foreach (SiteConfig::get() as $config) {
                 $hasChanges = false;
 
-                if ($config->CookieConsentModalTitle === '') {
+                if ($config->CookieConsentModalTitle === null || $config->CookieConsentModalTitle === '') {
                     $config->CookieConsentModalTitle = $defaultTitle;
                     $hasChanges = true;
                 }
 
-                if ($config->CookieConsentModalContent === '') {
+                if ($config->CookieConsentModalContent === null || $config->CookieConsentModalContent === '') {
                     $config->CookieConsentModalContent = $defaultContent;
                     $hasChanges = true;
                 }
@@ -160,7 +160,14 @@ class CookieConsentSiteConfigExtension extends Extension
         };
 
         if (class_exists(Subsite::class)) {
-            Subsite::withDisabledSubsiteFilter($updateConfigs);
+            $previousFilterState = Subsite::$disable_subsite_filter;
+            Subsite::disable_subsite_filter(true);
+
+            try {
+                $updateConfigs();
+            } finally {
+                Subsite::disable_subsite_filter($previousFilterState);
+            }
         } else {
             $updateConfigs();
         }
