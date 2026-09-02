@@ -64,7 +64,7 @@ export const cookieConsentService = {
             defaultLanguage: serverSideConfig?.defaultLanguage || 'en',
             guiOptions: serverSideConfig?.guiOptions || {},
             translations: serverSideConfig?.translations || {},
-            externalMediaServiceTranslations: serverSideConfig?.externalMediaServices?.services || {},
+            externalMediaServiceSelections: serverSideConfig?.externalMediaServices?.services || {},
             isGoogleConsentModeEnabled: serverSideConfig?.isGoogleConsentModeEnabled || false,
             isConsentRegistrationEnabled: serverSideConfig?.isConsentRegistrationEnabled || false,
             isIframeManagerDisabled: serverSideConfig?.isIframeManagerDisabled || false,
@@ -153,16 +153,16 @@ export const cookieConsentService = {
         const consentData = [];
 
         if (preferences.acceptType) {
-            consentData.push('Consent Type: ' + preferences.acceptType);
+            consentData.push('Accept Type: ' + preferences.acceptType);
         }
 
-        const acceptedCategoryTitles = this.getAcceptedCategoryTitles(cookie);
+        const acceptedCategoryTitles = this.getAcceptedCategoryTitles(preferences);
 
         if (acceptedCategoryTitles.length > 0) {
             consentData.push('Accepted Categories: ' + acceptedCategoryTitles.join(', '));
         }
 
-        const rejectedCategoryTitles = this.getRejectedCategoryTitles(cookie);
+        const rejectedCategoryTitles = this.getRejectedCategoryTitles(preferences);
 
         if (rejectedCategoryTitles.length > 0) {
             consentData.push('Rejected Categories: ' + rejectedCategoryTitles.join(', '));
@@ -228,11 +228,11 @@ export const cookieConsentService = {
             }
         };
     },
-    getAcceptedCategoryTitles(cookie) {
-        return this.getCategoryTitles(cookie?.categories || []);
+    getAcceptedCategoryTitles(preferences) {
+        return this.getCategoryTitles(preferences?.acceptedCategories || []);
     },
-    getRejectedCategoryTitles(cookie) {
-        const acceptedCategories = cookie?.categories || [];
+    getRejectedCategoryTitles(preferences) {
+        const acceptedCategories = preferences?.acceptedCategories || [];
         const allCategories = Object.keys(this.getConsentCategories() || {});
 
         return this.getCategoryTitles(
@@ -248,13 +248,13 @@ export const cookieConsentService = {
             .filter(Boolean);
     },
     getExternalMediaServices() {
-        const { externalMediaServiceTranslations } = this.getConsentSettings();
+        const { externalMediaServiceSelections } = this.getConsentSettings();
 
-        if (!externalMediaServiceTranslations || Object.keys(externalMediaServiceTranslations).length === 0) {
+        if (!externalMediaServiceSelections || Object.keys(externalMediaServiceSelections).length === 0) {
             return {};
         }
         return Object.fromEntries(
-            Object.entries(externalMediaServiceTranslations).map(([key, config]) => [
+            Object.entries(externalMediaServiceSelections).map(([key, config]) => [
                 key,
                 {
                     ...externalMediaServices[key],

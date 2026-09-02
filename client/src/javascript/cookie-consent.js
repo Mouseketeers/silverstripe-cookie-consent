@@ -2,11 +2,10 @@ import { cookieConsentService } from './cookie-consent-service';
 
 async function initCookieConsent() {
 
-    updateCookieConsentDeclaration();
-
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
 
     const cookieConsentConfig = {
+        autoClearCookies: false,
         guiOptions: cookieConsentService.getGuiOptions(),
         categories: cookieConsentService.getConsentCategories(),
         language: {
@@ -42,6 +41,7 @@ async function initCookieConsent() {
 }
 
 function updateCookieConsentDeclaration() {
+
     const consentHeaderElement = document.getElementById('cookie-consent__header');
 
     if (!consentHeaderElement) {
@@ -52,7 +52,7 @@ function updateCookieConsentDeclaration() {
 
     if (!cookie) {
         return;
-    }
+    } 
 
     const preferences = cookieConsentService.getCookieConsentApi().getUserPreferences();
 
@@ -62,18 +62,24 @@ function updateCookieConsentDeclaration() {
 
     consentHeaderElement.style.display = 'block';
 
+    const hasValidConsent = cookieConsentService.getCookieConsentApi().validConsent();
+
+    if(!hasValidConsent) {
+        return;
+    }
+
     updateCookieConsentRow('cookie-consent-row-id', 'cookie-consent-id', cookie.consentId || '');
     updateCookieConsentRow('cookie-consent-row-timestamp', 'cookie-consent-timestamp', cookie.consentTimestamp || '');
     updateCookieConsentRow(
         'cookie-consent-row-accepted-categories',
         'cookie-consent-accepted-categories',
-        cookieConsentService.getAcceptedCategoryTitles(cookie).join(', ')
+        cookieConsentService.getAcceptedCategoryTitles(preferences).join(', ')
     );
     updateCookieConsentRow(
         'cookie-consent-row-rejected-categories',
         'cookie-consent-rejected-categories',
-        cookieConsentService.getRejectedCategoryTitles(cookie).join(', ')
-    );    
+        cookieConsentService.getRejectedCategoryTitles(preferences).join(', ')
+    );
     updateCookieConsentRow(
         'cookie-consent-row-accepted-services',
         'cookie-consent-accepted-services',
