@@ -1,11 +1,9 @@
 ---
 Name: cookieconsent--extensions
 ---
-
 SilverStripe\SiteConfig\SiteConfig:
   extensions:
     - Mouseketeers\CookieConsent\Extensions\CookieConsentSiteConfigExtension
-
 SilverStripe\CMS\Controllers\ContentController:
   extensions:
     - Mouseketeers\CookieConsent\Extensions\CookieConsentPageControllerExtension

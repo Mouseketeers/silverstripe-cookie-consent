@@ -5,91 +5,78 @@ namespace Mouseketeers\CookieConsent\Models;
 use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
 use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\RequiredFields;
 use SilverStripe\Forms\TextAreaField;
 use SilverStripe\Forms\TextField;
-use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\SiteConfig\SiteConfig;
 
 class CookieDescription extends DataObject
 {
-    private static $table_name = 'CookieConsentDescription';
 
+    private static $table_name = 'CookieDescription';
 
-    private static $singular_name = 'Cookie Description';
+    private static $singular_name = 'Custom Cookie';
 
-    private static $plural_name = 'Cookie Descriptions';
+    private static $plural_name = 'Custom Cookies';
 
     private static $db = [
-        'Title' => 'Varchar(255)',
+        'Name' => 'Varchar(255)',
+        'Category' => 'Varchar(100)',
         'Provider' => 'Varchar(255)',
-        'Description' => 'Varchar(255)',
+        'Description' => 'Text',
+        'Domain' => 'Varchar(255)',
         'Expiration' => 'Varchar(255)',
-        'Locale' => 'Varchar(5)'
+        'PrivacyPolicyURL' => 'Varchar(255)',
+        'Wildcard' => 'Boolean'
     ];
 
-    private static $belongs_many_many = [
-        'CookieSections' => CookieSection::class
+    private static $has_one = [
+        'SiteConfig' => SiteConfig::class
     ];
 
     private static $summary_fields = [
-        'Title',
+        'Name',
+        'Category',
+        'Service',
         'Provider',
-        'Description',
-        'Expiration',
-        'LocaleName' => 'Language'
+        'Expiration'
     ];
 
-    private static $field_labels = [
-        'Locale' => 'Language'
-    ];
+    private static $default_sort = 'Name ASC';
 
-    public function getListTitle()
+    public function getName()
     {
-        return $this->Title . ' ' . $this->getLocaleName();
-    }
-
-    public function getLocaleName()
-    {
-        if (!$this->Locale) {
-            return '';
-        }
-
-        $locales = $this->getLocaleOptions();
-        if (isset($locales[$this->Locale])) {
-            return $locales[$this->Locale];
-        }
-
-        return $this->Locale;
-    }
-
-    public function populateDefaults()
-    {
-        parent::populateDefaults();
-
-        $subsite = CookieConsent::getCurrentSubsite();
-        if ($subsite) {
-            $this->Locale = $subsite->Language;
-        } else {
-            $this->Locale = i18n::get_locale();
-        }
+        return $this->Wildcard ? $this->getField('Name') . '*' : $this->getField('Name');
     }
 
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
 
-        $fields->removeByName('CookieSections');
+        $fields->removeByName(['SiteConfigID']);
+
+        $categoryOptions = CookieConsent::getCategoryTranslationsMap();
+        if ($this->Category && !isset($categoryOptions[$this->Category])) {
+            $categoryOptions[$this->Category] = $this->Category;
+        }
 
         $fields->addFieldsToTab('Root.Main', [
-            TextField::create('Title', $this->fieldLabel('Title')),
+            TextField::create('Name', $this->fieldLabel('Name')),
             TextField::create('Provider', $this->fieldLabel('Provider')),
             TextAreaField::create('Description', $this->fieldLabel('Description')),
-            TextField::create('Expiration', $this->fieldLabel('Expiration')),
-            DropdownField::create('Locale', $this->fieldLabel('Locale'), $this->getLocaleOptions())
-                ->setEmptyString('Select...')
+            DropdownField::create('Category', $this->fieldLabel('Category'), $categoryOptions)
+                ->setEmptyString(_t('CookieConsent.SelectCategory', 'Select...'))
+                ->setAttribute('required', 'required'),
+            TextField::create('Expiration', $this->fieldLabel('Expiration'))
         ]);
 
         return $fields;
+    }
+
+    public function getCMSValidator()
+    {
+        return RequiredFields::create(['Category']);
     }
 
     public function onAfterWrite()
@@ -102,15 +89,5 @@ class CookieDescription extends DataObject
     {
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
-    }
-
-    protected function getLocaleOptions(): array
-    {
-        $locales = i18n::getSources()->getKnownLocales();
-        if (!empty($locales)) {
-            return $locales;
-        }
-
-        return i18n::getData()->getLocales();
     }
 }

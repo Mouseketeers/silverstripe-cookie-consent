@@ -2,46 +2,49 @@
 
 namespace Mouseketeers\CookieConsent\Services;
 
-use Mouseketeers\CookieConsent\CookieConsent;
-use Psr\SimpleCache\CacheInterface;
-use SilverStripe\Core\Cache\CacheFactory;
 use SilverStripe\Core\Flushable;
-use SilverStripe\Core\Injector\Injector;
+use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\i18n\i18n;
 
 class CookieConsentConfigCache implements Flushable
 {
     const CACHE_NAME = 'cookie_consent_config';
 
-    public static function getCache(): CacheInterface
+    public static function getCache($checkRegistryVersion = true)
     {
-        $injector = Injector::inst();
-        $serviceName = CacheInterface::class . '.' . self::CACHE_NAME;
-
-        // Allow flush to continue during manifest transitions where the named service is not loaded yet.
-        if ($injector->getServiceSpec($serviceName, false)) {
-            return $injector->get($serviceName);
-        }
-
-        /** @var CacheFactory $factory */
-        $factory = $injector->get(CacheFactory::class);
-        return $factory->create($serviceName, [
-            'namespace' => self::CACHE_NAME,
-            'defaultLifetime' => 0,
-        ]);
+        return CookieConsentCacheHelper::getCache(self::CACHE_NAME, $checkRegistryVersion);
     }
 
     public static function getCacheKey()
     {
-        $locale = i18n::get_locale();
-        $subsiteId = CookieConsent::getCurrentSubsiteId();
+        return self::getJsCacheKey();
+    }
 
-        return sprintf('cookie_consent_config_%s_site_%s', $locale, $subsiteId);
+    public static function getJsCacheKey()
+    {
+        $locale = i18n::get_locale();
+        $siteConfig = SiteConfig::current_site_config();
+        $siteConfigId = $siteConfig ? (int) $siteConfig->ID : 0;
+
+        $registryVersion = CookieConsentCacheHelper::getRegistryVersion();
+
+        return sprintf('cookie_consent_config_js_%s_site_%s_registry_%s', $locale, $siteConfigId, $registryVersion);
+    }
+
+    public static function getDeclarationCacheKey()
+    {
+        $locale = i18n::get_locale();
+        $siteConfig = SiteConfig::current_site_config();
+        $siteConfigId = $siteConfig ? (int) $siteConfig->ID : 0;
+
+        $registryVersion = CookieConsentCacheHelper::getRegistryVersion();
+
+        return sprintf('cookie_consent_config_declaration_%s_site_%s_registry_%s', $locale, $siteConfigId, $registryVersion);
     }
 
     public static function clear()
     {
-        self::getCache()->clear();
+        CookieConsentCacheHelper::clear(self::CACHE_NAME);
     }
 
     public static function flush()

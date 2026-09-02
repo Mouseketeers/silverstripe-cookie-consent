@@ -3,8 +3,8 @@
 namespace Mouseketeers\CookieConsent\Shortcode;
 
 use Mouseketeers\CookieConsent\CookieConsent;
-use SilverStripe\Model\ArrayData;
-use SilverStripe\SiteConfig\SiteConfig;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\View\ArrayData;
 use SilverStripe\View\Parsers\ShortcodeParser;
 
 class CookieDescriptionsShortcode
@@ -12,25 +12,27 @@ class CookieDescriptionsShortcode
     public static function register()
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
-            
-            $categories = [];
+            $cookieDeclarationData = CookieConsent::createDataBuilder()->buildCookieDeclarationData();
 
-            $siteConfig = SiteConfig::current_site_config();
-
-            foreach ($siteConfig->CookieSections() as $category) {
-                if ($category->CookieDescriptions()->exists()) {
-                    $categories[] = $category;
+            $categories = new ArrayList();
+            foreach ($cookieDeclarationData['categories'] ?? [] as $categoryData) {
+                $cookieDescriptions = new ArrayList();
+                foreach ($categoryData['CookieDescriptions'] ?? [] as $cookieData) {
+                    $cookieDescriptions->push(ArrayData::create($cookieData));
                 }
+
+                $categories->push(ArrayData::create([
+                    'Title' => $categoryData['Title'],
+                    'Content' => $categoryData['Content'],
+                    'CookieDescriptions' => $cookieDescriptions,
+                ]));
             }
 
-            if (empty($categories)) {
+            if (!$categories->exists()) {
                 return '';
             }
 
             $data = ArrayData::create([
-                'ConsentID' => CookieConsent::getConsentId(),
-                'ConsentDate' => CookieConsent::getLastConsentTimestamp(),
-                'AcceptedCategories' => CookieConsent::getCategories(),
                 'Categories' => $categories
             ]);
 

@@ -2,45 +2,39 @@
 
 namespace Mouseketeers\CookieConsent;
 
+use Mouseketeers\CookieConsent\Services\CookieConsentDataBuilder;
 use SilverStripe\Control\Cookie;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\i18n\i18n;
-use SilverStripe\Subsites\Model\Subsite;
+use SilverStripe\SiteConfig\SiteConfig;
 
 class CookieConsent
 {
+
+    private static $disable_module = false;
+    private static $disable_iframe_manager = false;
     private static $disable_default_js = false;
     private static $disable_default_css = false;
+    private static $enable_consent_logging = true;
     private static $enable_google_consent_mode = false;
-    private static $enable_consent_logging = false;
-    private static $categories = [
-        'necessary' => [
-            'readOnly' => true
-        ]
-    ];
-    private static $cookie_info_cache = null;
+    private static $cookie_registry_path = 'cookie-consent/open-cookie-database.json';
 
-    public static function getSubsitesEnabled()
-    {
-        return class_exists(Subsite::class);
-    }
+    private static $cookie_consent_values_cache = null;
+    private static $site_config_cache = null;
+    private static $cookie_services_cache = null;
+    private static $custom_cookies_cache = null;
+    private static $external_media_cache = null;
+    private static $selected_external_media_cache = null;
 
-    public static function getCurrentSubsite()
+
+    public static function isModuleDisabled()
     {
-        if (self::getSubsitesEnabled()) {
-            return Subsite::currentSubsite();
+        $isDisabled = Config::inst()->get(self::class, 'disable_module');
+        if(!$isDisabled) {
+            $siteConfig = self::getSiteConfig();
+            return $siteConfig ? (bool) $siteConfig->DeactivateCookieConsentManager : false;
         }
 
-        return null;
-    }
-
-    public static function getCurrentSubsiteId()
-    {
-        if (self::getSubsitesEnabled()) {
-            return (int) Subsite::currentSubsiteID();
-        }
-
-        return 0;
+        return true;
     }
 
     public static function isDefaultJsDisabled()
@@ -52,35 +46,15 @@ class CookieConsent
     {
         return Config::inst()->get(self::class, 'disable_default_css');
     }
-    
+
     public static function isGoogleConsentModeEnabled()
     {
         return Config::inst()->get(self::class, 'enable_google_consent_mode');
     }
 
-    public static function getCategoriesConfig()
+    public static function isIframeManagerDisabled()
     {
-        $categories = Config::inst()->get(self::class, 'categories');
-
-        return is_array($categories) ? $categories : [];
-    }
-
-    public static function getCategoryOptionMap()
-    {
-        $options = [];
-        $categories = self::getCategoriesConfig();
-
-        foreach ($categories as $categoryId => $categoryConfig) {
-            if (!is_string($categoryId) || $categoryId === '') {
-                continue;
-            }
-
-            $translationKey = sprintf('CookieConsent.Category.%s', $categoryId);
-            $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
-            $options[$categoryId] = _t($translationKey, $defaultLabel);
-        }
-
-        return $options;
+        return (bool) Config::inst()->get(self::class, 'disable_iframe_manager');
     }
 
     public static function isConsentRegistrationEnabled()
@@ -88,60 +62,183 @@ class CookieConsent
         return class_exists('ConsentRecord') && (bool) Config::inst()->get(self::class, 'enable_consent_logging');
     }
 
-    public static function getCookie()
+    public static function getCookieRegistryPath()
+    {
+        $path = Config::inst()->get(self::class, 'cookie_registry_path');
+        if (!is_string($path) || trim($path) === '') {
+            $path = self::$cookie_registry_path;
+        }
+
+        return $path;
+    }
+
+    public static function getCategoryConfig()
+    {
+        $categories = Config::inst()->get(self::class, 'categories');
+        return is_array($categories) ? $categories : [];
+    }
+
+    public static function getGuiOptions()
+    {
+        $guiOptions = Config::inst()->get(self::class, 'gui_options');
+        return is_array($guiOptions) ? $guiOptions : [];
+    }
+
+    public static function getExternalMediaCategoryConfig()
+    {
+        return Config::inst()->get(self::class, 'external_media_category');
+    }
+
+    public static function getExternalMediaConfig()
+    {
+        $externalMediaConfig = Config::inst()->get(self::class, 'external_media_service_options');
+        return is_array($externalMediaConfig) ? $externalMediaConfig : [];
+    }
+
+    // public static function hasCookies()
+    // {
+    //     $siteConfig = self::getSiteConfig();
+
+    //     if (!$siteConfig || empty($siteConfig->CookieConsentModalTitle) || empty($siteConfig->CookieConsentModalContent)) {
+    //         return false;
+    //     }
+
+    //     // Check for selected cookie services
+    //     $cookieServices = self::getCookieServices();
+    //     if ($cookieServices && $cookieServices->exists()) {
+    //         return true;
+    //     }
+
+    //     // Check for custom cookies
+    //     $customCookies = self::getCustomCookies();
+    //     if ($customCookies && $customCookies->exists()) {
+    //         return true;
+    //     }
+
+    //     // Check for selected external media
+    //     $selectedExternalMedia = self::getSelectedExternalMedia();
+    //     if (!empty($selectedExternalMedia)) {
+    //         return true;
+    //     }
+
+    //     // Check if any categories have default cookies configured
+    //     $categories = self::getCategoryConfig();
+    //     foreach ($categories as $categoryData) {
+    //         if (!empty($categoryData['cookies'])) {
+    //             return true;
+    //         }
+    //     }
+
+    //     return false;
+    // }
+
+    public static function getSiteConfig()
+    {
+        if (self::$site_config_cache === null) {
+            self::$site_config_cache = SiteConfig::current_site_config();
+        }
+        return self::$site_config_cache;
+    }
+
+    public static function getCookieServices()
+    {
+        if (self::$cookie_services_cache === null) {
+            $siteConfig = self::getSiteConfig();
+            self::$cookie_services_cache = $siteConfig ? $siteConfig->CookieServices() : null;
+        }
+        return self::$cookie_services_cache;
+    }
+
+    public static function getCustomCookies()
+    {
+        if (self::$custom_cookies_cache === null) {
+            $siteConfig = self::getSiteConfig();
+            self::$custom_cookies_cache = $siteConfig ? $siteConfig->CustomCookies() : null;
+        }
+        return self::$custom_cookies_cache;
+    }
+
+    public static function getExternalMedia()
+    {
+        if (self::$external_media_cache === null) {
+            $siteConfig = self::getSiteConfig();
+            self::$external_media_cache = $siteConfig ? $siteConfig->ExternalMedia() : null;
+        }
+        return self::$external_media_cache;
+    }
+
+    public static function getSelectedExternalMedia()
+    {
+        if (self::$selected_external_media_cache === null) {
+            $externalMedia = self::getExternalMedia();
+            if (!$externalMedia || !$externalMedia->exists()) {
+                self::$selected_external_media_cache = [];
+            } else {
+                self::$selected_external_media_cache = $externalMedia->column('Name');
+            }
+        }
+        return self::$selected_external_media_cache;
+    }
+
+    public static function getCategoryTranslationsMap()
+    {
+        $options = [];
+        $categories = self::getCategoryConfig();
+
+        foreach ($categories as $categoryId => $categoryConfig) {
+            if (!is_string($categoryId) || $categoryId === '') {
+                continue;
+            }
+            $translationKey = self::getCategoryTranslationKey($categoryId);
+            $options[$categoryId] = _t($translationKey);
+        }
+
+        return $options;
+    }
+
+    public static function getCategoryTranslationKey($categoryId)
+    {
+        return sprintf('CookieConsent.Category.%s', $categoryId);
+    }
+
+    public static function resolveCookieRegistryPath()
+    {
+        $path = self::getCookieRegistryPath();
+        if (!is_string($path) || trim($path) === '') {
+            return null;
+        }
+
+        return BASE_PATH . '/' . ltrim($path, '/');
+    }
+
+    public static function getConsentCookie()
     {
         return Cookie::get('cc_cookie');
     }
 
-    public static function getCookieConsentValues()
+    public static function getConsentCookieValues()
     {
-        if (self::$cookie_info_cache !== null) {
-            return self::$cookie_info_cache;
+        if (self::$cookie_consent_values_cache !== null) {
+            return self::$cookie_consent_values_cache;
         }
 
-        $cookieValue = self::getCookie();
+        $cookieValue = self::getConsentCookie();
         if (!$cookieValue) {
-            self::$cookie_info_cache = null;
+            self::$cookie_consent_values_cache = null;
             return null;
         }
 
         $decodedValue = rawurldecode($cookieValue);
         $decodedData = json_decode($decodedValue, true);
 
-        self::$cookie_info_cache = is_array($decodedData) ? $decodedData : null;
+        self::$cookie_consent_values_cache = is_array($decodedData) ? $decodedData : null;
 
-        return self::$cookie_info_cache;
+        return self::$cookie_consent_values_cache;
     }
 
-    private static function getConsentCookieValue($key)
+    public static function createDataBuilder()
     {
-        $decodedData = self::getCookieConsentValues();
-
-        if (is_array($decodedData) && isset($decodedData[$key])) {
-            return $decodedData[$key];
-        }
-
-        return null;
+        return new CookieConsentDataBuilder();
     }
 
-    public static function getLastConsentTimestamp()
-    {
-        return self::getConsentCookieValue('lastConsentTimestamp');
-    }
-
-    public static function getConsentId()
-    {
-        return self::getConsentCookieValue('consentId');
-    }
-
-    public static function getCategories()
-    {
-        $categories = self::getConsentCookieValue('categories');
-
-        if (is_array($categories)) {
-            return implode(', ', $categories);
-        }
-
-        return $categories;
-    }
 }

@@ -15,8 +15,7 @@
     "silverstripe/framework": "^4.0",
     "silverstripe/cms": "^4.0",
     "silverstripe/admin": "^1.0",
-    "silverstripe/siteconfig": "^4.0",
-    "symbiote/silverstripe-gridfieldextensions": "^3.0"
+    "silverstripe/siteconfig": "^4.0"
   },
   "autoload": {
     "psr-4": {

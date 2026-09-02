@@ -2,104 +2,177 @@
 
 namespace Mouseketeers\CookieConsent\Extensions;
 
-use Mouseketeers\CookieConsent\Models\CookieSection;
+use Mouseketeers\CookieConsent\CookieConsent;
+use Mouseketeers\CookieConsent\Forms\CookieServiceListboxField;
+use Mouseketeers\CookieConsent\Models\CookieDescription;
+use Mouseketeers\CookieConsent\Models\CookieService;
+use Mouseketeers\CookieConsent\Models\ExternalMedia;
 use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
+use Mouseketeers\CookieConsent\Services\CookieConsentServiceOptionsCache;
 use SilverStripe\Core\Extension;
+use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
-use SilverStripe\Forms\GridField\GridFieldPaginator;
-use SilverStripe\Forms\GridField\GridFieldPageCount;
-use SilverStripe\Forms\HTMLEditor\HtmlEditorField;
+use SilverStripe\Forms\HeaderField;
+use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\SiteConfig\SiteConfig;
-use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
-use SilverStripe\i18n\i18n;
 use SilverStripe\Subsites\Model\Subsite;
 
 class CookieConsentSiteConfigExtension extends Extension
 {
     private static $db = [
-        'CookieConsentTitle' => 'Varchar(255)',
-        'CookieConsentContent' => 'HTMLText'
+        'CookieConsentModalTitle' => 'Varchar(255)',
+        'CookieConsentModalContent' => 'HTMLText',
+        'DeactivateCookieConsentManager' => 'Boolean'
     ];
 
     private static $has_many = [
-        'CookieSections' => CookieSection::class
+        'CookieServices' => CookieService::class . '.SiteConfig',
+        'ExternalMedia' => ExternalMedia::class . '.SiteConfig',
+        'CustomCookies' => CookieDescription::class . '.SiteConfig'
     ];
 
     public function updateCMSFields(FieldList $fields)
     {
-        $cookieCategoriesGrid = GridField::create(
-            'CookieSections',
-            'Cookie categories',
-            $this->owner->CookieSections(),
-            GridFieldConfig_RecordEditor::create()
-        );
 
-        $cookieCategoriesGrid->getConfig()
-            ->removeComponentsByType(GridFieldPaginator::class)
-            ->removeComponentsByType(GridFieldPageCount::class)
-            ->addComponent(new GridFieldOrderableRows('SortOrder'));
+        $cookieServicesField = CookieServiceListboxField::create(
+            'SelectedCookieServices',
+            'Services',
+            $this->getServicesOptionsMap()
+        )
+            ->setMultiple(true)
+            ->setValue(array_values($this->owner->CookieServices()->column('Name')));
+
+        $externalMediaField = CookieServiceListboxField::create(
+            'SelectedExternalMedia',
+            'External Media',
+            $this->getExternalMediaOptionsMap()
+        )
+            ->setRelationName('ExternalMedia')
+            ->setDataObjectClass(ExternalMedia::class)
+            ->setMultiple(true)
+            ->setValue(array_values($this->owner->ExternalMedia()->column('Name')));
+
 
         $fields->addFieldsToTab('Root.CookieConsent', [
-            TextField::create('CookieConsentTitle', $this->owner->fieldLabel('CookieConsentTitle')),
-            HtmlEditorField::create('CookieConsentContent', $this->owner->fieldLabel('CookieConsentContent'))->setRows(5),
-            $cookieCategoriesGrid
+            HeaderField::create('CookieConsentHeader', 'Cookie Consent Settings'),
+            TextField::create('CookieConsentModalTitle'),
+            HtmlEditorField::create('CookieConsentModalContent')->setRows(5),
+            HeaderField::create('CookieServicesHeader', 'Third-Party Services'),
+            $cookieServicesField,
+            $externalMediaField,
+            HeaderField::create('CustomCookiesHeader', 'Custom Cookies'),
+            GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create()),
+            CheckboxField::create('DeactivateCookieConsentManager', 'Deactivate Cookie Consent Manager for this Site')
         ]);
     }
+
+    protected function getExternalMediaOptionsMap()
+    {
+        $availableMediaServices = CookieConsent::getExternalMediaConfig();
+        $options = [];
+        foreach ($availableMediaServices as $serviceKey => $serviceConfig) {
+            $options[$serviceKey] = $serviceConfig['label'];
+        }
+        return $options;
+    }
+
+    protected function getServicesOptionsFromCookieRegistry()
+    {
+        $cachedOptions = CookieConsentServiceOptionsCache::load();
+        if ($cachedOptions !== null) {
+            return $cachedOptions;
+        }
+
+        $options = [];
+        $jsonPath = CookieConsent::resolveCookieRegistryPath();
+        if ($jsonPath !== null && file_exists($jsonPath)) {
+            $raw = @file_get_contents($jsonPath);
+            if ($raw !== false) {
+                $data = json_decode($raw, true);
+
+                if (is_array($data)) {
+                    $names = array_keys($data);
+                    // sort($names);
+                    foreach ($names as $serviceName) {
+                        if(!$serviceName) {
+                            continue;
+                        }
+                        $normalizedKey = CookieService::normalizeServiceName($serviceName);
+                        $options[$normalizedKey] = $serviceName;
+                    }
+                }
+            }
+        }
+
+        CookieConsentServiceOptionsCache::save($options);
+
+        return $options;
+    }
+
+    protected function getServicesOptionsMap()
+    {
+        $siteConfigId = $this->owner->ID !== null ? (int) $this->owner->ID : 0;
+        $cacheKey = CookieConsentServiceOptionsCache::getOptionsMapCacheKey($siteConfigId);
+
+        $cachedOptionsMap = CookieConsentServiceOptionsCache::load($cacheKey);
+        if ($cachedOptionsMap !== null) {
+            return $cachedOptionsMap;
+        }
+
+        $serviceOptionsMap = $this->getServicesOptionsFromCookieRegistry();
+
+        CookieConsentServiceOptionsCache::save($serviceOptionsMap, $cacheKey);
+
+        return $serviceOptionsMap;
+    }
+
+    // Set the defaults using requireDefaultRecords instead of populateDefaults
+    // because the SiteConfig records are likely already created
+    // Loops though SiteConfig records to support Subsites module
     public function requireDefaultRecords()
     {
-        // parent::requireDefaultRecords();
 
-        // Define the record-updating logic inside a reusable callback function
-        $updateConfigs = function () {
-            $originalLocale = i18n::get_locale();
-            $configs = SiteConfig::get();
+        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle');
+        $defaultContent = _t('CookieConsent.CookieConsentModalContent');
 
-            foreach ($configs as $config) {
-                $changed = false;
+        $updateConfigs = function () use ($defaultTitle, $defaultContent) {
+            foreach (SiteConfig::get() as $config) {
+                $hasChanges = false;
 
-                // Switch the i18n locale to match the current SiteConfig language
-                $configLocale = !empty($config->Language) ? $config->Language : $originalLocale;
-                i18n::set_locale($configLocale);
-
-                if (empty($config->CookieConsentTitle)) {
-                    $config->CookieConsentTitle = _t('CookieConsent.CookieConsentTitle', 'This website uses cookies');
-                    $changed = true;
+                if ($config->CookieConsentModalTitle === '') {
+                    $config->CookieConsentModalTitle = $defaultTitle;
+                    $hasChanges = true;
                 }
 
-                if (empty($config->CookieConsentContent)) {
-                    $config->CookieConsentContent = _t('CookieConsent.CookieConsentContent', '<p>We use cookies to personalise content, to provide social media features and to analyse our traffic. We also share information about your use of our site with our social media and analytics partners who may combine it with other information that you’ve provided to them or that they’ve collected from your use of their services. You consent to our cookies if you continue to use our website.</p>');
-                    $changed = true;
+                if ($config->CookieConsentModalContent === '') {
+                    $config->CookieConsentModalContent = $defaultContent;
+                    $hasChanges = true;
                 }
 
-                if ($changed) {
+                if ($hasChanges) {
                     $config->write();
                 }
             }
-
-            // Restore the original system locale context
-            i18n::set_locale($originalLocale);
         };
 
-        // Execute using the safest workflow depending on if Subsites module is installed
         if (class_exists(Subsite::class)) {
             Subsite::withDisabledSubsiteFilter($updateConfigs);
         } else {
             $updateConfigs();
         }
     }
-
-
-
     public function onAfterWrite()
     {
         CookieConsentConfigCache::clear();
+        CookieConsentServiceOptionsCache::clear();
     }
 
     public function onAfterDelete()
     {
         CookieConsentConfigCache::clear();
+        CookieConsentServiceOptionsCache::clear();
     }
 }
