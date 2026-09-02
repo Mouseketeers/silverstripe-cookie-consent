@@ -115,8 +115,11 @@ class CookieConsentSiteConfigExtension extends DataExtension
     public function requireDefaultRecords()
     {
 
-        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle');
-        $defaultContent = _t('CookieConsent.CookieConsentModalContent');
+        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle', 'Your Cookie Preferences');
+        $defaultContent = _t(
+            'CookieConsent.CookieConsentModalContent',
+            '<p>We use cookies to improve your experience and understand how the website is used.</p>'
+        );
 
         Subsite::disable_subsite_filter(true);
 

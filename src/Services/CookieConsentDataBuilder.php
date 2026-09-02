@@ -133,11 +133,14 @@ class CookieConsentDataBuilder
 
         $consentTitle = $siteConfig->CookieConsentModalTitle !== null && $siteConfig->CookieConsentModalTitle !== ''
             ? $siteConfig->CookieConsentModalTitle
-            : _t('CookieConsent.CookieConsentModalTitle');
+            : _t('CookieConsent.CookieConsentModalTitle', 'Your Cookie Preferences');
 
         $consentDescription = $siteConfig->CookieConsentModalContent !== null && $siteConfig->CookieConsentModalContent !== ''
             ? $siteConfig->CookieConsentModalContent
-            : _t('CookieConsent.CookieConsentModalContent');
+            : _t(
+                'CookieConsent.CookieConsentModalContent',
+                '<p>We use cookies to improve your experience and understand how the website is used.</p>'
+            );
 
         return [
             'consentModal' => [

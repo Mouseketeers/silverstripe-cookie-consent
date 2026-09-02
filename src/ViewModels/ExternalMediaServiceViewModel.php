@@ -33,7 +33,10 @@ class ExternalMediaServiceViewModel extends ViewableData
                 $languageCode => [
                     'loadBtn' => _t('CookieConsent.IframeManager.LoadBtn', 'Load Once'),
                     'loadAllBtn' => _t('CookieConsent.IframeManager.LoadAllBtn', 'Don\'t ask again'),
-                    'notice' => _t('CookieConsent.IframeManager.Notice_' . $this->Key, '')
+                    'notice' => _t(
+                        'CookieConsent.IframeManager.Notice_' . $this->Key,
+                        'This content is hosted by an external service.'
+                    )
                 ]
             ]
         ];

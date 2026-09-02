@@ -23,11 +23,11 @@ class CookieDescriptionViewModel extends ViewableData
         $vm->PrivacyPolicyURL = $registryData->privacyLink ?? '';
         $vm->Description = _t(
             'CookieConsent.RegistryCookies.' . $registryData->id . '.description',
-            $registryData->description ?? ''
+            $registryData->description ?? 'No description available.'
         );
         $vm->Expiration = _t(
             'CookieConsent.RegistryCookies.' . $registryData->id . '.retentionPeriod',
-            $registryData->retentionPeriod ?? ''
+            $registryData->retentionPeriod ?? 'Unknown'
         );
         $vm->Wildcard = $registryData->wildcardMatch ?? false;
 
@@ -53,9 +53,8 @@ class CookieDescriptionViewModel extends ViewableData
     public static function fromConfig($cookieName, $host, $config = [])
     {
         $vm = new self();
-        
-        $defaultDescription = $config['description'] ?? '';
-        $defaultExpiration = $config['expiration'] ?? '';
+        $defaultDescription = $config['description'] ?? 'No description available.';
+        $defaultExpiration = $config['expiration'] ?? 'Unknown';
         $provider = $config['provider'] ?? $host;
 
         $vm->Name = $cookieName;

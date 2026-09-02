@@ -22,10 +22,14 @@ class CookieCategoryViewModel extends ViewableData
 
         $vm->Key = $key;
         $vm->Config = $config;
+        $defaultTitle = ucwords(str_replace(['-', '_'], ' ', $key));
         $vm->Title = isset($config['title']) && $config['title'] !== ''
             ? $config['title']
-            : self::translateWithEnglishFallback(CookieConsent::getCategoryTranslationKey($key));
-        $vm->Content = self::translateWithEnglishFallback(sprintf('CookieConsent.Category.%s.Description', $key));
+            : self::translateWithEnglishFallback(CookieConsent::getCategoryTranslationKey($key), $defaultTitle);
+        $vm->Content = self::translateWithEnglishFallback(
+            sprintf('CookieConsent.Category.%s.Description', $key),
+            sprintf('%s cookies.', $vm->Title)
+        );
         $vm->CookieDescriptions = $cookies;
         $vm->cookieViewModels = $cookieViewModels;
 
@@ -82,9 +86,9 @@ class CookieCategoryViewModel extends ViewableData
      * toggle listener to a heading element that is only created for non-empty
      * titles), so an empty result must never reach the JS config.
      */
-    public static function translateWithEnglishFallback($entity)
+    public static function translateWithEnglishFallback($entity, $default)
     {
-        $translated = _t($entity, '');
+        $translated = _t($entity, $default);
 
         if ($translated !== null && $translated !== '') {
             return $translated;
@@ -92,7 +96,7 @@ class CookieCategoryViewModel extends ViewableData
 
         $currentLocale = i18n::get_locale();
         i18n::set_locale('en_US');
-        $english = _t($entity, '');
+        $english = _t($entity, $default);
         i18n::set_locale($currentLocale);
 
         return $english;
