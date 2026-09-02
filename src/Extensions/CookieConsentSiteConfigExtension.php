@@ -133,8 +133,11 @@ class CookieConsentSiteConfigExtension extends Extension
     public function requireDefaultRecords()
     {
 
-        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle');
-        $defaultContent = _t('CookieConsent.CookieConsentModalContent');
+        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle', 'Your Cookie Preferences');
+        $defaultContent = _t(
+            'CookieConsent.CookieConsentModalContent',
+            '<p>We use cookies to improve your experience and understand how the website is used.</p>'
+        );
 
         $updateConfigs = function () use ($defaultTitle, $defaultContent) {
             foreach (SiteConfig::get() as $config) {

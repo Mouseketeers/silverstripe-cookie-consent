@@ -190,7 +190,8 @@ class CookieConsent
                 continue;
             }
             $translationKey = self::getCategoryTranslationKey($categoryId);
-            $options[$categoryId] = _t($translationKey);
+            $defaultLabel = ucwords(str_replace(['-', '_'], ' ', $categoryId));
+            $options[$categoryId] = _t($translationKey, $defaultLabel);
         }
 
         return $options;
