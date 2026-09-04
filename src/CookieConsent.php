@@ -26,6 +26,7 @@ class CookieConsent
             $siteConfig = self::getSiteConfig();
             return $siteConfig->DeactivateCookieConsentManager;
         }
+        return $isDisabled;
     }
 
     public static function isDefaultJsDisabled()

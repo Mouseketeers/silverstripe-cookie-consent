@@ -152,10 +152,6 @@ export const cookieConsentService = {
 
         const consentData = [];
 
-        if (preferences.acceptType) {
-            consentData.push('Accept Type: ' + preferences.acceptType);
-        }
-
         const acceptedCategoryTitles = this.getAcceptedCategoryTitles(preferences);
 
         if (acceptedCategoryTitles.length > 0) {
@@ -183,7 +179,6 @@ export const cookieConsentService = {
         const userConsent = {
             ConsentID: cookie.consentId || '',
             ConsentType: 'CookieConsent',
-            ConsentStatement: 'N/A',
             ConsentData: consentData.join(', '),
             URL: window.location.href
         };
