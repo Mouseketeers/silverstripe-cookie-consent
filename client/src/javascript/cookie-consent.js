@@ -1,103 +1,111 @@
 import { cookieConsentService } from './cookie-consent-service';
 
-function initCookieConsent() {
+async function initCookieConsent() {
 
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
-    const serverSideConfig = cookieConsentService.getServerSideConfiguration();
-    const isGoogleConsentModeEnabled = serverSideConfig?.isGoogleConsentModeEnabled || false;
-    const isConsentRegistrationEnabled = serverSideConfig?.isConsentRegistrationEnabled || false;
 
-    function updateGtagConsent() {
-        if (isGoogleConsentModeEnabled) {
-            cookieConsentService.updateGtagConsent();
-        }
-    }
-
-    function registerConsent() {
-        if (isConsentRegistrationEnabled) {
-            cookieConsentService.registerConsent();
-        }
-    }
-
-
-
-    function updateCookieConsentDeclaration() {
-
-        const cookie = cookieConsentApi.getCookie();
-        const consentIdElement = document.getElementById('cookie-consent-id');
-        const consentTimestampElement = document.getElementById('cookie-consent-timestamp');
-        const acceptedCategoriesElement = document.getElementById('cookie-consent-accepted-categories');
-        const translations = serverSideConfig?.translations || {};
-        
-        if (consentIdElement) {
-            consentIdElement.textContent = cookie?.consentId || '';
-        }
-        if (consentTimestampElement) {
-            consentTimestampElement.textContent = cookie?.consentTimestamp || '';
-        }
-
-        if (acceptedCategoriesElement) {
-            const defaultLanguage = serverSideConfig?.defaultLanguage || 'en';
-            
-            const sections = serverSideConfig?.translations?.[defaultLanguage]?.preferencesModal?.sections || [];
-            const getSectionTitleByCategory = (category) =>
-                sections.find((item) => item.linkedCategory === category)?.name || category;
-            const acceptedCategoryTitles = (cookie?.categories || [])
-                .map((category) => getSectionTitleByCategory(category))
-                .filter(Boolean);
-
-            acceptedCategoriesElement.textContent = acceptedCategoryTitles.join(', ') || '';
-        }
-    }
-
-    if (isGoogleConsentModeEnabled) {
-        cookieConsentService.initializeGtagConsent();
-    }
-
-    const translations = serverSideConfig?.translations || {};
-
-    console.log('Cookie Consent Translations:', translations);
-    const categories = serverSideConfig?.categories || {
-        functional: {
-            readOnly: true
-        }
-    };
-
-    const defaultConfig = {
-        guiOptions: {
-            consentModal: {
-                layout: 'box',
-                position: 'bottom left',
-                equalWeightButtons: true,
-                flipButtons: false
-            },
-            preferencesModal: {
-                layout: 'box',
-                position: 'right',
-                equalWeightButtons: true,
-                flipButtons: false
-            }
-        },
-        categories,
+    const cookieConsentConfig = {
+        autoClearCookies: false,
+        guiOptions: cookieConsentService.getGuiOptions(),
+        categories: cookieConsentService.getConsentCategories(),
         language: {
             autoDetect: 'document',
-            default: serverSideConfig?.defaultLanguage || 'en',
-            translations
+            default: cookieConsentService.getDefaultLanguage(),
+            translations: cookieConsentService.getCookieConsentTranslations(),
         },
         onFirstConsent: () => {
-            updateGtagConsent();
-            registerConsent();
+            cookieConsentService.registerConsent();
+            updateCookieConsentDeclaration();
         },
         onConsent: () => {
-            updateGtagConsent();
+            cookieConsentService.updateGtagConsent();
         },
         onChange: () => {
-            updateGtagConsent();
-            registerConsent();
+            cookieConsentService.updateGtagConsent();
+            cookieConsentService.registerConsent();
             updateCookieConsentDeclaration();
-
         }
     };
-    cookieConsentApi.run(defaultConfig);
-};
+
+    cookieConsentService.emit('beforeRun', cookieConsentConfig);
+
+    await cookieConsentApi.run(cookieConsentConfig);
+
+    if (!cookieConsentService.isIframeManagerDisabled()) {
+        window.iframemanager().run(cookieConsentService.buildIframeManagerConfig());
+    }
+
+    updateCookieConsentDeclaration();
+
+    cookieConsentService.emit('afterRun');
+}
+
+function updateCookieConsentDeclaration() {
+
+    const consentHeaderElement = document.getElementById('cookie-consent__header');
+
+    if (!consentHeaderElement) {
+        return;
+    }
+
+    const cookie = cookieConsentService.getCookieConsentApi().getCookie();
+
+    if (!cookie) {
+        return;
+    } 
+
+    const preferences = cookieConsentService.getCookieConsentApi().getUserPreferences();
+
+    if (!preferences) {
+        return;
+    }
+
+    consentHeaderElement.style.display = 'block';
+
+    const hasValidConsent = cookieConsentService.getCookieConsentApi().validConsent();
+
+    if(!hasValidConsent) {
+        return;
+    }
+
+    updateCookieConsentRow('cookie-consent-row-id', 'cookie-consent-id', cookie.consentId || '');
+    updateCookieConsentRow('cookie-consent-row-timestamp', 'cookie-consent-timestamp', cookie.consentTimestamp || '');
+    updateCookieConsentRow(
+        'cookie-consent-row-accepted-categories',
+        'cookie-consent-accepted-categories',
+        cookieConsentService.getAcceptedCategoryTitles(preferences).join(', ')
+    );
+    updateCookieConsentRow(
+        'cookie-consent-row-rejected-categories',
+        'cookie-consent-rejected-categories',
+        cookieConsentService.getRejectedCategoryTitles(preferences).join(', ')
+    );
+    updateCookieConsentRow(
+        'cookie-consent-row-accepted-services',
+        'cookie-consent-accepted-services',
+        cookieConsentService.getAcceptedServiceLabels(preferences).join(', ')
+    );
+    updateCookieConsentRow(
+        'cookie-consent-row-rejected-services',
+        'cookie-consent-rejected-services',
+        cookieConsentService.getRejectedServiceLabels(preferences).join(', ')
+    );
+}
+
+function updateCookieConsentRow(rowId, valueId, value) {
+    const rowElement = document.getElementById(rowId);
+    const valueElement = document.getElementById(valueId);
+
+    if (!rowElement || !valueElement) {
+        return;
+    }
+
+    if (value === '') {
+        rowElement.style.display = 'none';
+        return;
+    }
+
+    rowElement.style.display = '';
+    valueElement.textContent = value;
+}
 document.addEventListener('DOMContentLoaded', initCookieConsent);

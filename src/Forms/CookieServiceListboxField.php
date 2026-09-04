@@ -4,6 +4,8 @@ class CookieServiceListboxField extends ListboxField
 {
     protected $relationName = 'CookieServices';
 
+    protected $dataObjectClass = 'CookieService';
+
     public function setRelationName($relationName)
     {
         $this->relationName = trim((string) $relationName);
@@ -13,6 +15,17 @@ class CookieServiceListboxField extends ListboxField
     public function getRelationName()
     {
         return $this->relationName;
+    }
+
+    public function setDataObjectClass($dataObjectClass)
+    {
+        $this->dataObjectClass = trim((string) $dataObjectClass);
+        return $this;
+    }
+
+    public function getDataObjectClass()
+    {
+        return $this->dataObjectClass;
     }
 
     public function saveInto(DataObjectInterface $record)
@@ -35,6 +48,7 @@ class CookieServiceListboxField extends ListboxField
         }
 
         $siteConfigId = (int) $record->ID;
+        $dataObjectClass = $this->getDataObjectClass();
 
         $selectedValues = is_array($this->value) ? $this->value : [];
         $selectedNames = [];
@@ -45,29 +59,29 @@ class CookieServiceListboxField extends ListboxField
             }
         }
 
-        // Remove deselected services for this SiteConfig entirely.
-        $existingServices = CookieService::get()->filter('SiteConfigID', $siteConfigId);
-        foreach ($existingServices as $existingService) {
-            if (!isset($selectedNames[$existingService->Name])) {
-                $existingService->delete();
+        // Remove deselected items for this SiteConfig entirely.
+        $existingItems = $dataObjectClass::get()->filter('SiteConfigID', $siteConfigId);
+        foreach ($existingItems as $existingItem) {
+            if (!isset($selectedNames[$existingItem->Name])) {
+                $existingItem->delete();
             }
         }
 
         $idList = [];
-        foreach ($selectedNames as $serviceName) {
-            $service = CookieService::get()
-                ->filter('Name', $serviceName)
+        foreach ($selectedNames as $itemName) {
+            $item = $dataObjectClass::get()
+                ->filter('Name', $itemName)
                 ->filter('SiteConfigID', $siteConfigId)
                 ->first();
 
-            if (!$service) {
-                $service = CookieService::create();
-                $service->Name = $serviceName;
-                $service->SiteConfigID = $siteConfigId;
-                $service->write();
+            if (!$item) {
+                $item = $dataObjectClass::create();
+                $item->Name = $itemName;
+                $item->SiteConfigID = $siteConfigId;
+                $item->write();
             }
 
-            $idList[] = (int) $service->ID;
+            $idList[] = (int) $item->ID;
         }
 
         // Keep relation consistent for the selected IDs.

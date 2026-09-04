@@ -1,16 +1,13 @@
 ---
-Name: cookie-consent--config
+Name: cookie-consent-config
 ---
 CookieConsent:
-  disable_cookie_consent: false
-  disable_default_css: false
-  disable_default_js: false
-  enable_google_consent_mode: false
-  enable_consent_logging: true
-  enable_external_media_management: true
+#  disable_default_css: false
+#  disable_default_js: false
+#  enable_consent_logging: true
+#  enable_google_consent_mode: false
   external_media_category: 'embeds'
-  cookie_registry_path: 'cookie-consent/open-cookie-database.json'
-  clear_cookies_on_cookie_registry_update: true
+  cookie_registry_path: 'cookie-consent/cookie-registry/open-cookie-database.json'
   gui_options:
     consentModal:
       layout: 'cloud'
@@ -19,6 +16,13 @@ CookieConsent:
     functional:
       enabled: true
       readOnly: true
+      cookies:
+        PHPSESSID:
+          description: 'Preserves user session state across page requests.'
+          expiration: 'Session'
+        cc_cookie:
+          description: "Stores the user's cookie preferences for this domain."
+          expiration: '182 days'
     personalization:
       enabled: false
     analytics:
@@ -27,9 +31,9 @@ CookieConsent:
       enabled: false
     embeds:
       enabled: false
-  external_media_services:
+  external_media_service_options:
     youtube:
-      label: 'Youtube'
+      label: 'Yotube'
     vimeo:
       label: 'Vimeo'
     googlemaps:

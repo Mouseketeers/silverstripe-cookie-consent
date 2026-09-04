@@ -5,19 +5,26 @@ class CookieDeclarationShortcode
     public static function register()
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
-            $declarationData = (new CookieConsentConfigBuilder())->buildDeclarationData();
-            $categories = isset($declarationData['categories']) && $declarationData['categories'] instanceof ArrayList
-                ? $declarationData['categories']
-                : new ArrayList();
+            $cookieDeclarationData = CookieConsent::createDataBuilder()->buildCookieDeclarationData();
+
+            $categories = new ArrayList();
+            foreach ($cookieDeclarationData['categories'] ?? [] as $categoryData) {
+                $cookieDescriptions = new ArrayList();
+                foreach ($categoryData['CookieDescriptions'] ?? [] as $cookieData) {
+                    $cookieDescriptions->push(ArrayData::create($cookieData));
+                }
+
+                $categories->push(ArrayData::create([
+                    'Title' => $categoryData['Title'],
+                    'CookieDescriptions' => $cookieDescriptions,
+                ]));
+            }
 
             if (!$categories->exists()) {
                 return '';
             }
 
             $data = ArrayData::create([
-                'ConsentID' => CookieConsent::getConsentId(),
-                'ConsentDate' => CookieConsent::getLastConsentTimestamp(),
-                'AcceptedCategories' => CookieConsent::getCategoryLabels(),
                 'Categories' => $categories
             ]);
 
