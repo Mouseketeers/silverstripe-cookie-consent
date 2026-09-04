@@ -33,7 +33,6 @@ class CookieConsent
             $siteConfig = self::getSiteConfig();
             return $siteConfig ? (bool) $siteConfig->DeactivateCookieConsentManager : false;
         }
-
         return true;
     }
 

@@ -28,7 +28,6 @@
     <% loop $Categories %>
         <section class="cookie-consent__category">
             <h3>$Title</h3>
-            <div>$Content</div>
             <table class="cookie-consent__table">
                 <thead>
                     <tr>

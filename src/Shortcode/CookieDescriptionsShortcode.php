@@ -23,7 +23,6 @@ class CookieDescriptionsShortcode
 
                 $categories->push(ArrayData::create([
                     'Title' => $categoryData['Title'],
-                    'Content' => $categoryData['Content'],
                     'CookieDescriptions' => $cookieDescriptions,
                 ]));
             }

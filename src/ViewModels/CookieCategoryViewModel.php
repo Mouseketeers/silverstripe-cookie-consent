@@ -12,7 +12,6 @@ class CookieCategoryViewModel extends ViewableData
 {
     public $Key;
     public $Title;
-    public $Content;
     public $Config;
     public $CookieDescriptions;
     protected $cookieViewModels;
@@ -30,14 +29,10 @@ class CookieCategoryViewModel extends ViewableData
 
         $vm->Key = $key;
         $vm->Config = $config;
-        $defaultTitle = ucwords(str_replace(['-', '_'], ' ', $key));
+        $defaultTitle = ucwords($key);
         $vm->Title = isset($config['title']) && $config['title'] !== ''
             ? $config['title']
             : self::translateWithEnglishFallback(CookieConsent::getCategoryTranslationKey($key), $defaultTitle);
-        $vm->Content = self::translateWithEnglishFallback(
-            sprintf('CookieConsent.Category.%s.Description', $key),
-            sprintf('%s cookies.', $vm->Title)
-        );
         $vm->CookieDescriptions = $cookies;
         $vm->cookieViewModels = $cookieViewModels;
 
@@ -48,7 +43,6 @@ class CookieCategoryViewModel extends ViewableData
     {
         return ArrayData::create([
             'Title' => $this->Title,
-            'Content' => $this->Content,
             'CookieDescriptions' => $this->CookieDescriptions,
         ]);
     }
@@ -140,7 +134,6 @@ class CookieCategoryViewModel extends ViewableData
 
         return [
             'title' => $this->Title,
-            'description' => $this->Content,
             'linkedCategory' => $this->Key,
             'cookieTable' => [
                 'headers' => $cookieTableHeaders,

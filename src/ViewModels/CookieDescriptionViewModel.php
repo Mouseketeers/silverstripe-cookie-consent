@@ -1,11 +1,5 @@
 <?php
 
-namespace Mouseketeers\CookieConsent\ViewModels;
-
-use Mouseketeers\CookieConsent\Models\CookieDescription;
-use SilverStripe\View\ArrayData;
-use SilverStripe\View\ViewableData;
-
 class CookieDescriptionViewModel extends ViewableData
 {
     public $Name;
@@ -59,7 +53,6 @@ class CookieDescriptionViewModel extends ViewableData
     public static function fromConfig($cookieName, $host, $config = [])
     {
         $vm = new self();
-
         $defaultDescription = $config['description'] ?? 'No description available.';
         $defaultExpiration = $config['expiration'] ?? 'Unknown';
         $provider = $config['provider'] ?? $host;
