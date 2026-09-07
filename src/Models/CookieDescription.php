@@ -23,19 +23,24 @@ class CookieDescription extends DataObject
     ];
 
     private static $summary_fields = [
-        'Name',
-        'Category',
-        'Service',
+        'DisplayName' => 'Name',
+        'DisplayCategoryName' => 'Category',
         'Provider',
         'Expiration'
     ];
 
     private static $default_sort = 'Name ASC';
 
-    public function getName()
+    public function getDisplayName()
     {
         return $this->Wildcard ? $this->getField('Name') . '*' : $this->getField('Name');
     }
+
+    public function getDisplayCategoryName()
+    {
+        $categoryTranslationsMap = CookieConsent::getCategoryTranslationsMap();
+        return $categoryTranslationsMap[$this->Category] ?? $this->Category;
+    }    
 
     public function getCMSFields()
     {
@@ -43,27 +48,11 @@ class CookieDescription extends DataObject
 
         $fields->removeByName(['SiteConfigID']);
 
-        $categoryOptions = CookieConsent::getCategoryTranslationsMap();
-        if ($this->Category && !isset($categoryOptions[$this->Category])) {
-            $categoryOptions[$this->Category] = $this->Category;
-        }
+        $fields->replaceField('Category', DropdownField::create('Category', 'Category', CookieConsent::getCategoryTranslationsMap()));
 
-        $fields->addFieldsToTab('Root.Main', [
-            TextField::create('Name', $this->fieldLabel('Name')),
-            TextField::create('Provider', $this->fieldLabel('Provider')),
-            TextAreaField::create('Description', $this->fieldLabel('Description')),
-            DropdownField::create('Category', $this->fieldLabel('Category'), $categoryOptions)
-                ->setEmptyString(_t('CookieConsent.SelectCategory', 'Select...'))
-                ->setAttribute('required', 'required'),
-            TextField::create('Expiration', $this->fieldLabel('Expiration'))
-        ]);
+        $fields->replaceField('Wildcard', CheckboxField::create('Wildcard', 'Wildcard (cookie name is followed by an unique ID, e.g. cookie_name_123456)'));
 
         return $fields;
-    }
-
-    public function getCMSValidator()
-    {
-        return RequiredFields::create(['Category']);
     }
 
     public function onAfterWrite()

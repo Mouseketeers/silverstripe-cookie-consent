@@ -15,6 +15,10 @@
     "silverstripe/framework": "^3.7",
     "silverstripe/cms": "^3.7"
   },
+  "suggest": {
+    "mouseketeers/silverstripe-consent-records": "For consent logging, run: composer require mouseketeers/silverstripe-consent-records ^1.0",
+    "mouseketeers/silverstripe-consent-forms": "For consent forms, run: composer require mouseketeers/silverstripe-consent-forms ^1.0"
+  },
   "extra": {
     "installer-name": "cookie-consent"
   }
