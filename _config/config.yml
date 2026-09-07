@@ -2,6 +2,8 @@
 Name: cookie-consent-config
 ---
 CookieConsent:
+  disable_module: false
+  disable_iframe_manager: false
   disable_default_css: false
   disable_default_js: false
   enable_consent_logging: true
