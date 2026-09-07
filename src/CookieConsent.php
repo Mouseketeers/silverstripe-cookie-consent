@@ -10,14 +10,6 @@ use SilverStripe\SiteConfig\SiteConfig;
 class CookieConsent
 {
 
-    private static $disable_module = false;
-    private static $disable_iframe_manager = false;
-    private static $disable_default_js = false;
-    private static $disable_default_css = false;
-    private static $enable_consent_logging = true;
-    private static $enable_google_consent_mode = false;
-    private static $cookie_registry_path = 'cookie-consent/open-cookie-database.json';
-
     private static $cookie_consent_values_cache = null;
     private static $site_config_cache = null;
     private static $cookie_services_cache = null;
@@ -63,12 +55,7 @@ class CookieConsent
 
     public static function getCookieRegistryPath()
     {
-        $path = Config::inst()->get(self::class, 'cookie_registry_path');
-        if (!is_string($path) || trim($path) === '') {
-            $path = self::$cookie_registry_path;
-        }
-
-        return $path;
+        return Config::inst()->get(self::class, 'cookie_registry_path');
     }
 
     public static function getCategoryConfig()
