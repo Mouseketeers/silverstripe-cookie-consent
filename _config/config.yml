@@ -2,10 +2,10 @@
 Name: cookie-consent-config
 ---
 Mouseketeers\CookieConsent\CookieConsent:
-#  disable_default_css: false
-#  disable_default_js: false
-#  enable_consent_logging: true
-#  enable_google_consent_mode: false
+  disable_default_css: false
+  disable_default_js: false
+  enable_consent_logging: true
+  enable_google_consent_mode: false
   external_media_category: 'embeds'
   cookie_registry_path: 'vendor/mouseketeers/silverstripe-cookie-consent/cookie-registry/open-cookie-database.json'
   gui_options:
