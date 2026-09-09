@@ -1,5 +1,11 @@
 <?php
 
+namespace Mouseketeers\CookieConsent\ViewModels;
+
+use Mouseketeers\CookieConsent\Models\CookieDescription;
+use SilverStripe\View\ViewableData;
+use SilverStripe\View\ArrayData;
+
 class CookieDescriptionViewModel extends ViewableData
 {
     public $Name;

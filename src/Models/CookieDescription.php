@@ -5,9 +5,7 @@ namespace Mouseketeers\CookieConsent\Models;
 use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
 use SilverStripe\Forms\DropdownField;
-use SilverStripe\Forms\RequiredFields;
-use SilverStripe\Forms\TextAreaField;
-use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\CheckboxField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\SiteConfig\SiteConfig;
 
