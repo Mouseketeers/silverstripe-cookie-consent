@@ -67,7 +67,7 @@ class CookieDescriptionViewModel extends ViewableData
         $vm->Provider = $provider;
         $vm->Service = $provider;
         $vm->Domain = $config['domain'] ?? $host;
-        $vm->PrivacyPolicyURL = 'privacy_url';
+        $vm->PrivacyPolicyURL = $config['privacy_url'] ?? '';
         $vm->Description = _t('CookieConsent.Cookies.' . $cookieName . '.description', $defaultDescription);
         $vm->Expiration = _t('CookieConsent.Cookies.' . $cookieName . '.expiration', $defaultExpiration);
         $vm->Wildcard = ($config['wildcard'] ?? false) === true;
