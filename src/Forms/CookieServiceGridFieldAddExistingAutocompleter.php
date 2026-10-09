@@ -2,12 +2,11 @@
 
 namespace Mouseketeers\CookieConsent\Forms;
 
+use SilverStripe\Model\List\SS_List;
 use Mouseketeers\CookieConsent\Models\CookieService;
-use SilverStripe\Core\Convert;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\SS_List;
 
 class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistingAutocompleter
 {
@@ -69,7 +68,7 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
         $object = null;
         if (is_numeric($objectID)) {
             $dataClass = $gridField->getModelClass();
-            $object = DataObject::get_by_id($dataClass, (int) $objectID);
+            $object = DataObject::get($dataClass)->setUseCache(true)->byID((int) $objectID);
         } else {
             $object = CookieService::get()->filter(['Name' => $objectID])->first();
             if (!$object) {

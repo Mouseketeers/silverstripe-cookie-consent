@@ -2,11 +2,11 @@
 
 namespace Mouseketeers\CookieConsent\ViewModels;
 
+use SilverStripe\Model\ModelData;
+use SilverStripe\Model\ArrayData;
 use Mouseketeers\CookieConsent\Models\CookieDescription;
-use SilverStripe\View\ViewableData;
-use SilverStripe\View\ArrayData;
 
-class CookieDescriptionViewModel extends ViewableData
+class CookieDescriptionViewModel extends ModelData
 {
     public $Name;
     public $Provider;
@@ -75,7 +75,7 @@ class CookieDescriptionViewModel extends ViewableData
         return $vm;
     }
 
-    public function forTemplate()
+    public function forTemplate(): string
     {
         $displayName = $this->Wildcard ? $this->Name . '*' : $this->Name;
 

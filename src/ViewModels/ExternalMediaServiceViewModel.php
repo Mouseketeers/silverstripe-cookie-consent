@@ -2,11 +2,11 @@
 
 namespace Mouseketeers\CookieConsent\ViewModels;
 
+use SilverStripe\Model\ModelData;
 use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\Models\ExternalMedia;
-use SilverStripe\View\ViewableData;
 
-class ExternalMediaServiceViewModel extends ViewableData
+class ExternalMediaServiceViewModel extends ModelData
 {
     public $Key;
 

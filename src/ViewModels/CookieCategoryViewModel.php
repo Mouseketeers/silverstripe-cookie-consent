@@ -2,13 +2,13 @@
 
 namespace Mouseketeers\CookieConsent\ViewModels;
 
+use SilverStripe\Model\ModelData;
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\Model\ArrayData;
 use Mouseketeers\CookieConsent\CookieConsent;
-use SilverStripe\ORM\ArrayList;
 use SilverStripe\i18n\i18n;
-use SilverStripe\View\ArrayData;
-use SilverStripe\View\ViewableData;
 
-class CookieCategoryViewModel extends ViewableData
+class CookieCategoryViewModel extends ModelData
 {
     public $Key;
     public $Title;
@@ -18,7 +18,6 @@ class CookieCategoryViewModel extends ViewableData
 
     public function __construct()
     {
-        parent::__construct();
         $this->CookieDescriptions = ArrayList::create();
         $this->cookieViewModels = [];
     }
@@ -39,7 +38,7 @@ class CookieCategoryViewModel extends ViewableData
         return $vm;
     }
 
-    public function forTemplate()
+    public function forTemplate(): string
     {
         return ArrayData::create([
             'Title' => $this->Title,

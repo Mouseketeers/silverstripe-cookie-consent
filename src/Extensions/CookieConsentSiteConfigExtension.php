@@ -130,7 +130,7 @@ class CookieConsentSiteConfigExtension extends Extension
     // Set the defaults using requireDefaultRecords instead of populateDefaults
     // because the SiteConfig records are likely already created
     // Loops though SiteConfig records to support Subsites module
-    public function requireDefaultRecords()
+    public function onRequireDefaultRecords()
     {
 
         $defaultTitle = _t('CookieConsent.CookieConsentModalTitle', 'Your Cookie Preferences');
@@ -139,7 +139,7 @@ class CookieConsentSiteConfigExtension extends Extension
             '<p>We use cookies to improve your experience and understand how the website is used.</p>'
         );
 
-        $updateConfigs = function () use ($defaultTitle, $defaultContent) {
+        $updateConfigs = function () use ($defaultTitle, $defaultContent): void {
             foreach (SiteConfig::get() as $config) {
                 $hasChanges = false;
 

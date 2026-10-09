@@ -2,9 +2,9 @@
 
 namespace Mouseketeers\CookieConsent\Shortcode;
 
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\Model\ArrayData;
 use Mouseketeers\CookieConsent\CookieConsent;
-use SilverStripe\ORM\ArrayList;
-use SilverStripe\View\ArrayData;
 use SilverStripe\View\Parsers\ShortcodeParser;
 
 class CookieDescriptionsShortcode
