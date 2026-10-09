@@ -2,6 +2,7 @@
 
 namespace Mouseketeers\CookieConsent\Extensions;
 
+use SilverStripe\Core\Extension;
 use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\Forms\CookieServiceListboxField;
 use Mouseketeers\CookieConsent\Models\CookieDescription;
@@ -16,11 +17,10 @@ use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 use SilverStripe\Forms\TextField;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Subsites\Model\Subsite;
 
-class CookieConsentSiteConfigExtension extends DataExtension
+class CookieConsentSiteConfigExtension extends Extension
 {
     private static $db = [
         'CookieConsentModalTitle' => 'Varchar(255)',

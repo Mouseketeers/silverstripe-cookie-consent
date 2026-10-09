@@ -53,6 +53,10 @@ class CookieServiceListboxField extends ListboxField
         $siteConfigId = (int) $record->ID;
         $dataObjectClass = $this->getDataObjectClass();
 
+        /**
+         * @deprecated FormField::Value() has been deprecated. It will be replaced by getFormattedValue() and getValue().
+         * See: https://docs.silverstripe.org/en/5/changelogs/5.4.0/#deprecated-api
+         */
         $selectedValues = is_array($this->value) ? $this->value : [];
         $selectedNames = [];
         foreach ($selectedValues as $value) {
