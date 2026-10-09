@@ -120,9 +120,7 @@ class CookieConsent
 
     public static function getSiteConfig()
     {
-        if (self::$site_config_cache === null) {
-            self::$site_config_cache = SiteConfig::current_site_config();
-        }
+        self::$site_config_cache ??= SiteConfig::current_site_config();
         return self::$site_config_cache;
     }
 
