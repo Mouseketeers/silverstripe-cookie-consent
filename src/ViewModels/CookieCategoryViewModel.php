@@ -19,7 +19,7 @@ class CookieCategoryViewModel extends ViewableData
     public function __construct()
     {
         parent::__construct();
-        $this->CookieDescriptions = new ArrayList();
+        $this->CookieDescriptions = \SilverStripe\ORM\ArrayList::create();
         $this->cookieViewModels = [];
     }
 

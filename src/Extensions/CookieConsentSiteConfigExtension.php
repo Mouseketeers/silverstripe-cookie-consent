@@ -42,7 +42,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
             'Services',
             $this->getServicesOptionsMap()
         )
-            ->setValue(array_values($this->owner->CookieServices()->column('Name')));
+            ->setValue(array_values($this->getOwner()->CookieServices()->column('Name')));
 
         $externalMediaField = CookieServiceListboxField::create(
             'SelectedExternalMedia',
@@ -51,7 +51,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
         )
             ->setRelationName('ExternalMedia')
             ->setDataObjectClass(ExternalMedia::class)
-            ->setValue(array_values($this->owner->ExternalMedia()->column('Name')));
+            ->setValue(array_values($this->getOwner()->ExternalMedia()->column('Name')));
 
 
         $fields->addFieldsToTab('Root.CookieConsent', [
@@ -62,7 +62,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
             $cookieServicesField,
             $externalMediaField,
             HeaderField::create('CustomCookiesHeader', 'Custom Cookies'),
-            GridField::create('CustomCookies', 'Custom Cookies', $this->owner->CustomCookies(), GridFieldConfig_RecordEditor::create()),
+            GridField::create('CustomCookies', 'Custom Cookies', $this->getOwner()->CustomCookies(), GridFieldConfig_RecordEditor::create()),
             CheckboxField::create('DeactivateCookieConsentManager', 'Deactivate Cookie Consent Manager for this Site')
         ]);
     }
@@ -112,7 +112,7 @@ class CookieConsentSiteConfigExtension extends DataExtension
 
     protected function getServicesOptionsMap()
     {
-        $siteConfigId = $this->owner->ID !== null ? (int) $this->owner->ID : 0;
+        $siteConfigId = $this->getOwner()->ID !== null ? (int) $this->getOwner()->ID : 0;
         $cacheKey = CookieConsentServiceOptionsCache::getOptionsMapCacheKey($siteConfigId);
 
         $cachedOptionsMap = CookieConsentServiceOptionsCache::load($cacheKey);
