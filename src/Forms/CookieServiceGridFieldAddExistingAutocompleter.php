@@ -31,13 +31,13 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
     {
         $searchTerm = trim((string) $request->getVar('gridfield_relationsearch'));
         if ($searchTerm === '') {
-            return Convert::array2json([]);
+            return json_encode([]);
         }
 
         $json = [];
         $serviceOptions = $this->getServiceOptions();
         if (!is_array($serviceOptions)) {
-            return Convert::array2json($json);
+            return json_encode($json);
         }
 
         foreach ($serviceOptions as $value => $label) {
@@ -56,7 +56,7 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
             $json[$value] = $value;
         }
 
-        return Convert::array2json($json);
+        return json_encode($json);
     }
 
     public function getManipulatedData(GridField $gridField, SS_List $dataList)
