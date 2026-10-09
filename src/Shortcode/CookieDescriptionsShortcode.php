@@ -14,9 +14,9 @@ class CookieDescriptionsShortcode
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
             $cookieDeclarationData = CookieConsent::createDataBuilder()->buildCookieDeclarationData();
 
-            $categories = \SilverStripe\ORM\ArrayList::create();
+            $categories = ArrayList::create();
             foreach ($cookieDeclarationData['categories'] ?? [] as $categoryData) {
-                $cookieDescriptions = \SilverStripe\ORM\ArrayList::create();
+                $cookieDescriptions = ArrayList::create();
                 foreach ($categoryData['CookieDescriptions'] ?? [] as $cookieData) {
                     $cookieDescriptions->push(ArrayData::create($cookieData));
                 }

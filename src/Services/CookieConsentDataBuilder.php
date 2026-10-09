@@ -68,7 +68,7 @@ class CookieConsentDataBuilder
 
         foreach ($configCategories as $categoryKey => $categoryData) {
 
-            $cookies = \SilverStripe\ORM\ArrayList::create();
+            $cookies = ArrayList::create();
             $cookieViewModels = [];
 
             // get cookies defined in yml config
