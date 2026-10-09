@@ -11,12 +11,9 @@ use SilverStripe\ORM\SS_List;
 
 class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistingAutocompleter
 {
-    protected $serviceOptions = array();
-
-    public function __construct($targetFragment = 'before', $serviceOptions = array())
+    public function __construct($targetFragment = 'before', protected $serviceOptions = [])
     {
         parent::__construct($targetFragment);
-        $this->serviceOptions = $serviceOptions;
     }
 
     public function setServiceOptions($serviceOptions)
@@ -34,10 +31,10 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
     {
         $searchTerm = trim((string) $request->getVar('gridfield_relationsearch'));
         if ($searchTerm === '') {
-            return Convert::array2json(array());
+            return Convert::array2json([]);
         }
 
-        $json = array();
+        $json = [];
         $serviceOptions = $this->getServiceOptions();
         if (!is_array($serviceOptions)) {
             return Convert::array2json($json);
@@ -83,7 +80,7 @@ class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistin
         }
 
         if ($object && $object instanceof CookieService) {
-            $existingRelationIds = array();
+            $existingRelationIds = [];
             foreach ($dataList as $existingObject) {
                 $existingRelationIds[] = (int) $existingObject->ID;
             }
