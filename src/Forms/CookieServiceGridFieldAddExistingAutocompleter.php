@@ -11,9 +11,12 @@ use SilverStripe\ORM\SS_List;
 
 class CookieServiceGridFieldAddExistingAutocompleter extends GridFieldAddExistingAutocompleter
 {
-    public function __construct($targetFragment = 'before', protected $serviceOptions = [])
+    protected $serviceOptions = [];
+
+    public function __construct($targetFragment = 'before', $serviceOptions = [])
     {
         parent::__construct($targetFragment);
+        $this->serviceOptions = $serviceOptions;
     }
 
     public function setServiceOptions($serviceOptions)
