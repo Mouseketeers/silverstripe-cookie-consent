@@ -29,8 +29,7 @@
   },
   "extra": {
     "expose": [
-      "client",
-      "images"
+      "client"
     ]
   }
 }
