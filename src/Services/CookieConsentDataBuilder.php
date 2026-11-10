@@ -6,6 +6,7 @@ use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\ViewModels\CookieCategoryViewModel;
 use Mouseketeers\CookieConsent\ViewModels\CookieDescriptionViewModel;
 use Mouseketeers\CookieConsent\ViewModels\ExternalMediaServiceViewModel;
+use SilverStripe\Control\Director;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\i18n\i18n;
 
@@ -46,6 +47,7 @@ class CookieConsentDataBuilder
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
+            'consentRegistrationUrl' => Director::baseURL() . 'consent/register',
             'isIframeManagerDisabled' => CookieConsent::isIframeManagerDisabled(),
             'externalMediaCategory' => $this->externalMediaCategory,
             'externalMediaServices' => [
