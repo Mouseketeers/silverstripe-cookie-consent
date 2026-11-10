@@ -31,6 +31,26 @@ class CookieDescription extends DataObject
 
     private static $default_sort = 'Name ASC';
 
+    public function canView($member = null)
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
+
+    public function canEdit($member = null)
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
+
+    public function canDelete($member = null)
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
+
+    public function canCreate($member = null, $context = [])
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
+
     public function getDisplayName()
     {
         return $this->Wildcard ? $this->getField('Name') . '*' : $this->getField('Name');
