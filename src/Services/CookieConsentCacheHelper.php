@@ -4,7 +4,6 @@ namespace Mouseketeers\CookieConsent\Services;
 
 use Mouseketeers\CookieConsent\CookieConsent;
 use Psr\SimpleCache\CacheInterface;
-use SilverStripe\Core\Cache\CacheFactory;
 use SilverStripe\Core\Injector\Injector;
 
 class CookieConsentCacheHelper
@@ -16,14 +15,7 @@ class CookieConsentCacheHelper
         $serviceName = CacheInterface::class . '.' . $cacheName;
         $injector = Injector::inst();
 
-        if ($injector->getServiceSpec($serviceName, false)) {
-            $cache = $injector->get($serviceName);
-        } else {
-            $cache = $injector->get(CacheFactory::class)->create($serviceName, [
-                'namespace' => $cacheName,
-                'defaultLifetime' => 0,
-            ]);
-        }
+        $cache = $injector->get($serviceName);
 
         if ($checkRegistryVersion) {
             self::clearIfRegistryFileUpdated($cache);
