@@ -21,7 +21,7 @@
             </span>
         </p>
         <p>
-            <a class="cookie-consent__button" type="button" data-cc="show-preferencesModal"><%t CookieConsent.ShowPreferencesModal 'Change Your Cookie Preferences' %></a>
+            <button class="cookie-consent__button" type="button" data-cc="show-preferencesModal"><%t CookieConsent.ShowPreferencesModal 'Change Your Cookie Preferences' %></button>
         </p>
     </div>
 
