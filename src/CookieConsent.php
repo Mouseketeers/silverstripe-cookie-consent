@@ -9,21 +9,10 @@ use SilverStripe\SiteConfig\SiteConfig;
 class CookieConsent
 {
 
-    private static $site_config_cache = null;
-    private static $cookie_services_cache = null;
-    private static $custom_cookies_cache = null;
-    private static $external_media_cache = null;
-    private static $selected_external_media_cache = null;
-
-
     public static function isModuleDisabled()
     {
-        $isDisabled = Config::inst()->get(self::class, 'disable_module');
-        if(!$isDisabled) {
-            $siteConfig = self::getSiteConfig();
-            return $siteConfig ? (bool) $siteConfig->DeactivateCookieConsentManager : false;
-        }
-        return true;
+        return Config::inst()->get(self::class, 'disable_module')
+            || self::getSiteConfig()->DeactivateCookieConsentManager;
     }
 
     public static function isDefaultJsDisabled()
@@ -81,50 +70,27 @@ class CookieConsent
 
     public static function getSiteConfig()
     {
-        if (self::$site_config_cache === null) {
-            self::$site_config_cache = SiteConfig::current_site_config();
-        }
-        return self::$site_config_cache;
+        return SiteConfig::current_site_config();
     }
 
     public static function getCookieServices()
     {
-        if (self::$cookie_services_cache === null) {
-            $siteConfig = self::getSiteConfig();
-            self::$cookie_services_cache = $siteConfig ? $siteConfig->CookieServices() : null;
-        }
-        return self::$cookie_services_cache;
+        return self::getSiteConfig()->CookieServices();
     }
 
     public static function getCustomCookies()
     {
-        if (self::$custom_cookies_cache === null) {
-            $siteConfig = self::getSiteConfig();
-            self::$custom_cookies_cache = $siteConfig ? $siteConfig->CustomCookies() : null;
-        }
-        return self::$custom_cookies_cache;
+        return self::getSiteConfig()->CustomCookies();
     }
 
     public static function getExternalMedia()
     {
-        if (self::$external_media_cache === null) {
-            $siteConfig = self::getSiteConfig();
-            self::$external_media_cache = $siteConfig ? $siteConfig->ExternalMedia() : null;
-        }
-        return self::$external_media_cache;
+        return self::getSiteConfig()->ExternalMedia();
     }
 
     public static function getSelectedExternalMedia()
     {
-        if (self::$selected_external_media_cache === null) {
-            $externalMedia = self::getExternalMedia();
-            if (!$externalMedia || !$externalMedia->exists()) {
-                self::$selected_external_media_cache = [];
-            } else {
-                self::$selected_external_media_cache = $externalMedia->column('Name');
-            }
-        }
-        return self::$selected_external_media_cache;
+        return self::getExternalMedia()->column('Name');
     }
 
     public static function getCategoryTranslationsMap()
