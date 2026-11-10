@@ -37,6 +37,7 @@ class CookieConsentDataBuilder
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
+            'consentRegistrationUrl' => Director::baseURL() . 'consent/register',
             'externalMediaCategory' => $this->externalMediaCategory,
             'externalMediaServices' => [
                 'services' => $this->buildExternalMediaServices($languageCode)
