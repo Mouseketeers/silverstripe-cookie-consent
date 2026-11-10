@@ -127,39 +127,19 @@ class CookieService extends DataObject
 
     public static function getCookieRegistryData()
     {
+        static $registries = [];
+
         $jsonPath = CookieConsent::resolveCookieRegistryPath();
         if (!$jsonPath || !file_exists($jsonPath)) {
             return [];
         }
 
-        $cache = CookieConsentConfigCache::getCache();
-        $cacheKey = self::getCookieRegistryCacheKey($jsonPath);
-        $cached = $cache->get($cacheKey);
-
-        if (is_array($cached)) {
-            return $cached;
+        if (!isset($registries[$jsonPath])) {
+            $data = json_decode((string) @file_get_contents($jsonPath), true);
+            $registries[$jsonPath] = is_array($data) ? $data : [];
         }
 
-        if (is_string($cached) && is_array($data = @unserialize($cached))) {
-            return $data;
-        }
-
-        $raw = @file_get_contents($jsonPath);
-        if (!is_string($raw) || !is_array($data = json_decode($raw, true))) {
-            return [];
-        }
-
-        $cache->set($cacheKey, serialize($data));
-
-        return $data;
-    }
-
-    protected static function getCookieRegistryCacheKey($jsonPath)
-    {
-        $fileMtime = @filemtime($jsonPath);
-        $version = $fileMtime !== false ? (string) $fileMtime : '0';
-
-        return sprintf('cookie_registry_data_%s', sha1($jsonPath . '|' . $version));
+        return $registries[$jsonPath];
     }
 
     protected static function getCookieRegistryDataByServiceKey(array $data, $serviceName)
