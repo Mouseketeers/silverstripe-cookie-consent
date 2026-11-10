@@ -4,13 +4,6 @@ class ExternalMediaServiceViewModel extends ViewableData
 {
     public $Key;
 
-    public static function fromDataObject(ExternalMedia $media)
-    {
-        $vm = new self();
-        $vm->Key = $media->Name;
-        return $vm;
-    }
-
     public static function fromString($key)
     {
         $vm = new self();

@@ -31,14 +31,6 @@ class CookieCategoryViewModel extends ViewableData
         return $vm;
     }
 
-    public function forTemplate()
-    {
-        return ArrayData::create([
-            'Title' => $this->Title,
-            'CookieDescriptions' => $this->CookieDescriptions,
-        ]);
-    }
-
     public function addService($key, $serviceData)
     {
         $this->Config['services'][$key] = $serviceData;

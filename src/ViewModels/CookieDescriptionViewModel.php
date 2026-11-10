@@ -40,7 +40,6 @@ class CookieDescriptionViewModel extends ViewableData
 
         $vm->Name = $cookie->getField('Name');
         $vm->Provider = $cookie->Provider;
-        $vm->Service = $cookie->Service;
         $vm->Domain = $cookie->Domain;
         $vm->PrivacyPolicyURL = preg_match('#^https?://#i', (string) $cookie->PrivacyPolicyURL) ? $cookie->PrivacyPolicyURL : '';
         $vm->Description = $cookie->Description;
@@ -90,21 +89,6 @@ class CookieDescriptionViewModel extends ViewableData
     {
         return [
             'name' => $this->Wildcard ? '/^(' . preg_quote($this->Name, '/') . ')/' : $this->Name
-        ];
-    }
-
-    public function toArray()
-    {
-        $displayName = $this->Wildcard ? $this->Name . '*' : $this->Name;
-
-        return [
-            'name' => $displayName,
-            'provider' => $this->Provider,
-            'service' => $this->Service,
-            'domain' => $this->Domain,
-            'privacyPolicyURL' => $this->PrivacyPolicyURL,
-            'description' => $this->Description,
-            'expiration' => $this->Expiration,
         ];
     }
 }

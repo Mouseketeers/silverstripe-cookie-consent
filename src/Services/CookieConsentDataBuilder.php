@@ -233,7 +233,6 @@ class CookieConsentDataBuilder
 
             $resultCategories[] = [
                 'Title' => $categoryViewModel->Title,
-                'Content' => $categoryViewModel->Content,
                 'CookieDescriptions' => $cookieDescriptions,
             ];
         }

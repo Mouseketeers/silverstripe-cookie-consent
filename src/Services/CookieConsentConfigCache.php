@@ -9,11 +9,6 @@ class CookieConsentConfigCache implements Flushable
         return CookieConsentCacheHelper::getCache(self::CACHE_NAME, $checkRegistryVersion);
     }
 
-    public static function getCacheKey()
-    {
-        return self::getJsCacheKey();
-    }
-
     public static function getJsCacheKey()
     {
         $locale = i18n::get_locale();
