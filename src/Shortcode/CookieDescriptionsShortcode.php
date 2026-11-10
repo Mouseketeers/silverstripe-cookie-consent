@@ -5,6 +5,10 @@ class CookieDeclarationShortcode
     public static function register()
     {
         ShortcodeParser::get('default')->register('cookie_declaration', function () {
+            if (CookieConsent::isModuleDisabled()) {
+                return '';
+            }
+
             $cookieDeclarationData = CookieConsent::createDataBuilder()->buildCookieDeclarationData();
 
             $categories = new ArrayList();
