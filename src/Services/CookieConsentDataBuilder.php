@@ -89,23 +89,19 @@ class CookieConsentDataBuilder
             }
 
             // add cookies from selected services
-            if ($services) {
-                foreach ($services as $service) {
-                    foreach ($service->getCookieViewModelsByCategoryKey($categoryKey) as $cookieViewModel) {
-                        $cookies->push($cookieViewModel->forTemplate());
-                        $cookieViewModels[] = $cookieViewModel;
-                    }
+            foreach ($services as $service) {
+                foreach ($service->getCookieViewModelsByCategoryKey($categoryKey) as $cookieViewModel) {
+                    $cookies->push($cookieViewModel->forTemplate());
+                    $cookieViewModels[] = $cookieViewModel;
                 }
             }
 
             // add custom cookies defined in the CMS
-            if ($customCookies) {
-                foreach ($customCookies as $customCookie) {
-                    if ($customCookie->Category === $categoryKey) {
-                        $vm = CookieDescriptionViewModel::fromDataObject($customCookie);
-                        $cookies->push($vm->forTemplate());
-                        $cookieViewModels[] = $vm;
-                    }
+            foreach ($customCookies as $customCookie) {
+                if ($customCookie->Category === $categoryKey) {
+                    $vm = CookieDescriptionViewModel::fromDataObject($customCookie);
+                    $cookies->push($vm->forTemplate());
+                    $cookieViewModels[] = $vm;
                 }
             }
 
