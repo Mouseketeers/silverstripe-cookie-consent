@@ -125,7 +125,7 @@ export const cookieConsentService = {
             window.dataLayer.push(arguments);
         };
         window.gtag('consent', 'update', {
-            functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
+            functionality_storage: CookieConsent.acceptedCategory('functional') ? 'granted' : 'denied',
             personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
             analytics_storage: CookieConsent.acceptedCategory('analytics') ? 'granted' : 'denied',
             ad_storage: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
