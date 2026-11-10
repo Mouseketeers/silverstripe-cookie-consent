@@ -4,7 +4,6 @@ namespace Mouseketeers\CookieConsent\Models;
 
 use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
-use Mouseketeers\CookieConsent\Services\CookieConsentServiceOptionsCache;
 use Mouseketeers\CookieConsent\ViewModels\CookieDescriptionViewModel;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\SiteConfig\SiteConfig;
@@ -161,13 +160,11 @@ class CookieService extends DataObject
     {
         parent::onAfterWrite();
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 
     public function onAfterDelete()
     {
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 }
