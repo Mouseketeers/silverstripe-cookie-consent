@@ -2,6 +2,11 @@
 
 class CookieService extends DataObject
 {
+    // Registry category names that have no category of their own on the site.
+    const REGISTRY_CATEGORY_ALIASES = [
+        'necessary' => 'functional',
+        'security' => 'functional',
+    ];
 
     private static $singular_name = 'Service';
 
@@ -84,6 +89,8 @@ class CookieService extends DataObject
             }
 
             $normalizedRegistryCookieCategory = strtolower($registryCookieData['category'] ?? '');
+            $normalizedRegistryCookieCategory = self::REGISTRY_CATEGORY_ALIASES[$normalizedRegistryCookieCategory]
+                ?? $normalizedRegistryCookieCategory;
             if ($normalizedRegistryCookieCategory === '' || $normalizedRegistryCookieCategory !== $configCategory) {
                 continue;
             }
