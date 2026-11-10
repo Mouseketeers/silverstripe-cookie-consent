@@ -50,7 +50,7 @@ class CookieConsent
 
     public static function isConsentRegistrationEnabled()
     {
-        return class_exists('ConsentRecord') && (bool) Config::inst()->get(self::class, 'enable_consent_logging');
+        return class_exists(\Mouseketeers\ConsentRecords\ConsentRecord::class) && (bool) Config::inst()->get(self::class, 'enable_consent_logging');
     }
 
     public static function getCookieRegistryPath()
