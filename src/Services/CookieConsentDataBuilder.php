@@ -97,6 +97,19 @@ class CookieConsentDataBuilder
                 }
             }
 
+            // iframemanager sets one im_<service> cookie when a visitor allows a service
+            if ($categoryKey === $externalMediaCategory && !CookieConsent::isIframeManagerDisabled()) {
+                foreach ($selectedExternalMedia as $key) {
+                    $label = ExternalMediaServiceViewModel::fromString($key)->toCategoryServiceArray()['label'];
+                    $vm = CookieDescriptionViewModel::fromConfig('im_' . $key, [
+                        'description' => "Stores the visitor's choice to load external media content from {$label}.",
+                        'expiration' => '182 days',
+                    ]);
+                    $cookies->push($vm->forTemplate());
+                    $cookieViewModels[] = $vm;
+                }
+            }
+
             if ($categoryKey === $externalMediaCategory) {
                 // external media category is kept even if no cookies, but we add services
                 $categoryViewModel = CookieCategoryViewModel::create_instance($categoryKey, $categoryData, $cookies, $cookieViewModels);
