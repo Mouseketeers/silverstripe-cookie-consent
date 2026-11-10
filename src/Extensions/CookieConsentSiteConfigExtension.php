@@ -17,8 +17,6 @@ use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 use SilverStripe\Forms\TextField;
-use SilverStripe\SiteConfig\SiteConfig;
-use SilverStripe\Subsites\Model\Subsite;
 
 class CookieConsentSiteConfigExtension extends Extension
 {
@@ -127,51 +125,6 @@ class CookieConsentSiteConfigExtension extends Extension
         return $serviceOptionsMap;
     }
 
-    // Set the defaults using requireDefaultRecords instead of populateDefaults
-    // because the SiteConfig records are likely already created
-    // Loops though SiteConfig records to support Subsites module
-    public function requireDefaultRecords()
-    {
-
-        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle', 'Your Cookie Preferences');
-        $defaultContent = _t(
-            'CookieConsent.CookieConsentModalContent',
-            '<p>We use cookies to improve your experience and understand how the website is used.</p>'
-        );
-
-        $updateConfigs = function () use ($defaultTitle, $defaultContent) {
-            foreach (SiteConfig::get() as $config) {
-                $hasChanges = false;
-
-                if ($config->CookieConsentModalTitle === null || $config->CookieConsentModalTitle === '') {
-                    $config->CookieConsentModalTitle = $defaultTitle;
-                    $hasChanges = true;
-                }
-
-                if ($config->CookieConsentModalContent === null || $config->CookieConsentModalContent === '') {
-                    $config->CookieConsentModalContent = $defaultContent;
-                    $hasChanges = true;
-                }
-
-                if ($hasChanges) {
-                    $config->write();
-                }
-            }
-        };
-
-        if (class_exists(Subsite::class)) {
-            $previousFilterState = Subsite::$disable_subsite_filter;
-            Subsite::disable_subsite_filter(true);
-
-            try {
-                $updateConfigs();
-            } finally {
-                Subsite::disable_subsite_filter($previousFilterState);
-            }
-        } else {
-            $updateConfigs();
-        }
-    }
     public function onAfterWrite()
     {
         CookieConsentConfigCache::clear();
