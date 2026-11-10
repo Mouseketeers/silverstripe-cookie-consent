@@ -4,7 +4,6 @@ import '@orestbida/iframemanager/src/iframemanager';
 const externalMediaServices = {
     youtube: {
         embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
-        thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
         iframe: {
             allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
         },
@@ -14,12 +13,6 @@ const externalMediaServices = {
         embedUrl: 'https://player.vimeo.com/video/{data-id}',
         iframe: {
             allow: 'fullscreen; picture-in-picture, allowfullscreen;',
-        },
-        thumbnailUrl: async (dataId, setThumbnail) => {
-            const url = `https://vimeo.com/api/v2/video/${dataId}.json`;
-            const response = await (await fetch(url)).json();
-            const thumbnailUrl = response[0]?.thumbnail_large;
-            thumbnailUrl && setThumbnail(thumbnailUrl);
         },
         languages: {}
     },
