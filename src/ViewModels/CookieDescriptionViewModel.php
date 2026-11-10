@@ -42,7 +42,7 @@ class CookieDescriptionViewModel extends ViewableData
         $vm->Provider = $cookie->Provider;
         $vm->Service = $cookie->Service;
         $vm->Domain = $cookie->Domain;
-        $vm->PrivacyPolicyURL = $cookie->PrivacyPolicyURL;
+        $vm->PrivacyPolicyURL = preg_match('#^https?://#i', (string) $cookie->PrivacyPolicyURL) ? $cookie->PrivacyPolicyURL : '';
         $vm->Description = $cookie->Description;
         $vm->Expiration = $cookie->Expiration;
         $vm->Wildcard = (bool) $cookie->Wildcard;
@@ -50,17 +50,18 @@ class CookieDescriptionViewModel extends ViewableData
         return $vm;
     }
 
-    public static function fromConfig($cookieName, $host, $config = [])
+    public static function fromConfig($cookieName, $config = [])
     {
         $vm = new self();
         $defaultDescription = $config['description'] ?? 'No description available.';
         $defaultExpiration = $config['expiration'] ?? 'Unknown';
-        $provider = $config['provider'] ?? $host;
+        // Never the request's Host header: this value is cached for all visitors.
+        $provider = $config['provider'] ?? CookieConsent::getSiteConfig()->Title;
 
         $vm->Name = $cookieName;
         $vm->Provider = $provider;
         $vm->Service = $provider;
-        $vm->Domain = $config['domain'] ?? $host;
+        $vm->Domain = $config['domain'] ?? '';
         $vm->PrivacyPolicyURL = $config['privacy_url'] ?? '';
         $vm->Description = _t('CookieConsent.Cookies.' . $cookieName . '.description', $defaultDescription);
         $vm->Expiration = _t('CookieConsent.Cookies.' . $cookieName . '.expiration', $defaultExpiration);

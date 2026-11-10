@@ -52,7 +52,6 @@ class CookieConsentDataBuilder
         $selectedExternalMedia = CookieConsent::getSelectedExternalMedia();
         $services = CookieConsent::getCookieServices();
         $customCookies = CookieConsent::getCustomCookies();
-        $host = $_SERVER['HTTP_HOST'] ?? '';
 
         $categories = [];
 
@@ -72,7 +71,7 @@ class CookieConsentDataBuilder
             }
 
             foreach ($defaultCookies as $cookieName => $cookieConfig) {
-                $vm = CookieDescriptionViewModel::fromConfig($cookieName, $host, $cookieConfig);
+                $vm = CookieDescriptionViewModel::fromConfig($cookieName, $cookieConfig);
                 $cookies->push($vm->forTemplate());
                 $cookieViewModels[] = $vm;
             }
