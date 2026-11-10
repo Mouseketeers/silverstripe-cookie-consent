@@ -3,14 +3,12 @@
 namespace Mouseketeers\CookieConsent;
 
 use Mouseketeers\CookieConsent\Services\CookieConsentDataBuilder;
-use SilverStripe\Control\Cookie;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\SiteConfig\SiteConfig;
 
 class CookieConsent
 {
 
-    private static $cookie_consent_values_cache = null;
     private static $site_config_cache = null;
     private static $cookie_services_cache = null;
     private static $custom_cookies_cache = null;
@@ -80,43 +78,6 @@ class CookieConsent
         $externalMediaConfig = Config::inst()->get(self::class, 'external_media_service_options');
         return is_array($externalMediaConfig) ? $externalMediaConfig : [];
     }
-
-    // public static function hasCookies()
-    // {
-    //     $siteConfig = self::getSiteConfig();
-
-    //     if (!$siteConfig || empty($siteConfig->CookieConsentModalTitle) || empty($siteConfig->CookieConsentModalContent)) {
-    //         return false;
-    //     }
-
-    //     // Check for selected cookie services
-    //     $cookieServices = self::getCookieServices();
-    //     if ($cookieServices && $cookieServices->exists()) {
-    //         return true;
-    //     }
-
-    //     // Check for custom cookies
-    //     $customCookies = self::getCustomCookies();
-    //     if ($customCookies && $customCookies->exists()) {
-    //         return true;
-    //     }
-
-    //     // Check for selected external media
-    //     $selectedExternalMedia = self::getSelectedExternalMedia();
-    //     if (!empty($selectedExternalMedia)) {
-    //         return true;
-    //     }
-
-    //     // Check if any categories have default cookies configured
-    //     $categories = self::getCategoryConfig();
-    //     foreach ($categories as $categoryData) {
-    //         if (!empty($categoryData['cookies'])) {
-    //             return true;
-    //         }
-    //     }
-
-    //     return false;
-    // }
 
     public static function getSiteConfig()
     {
@@ -196,31 +157,6 @@ class CookieConsent
         }
 
         return BASE_PATH . '/' . ltrim($path, '/');
-    }
-
-    public static function getConsentCookie()
-    {
-        return Cookie::get('cc_cookie');
-    }
-
-    public static function getConsentCookieValues()
-    {
-        if (self::$cookie_consent_values_cache !== null) {
-            return self::$cookie_consent_values_cache;
-        }
-
-        $cookieValue = self::getConsentCookie();
-        if (!$cookieValue) {
-            self::$cookie_consent_values_cache = null;
-            return null;
-        }
-
-        $decodedValue = rawurldecode($cookieValue);
-        $decodedData = json_decode($decodedValue, true);
-
-        self::$cookie_consent_values_cache = is_array($decodedData) ? $decodedData : null;
-
-        return self::$cookie_consent_values_cache;
     }
 
     public static function createDataBuilder()
