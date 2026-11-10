@@ -47,8 +47,3 @@ SilverStripe\Core\Injector\Injector:
     constructor:
       namespace: cookie_consent_config
       defaultLifetime: 86400
-  Psr\SimpleCache\CacheInterface.cookie_consent_service_options:
-    factory: SilverStripe\Core\Cache\CacheFactory
-    constructor:
-      namespace: cookie_consent_service_options
-      defaultLifetime: 86400
