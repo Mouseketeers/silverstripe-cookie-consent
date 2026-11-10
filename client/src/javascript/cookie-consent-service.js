@@ -194,7 +194,7 @@ export const cookieConsentService = {
             URL: window.location.href
         };
 
-        fetch('/consent/register', {
+        fetch(this.getServerSideConfiguration().consentRegistrationUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
