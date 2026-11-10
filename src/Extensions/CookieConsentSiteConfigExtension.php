@@ -59,65 +59,25 @@ class CookieConsentSiteConfigExtension extends DataExtension
         return $options;
     }
 
-    protected function getServicesOptionsFromCookieRegistry()
+    protected function getServicesOptionsMap()
     {
-        $cachedOptions = CookieConsentServiceOptionsCache::load();
-        if ($cachedOptions !== null) {
-            return $cachedOptions;
-        }
-
         $options = [];
-        $jsonPath = CookieConsent::resolveCookieRegistryPath();
-        if ($jsonPath !== null && file_exists($jsonPath)) {
-            $raw = @file_get_contents($jsonPath);
-            if ($raw !== false) {
-                $data = json_decode($raw, true);
-                
-                if (is_array($data)) {
-                    $names = array_keys($data);
-                    // sort($names);
-                    foreach ($names as $serviceName) {
-                        if(!$serviceName) {
-                            continue;
-                        }
-                        $normalizedKey = CookieService::normalizeServiceName($serviceName);
-                        $options[$normalizedKey] = $serviceName;
-                    }
-                }
+        foreach (array_keys(CookieService::getCookieRegistryData()) as $serviceName) {
+            if ($serviceName) {
+                $options[CookieService::normalizeServiceName($serviceName)] = $serviceName;
             }
         }
 
-        CookieConsentServiceOptionsCache::save($options);
-
         return $options;
-    }
-
-    protected function getServicesOptionsMap()
-    {
-        $siteConfigId = isset($this->owner->ID) ? (int) $this->owner->ID : 0;
-        $cacheKey = CookieConsentServiceOptionsCache::getOptionsMapCacheKey($siteConfigId);
-
-        $cachedOptionsMap = CookieConsentServiceOptionsCache::load($cacheKey);
-        if ($cachedOptionsMap !== null) {
-            return $cachedOptionsMap;
-        }
-
-        $serviceOptionsMap = $this->getServicesOptionsFromCookieRegistry();
-
-        CookieConsentServiceOptionsCache::save($serviceOptionsMap, $cacheKey);
-
-        return $serviceOptionsMap;
     }
 
     public function onAfterWrite()
     {
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 
     public function onAfterDelete()
     {
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 }

@@ -150,13 +150,11 @@ class CookieService extends DataObject
     {
         parent::onAfterWrite();
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 
     public function onAfterDelete()
     {
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 }
