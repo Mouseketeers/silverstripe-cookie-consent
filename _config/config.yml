@@ -35,7 +35,7 @@ CookieConsent:
       enabled: false
   external_media_service_options:
     youtube:
-      label: 'Yotube'
+      label: 'YouTube'
     vimeo:
       label: 'Vimeo'
     googlemaps:
