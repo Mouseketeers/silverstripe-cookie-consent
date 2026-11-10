@@ -3,6 +3,7 @@
 namespace Mouseketeers\CookieConsent\ViewModels;
 
 use Mouseketeers\CookieConsent\CookieConsent;
+use SilverStripe\Core\Convert;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\i18n\i18n;
 use SilverStripe\View\ArrayData;
@@ -124,12 +125,13 @@ class CookieCategoryViewModel extends ViewableData
 
         $cookieTableBody = [];
         foreach ($this->CookieDescriptions as $cookieData) {
-            $cookieTableBody[] = [
+            // The banner library inserts table cells as HTML.
+            $cookieTableBody[] = array_map(fn($value) => Convert::raw2xml((string) $value), [
                 'name' => $cookieData->Name,
                 'provider' => $cookieData->Provider,
                 'description' => $cookieData->Description,
                 'expiration' => $cookieData->Expiration,
-            ];
+            ]);
         }
 
         return [
