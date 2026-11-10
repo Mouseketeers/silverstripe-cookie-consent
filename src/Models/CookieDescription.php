@@ -7,6 +7,7 @@ use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Permission;
 use SilverStripe\SiteConfig\SiteConfig;
 
 class CookieDescription extends DataObject
@@ -41,6 +42,26 @@ class CookieDescription extends DataObject
     ];
 
     private static $default_sort = 'Name ASC';
+
+    public function canView($member = null)
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
+
+    public function canEdit($member = null)
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
+
+    public function canDelete($member = null)
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
+
+    public function canCreate($member = null, $context = [])
+    {
+        return Permission::check('EDIT_SITECONFIG', 'any', $member);
+    }
 
     public function getDisplayName()
     {
