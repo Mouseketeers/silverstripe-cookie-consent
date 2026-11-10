@@ -109,45 +109,6 @@ class CookieConsentSiteConfigExtension extends DataExtension
         return $serviceOptionsMap;
     }
 
-    // Set the defaults using requireDefaultRecords instead of populateDefaults
-    // because the SiteConfig records are likely already created
-    // Loops though SiteConfig records to support Subsites module
-    public function requireDefaultRecords()
-    {
-
-        $defaultTitle = _t('CookieConsent.CookieConsentModalTitle', 'Your Cookie Preferences');
-        $defaultContent = _t(
-            'CookieConsent.CookieConsentModalContent',
-            '<p>We use cookies to improve your experience and understand how the website is used.</p>'
-        );
-
-        Subsite::disable_subsite_filter(true);
-
-
-        foreach (SiteConfig::get() as $config) {
-            
-            $hasChanges = false;
-
-            if ($config->CookieConsentModalTitle == '') {               
-                $config->CookieConsentModalTitle = $defaultTitle;
-                $hasChanges = true;
-            }
-
-            if ($config->CookieConsentModalContent == '') {
-                $config->CookieConsentModalContent = $defaultContent;
-                $hasChanges = true;
-            }
-
-            if ($hasChanges) {
-                $config->write();
-            }
-        }
-
-        Subsite::disable_subsite_filter(false);
-    }
-    public function isCookieConsentDeactivatedForSite() {
-        return self::DeactivateCookieConsent();
-    }
     public function onAfterWrite()
     {
         CookieConsentConfigCache::clear();
