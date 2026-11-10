@@ -44,31 +44,10 @@ class CookieCategoryViewModel extends ViewableData
         $this->Config['services'][$key] = $serviceData;
     }
 
-    public function toArray()
-    {
-        $categoryArray = [];
-        if ($this->CookieDescriptions->exists()) {
-            $categoryArray['cookies'] = [];
-            foreach ($this->CookieDescriptions as $cookieData) {
-                $categoryArray['cookies'][] = [
-                    'name' => $cookieData->Name,
-                    'provider' => $cookieData->Provider,
-                    'service' => $cookieData->Service,
-                    'domain' => $cookieData->Domain,
-                    'description' => $cookieData->Description,
-                    'expiration' => $cookieData->Expiration,
-                ];
-            }
-        }
-        return $categoryArray;
-    }
-
     public function toJsCategoryArray()
     {
-        $categoryArray = array_merge(
-            $this->Config,
-            $this->toArray()
-        );
+        // The YAML cookie list is shown through the preferences sections, not read from here.
+        $categoryArray = array_diff_key($this->Config, ['cookies' => true]);
 
         if (($this->Config['readOnly'] ?? false) !== true && $this->cookieViewModels !== []) {
             $categoryArray['autoClear']['cookies'] = array_map(
