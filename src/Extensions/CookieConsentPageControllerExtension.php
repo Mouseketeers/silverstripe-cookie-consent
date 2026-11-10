@@ -8,6 +8,18 @@ class CookieConsentPageControllerExtension extends Extension
         if(CookieConsent::isModuleDisabled()) {
             return;
         }
+
+        if (CookieConsent::isGoogleConsentModeEnabled()) {
+            // Google's tag must see this before it runs, so it goes in the head.
+            Requirements::insertHeadTags(
+                "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}"
+                . "gtag('consent','default',{functionality_storage:'denied',personalization_storage:'denied',"
+                . "analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',"
+                . "security_storage:'granted'});</script>",
+                'cookie-consent-gtag-default'
+            );
+        }
+
         // Always provide the config the client JS depends on, even when the
         // theme loads the JS itself (disable_default_js: true). Without this
         // window.cookieConsentConfig stays undefined.
