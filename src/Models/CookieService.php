@@ -87,10 +87,6 @@ class CookieService extends DataObject
 
         $registryDataServiceCookies = self::getCookieRegistryDataByServiceKey($registryData, $this->Name);
 
-        if (!is_array($registryDataServiceCookies)) {
-            return [];
-        }
-
         $registryDataCookieDescriptions = [];
         foreach ($registryDataServiceCookies as $registryCookieData) {
 
@@ -161,20 +157,17 @@ class CookieService extends DataObject
 
     protected static function getCookieRegistryDataByServiceKey(array $data, $serviceName)
     {
-
-        if (empty($serviceName)) {
-            return null;
-        }
-
         $normalizedSearch = self::normalizeServiceName($serviceName);
+        $matches = [];
 
+        // The registry lists some services twice under different spellings.
         foreach ($data as $jsonServiceName => $cookieEntries) {
-            if (self::normalizeServiceName($jsonServiceName) === $normalizedSearch) {
-                return $cookieEntries;
+            if (self::normalizeServiceName($jsonServiceName) === $normalizedSearch && is_array($cookieEntries)) {
+                $matches = array_merge($matches, $cookieEntries);
             }
         }
 
-        return null;
+        return $matches;
     }
 
     public function onAfterWrite()
