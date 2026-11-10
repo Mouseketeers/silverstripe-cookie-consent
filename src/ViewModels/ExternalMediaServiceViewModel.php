@@ -15,7 +15,7 @@ class ExternalMediaServiceViewModel extends ViewableData
     {
         $mediaConfig = CookieConsent::getExternalMediaConfig();
         return [
-            'label' => $mediaConfig[$this->Key]['label']
+            'label' => $mediaConfig[$this->Key]['label'] ?? $this->Key
         ];
     }
 
