@@ -25,22 +25,6 @@ en:
       Notice_youtube: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.youtube.com/t/terms" target="_blank">terms and conditions</a> of youtube.com.'
       Notice_vimeo: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://vimeo.com/terms" target="_blank">terms and conditions</a> of vimeo.com.'
       Notice_yumpu: 'This content is hosted by a third party. By showing the external content you accept the <a rel="noreferrer noopener" href="https://www.yumpu.com/en/info/privacy_policy" target="_blank">privacy policy</a> of yumpu.com.'
-    Cookies:
-      PHPSESSID: 
-        description: 'Preserves user session state across page requests.'
-        expiration: 'Session'
-      cc_cookie:
-        description: "Stores the user's cookie preferences for this domain."
-        expiration: '1 year'
-      im_youtube:
-        description: "Stores the user's accept to load external media content from YouTube."
-        expiration: '1 year'
-      im_vimeo:
-        description: "Stores the user's accept to load external media content from Vimeo."
-        expiration: '1 year'
-      im_googlemaps:
-        description: "Stores the user's accept to load external media content from Google Maps."
-        expiration: '1 year'
     ConsentID: 'Consent ID'
     ConsentDate: 'Consent given on'
     AcceptedCategories: 'Accepted Categories'
