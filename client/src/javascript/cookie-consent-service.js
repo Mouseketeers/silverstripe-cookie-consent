@@ -85,7 +85,9 @@ export const cookieConsentService = {
     },
 
     getConsentCategories() {
-        const { categories, externalMediaCategory, isIframeManagerDisabled } = this.getConsentSettings();
+        const settings = this.getConsentSettings();
+        const { externalMediaCategory, isIframeManagerDisabled } = settings;
+        const categories = this._withAutoClearPatterns(settings.categories);
 
         if (isIframeManagerDisabled) {
             return categories;
@@ -112,6 +114,22 @@ export const cookieConsentService = {
                 )
             }
         };
+    },
+    // JSON cannot carry a RegExp, so wildcard cookies arrive as '/^(name)/' strings.
+    _withAutoClearPatterns(categories) {
+        return Object.fromEntries(Object.entries(categories).map(([key, category]) => [
+            key,
+            !category.autoClear ? category : {
+                ...category,
+                autoClear: {
+                    ...category.autoClear,
+                    cookies: category.autoClear.cookies.map(({ name, ...rest }) => {
+                        const pattern = name.match(/^\/(\^\(.+\))\/$/);
+                        return { ...rest, name: pattern ? new RegExp(pattern[1]) : name };
+                    })
+                }
+            }
+        ]));
     },
     updateGtagConsent() {
         if (!this.isGoogleConsentModeEnabled()) {

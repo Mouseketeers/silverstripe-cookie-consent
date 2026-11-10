@@ -93,6 +93,13 @@ class CookieDescriptionViewModel extends ViewableData
         ]);
     }
 
+    public function toAutoClearArray()
+    {
+        return [
+            'name' => $this->Wildcard ? '/^(' . preg_quote($this->Name, '/') . ')/' : $this->Name
+        ];
+    }
+
     public function toArray()
     {
         $displayName = $this->Wildcard ? $this->Name . '*' : $this->Name;
