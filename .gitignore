@@ -1,4 +1,6 @@
 node_modules
 build-polish-translation.php
+.clinerules
+memory-bank
 AGENTS.md
 docs/ai/

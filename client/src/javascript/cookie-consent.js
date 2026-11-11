@@ -5,7 +5,6 @@ async function initCookieConsent() {
     const cookieConsentApi = cookieConsentService.getCookieConsentApi();
 
     const cookieConsentConfig = {
-        autoClearCookies: false,
         guiOptions: cookieConsentService.getGuiOptions(),
         categories: cookieConsentService.getConsentCategories(),
         language: {

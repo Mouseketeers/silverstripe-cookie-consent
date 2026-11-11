@@ -3,9 +3,9 @@
 namespace Mouseketeers\CookieConsent\ViewModels;
 
 use Mouseketeers\CookieConsent\CookieConsent;
+use SilverStripe\Core\Convert;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\i18n\i18n;
-use SilverStripe\View\ArrayData;
 use SilverStripe\View\ViewableData;
 
 class CookieCategoryViewModel extends ViewableData
@@ -39,44 +39,22 @@ class CookieCategoryViewModel extends ViewableData
         return $vm;
     }
 
-    public function forTemplate()
-    {
-        return ArrayData::create([
-            'Title' => $this->Title,
-            'CookieDescriptions' => $this->CookieDescriptions,
-        ]);
-    }
-
     public function addService($key, $serviceData)
     {
         $this->Config['services'][$key] = $serviceData;
     }
 
-    public function toArray()
-    {
-        $categoryArray = [];
-        if ($this->CookieDescriptions->exists()) {
-            $categoryArray['cookies'] = [];
-            foreach ($this->CookieDescriptions as $cookieData) {
-                $categoryArray['cookies'][] = [
-                    'name' => $cookieData->Name,
-                    'provider' => $cookieData->Provider,
-                    'service' => $cookieData->Service,
-                    'domain' => $cookieData->Domain,
-                    'description' => $cookieData->Description,
-                    'expiration' => $cookieData->Expiration,
-                ];
-            }
-        }
-        return $categoryArray;
-    }
-
     public function toJsCategoryArray()
     {
-        $categoryArray = array_merge(
-            $this->Config,
-            $this->toArray()
-        );
+        // The YAML cookie list is shown through the preferences sections, not read from here.
+        $categoryArray = array_diff_key($this->Config, ['cookies' => true]);
+
+        if (($this->Config['readOnly'] ?? false) !== true && $this->cookieViewModels !== []) {
+            $categoryArray['autoClear']['cookies'] = array_map(
+                fn($cookieViewModel) => $cookieViewModel->toAutoClearArray(),
+                $this->cookieViewModels
+            );
+        }
 
         return $categoryArray;
     }
@@ -124,12 +102,13 @@ class CookieCategoryViewModel extends ViewableData
 
         $cookieTableBody = [];
         foreach ($this->CookieDescriptions as $cookieData) {
-            $cookieTableBody[] = [
+            // The banner library inserts table cells as HTML.
+            $cookieTableBody[] = array_map(fn($value) => Convert::raw2xml((string) $value), [
                 'name' => $cookieData->Name,
                 'provider' => $cookieData->Provider,
                 'description' => $cookieData->Description,
                 'expiration' => $cookieData->Expiration,
-            ];
+            ]);
         }
 
         return [

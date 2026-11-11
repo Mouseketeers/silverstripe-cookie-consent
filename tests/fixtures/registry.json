@@ -1,0 +1,11 @@
+{
+    "WordPress": [
+        { "id": "a", "category": "Functional", "cookie": "wp_first", "wildcardMatch": "0" }
+    ],
+    "Wordpress": [
+        { "id": "b", "category": "Functional", "cookie": "wp_second", "wildcardMatch": "0" },
+        { "id": "c", "category": "Security", "cookie": "wp_security", "wildcardMatch": "0" },
+        { "id": "d", "category": "Necessary", "cookie": "wp_necessary", "wildcardMatch": "0" },
+        { "id": "e", "category": "Analytics", "cookie": "wp_analytics", "wildcardMatch": "0" }
+    ]
+}

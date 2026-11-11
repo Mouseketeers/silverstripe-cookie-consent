@@ -35,7 +35,7 @@ Mouseketeers\CookieConsent\CookieConsent:
       enabled: false
   external_media_service_options:
     youtube:
-      label: 'Yotube'
+      label: 'YouTube'
     vimeo:
       label: 'Vimeo'
     googlemaps:
@@ -46,9 +46,4 @@ SilverStripe\Core\Injector\Injector:
     factory: SilverStripe\Core\Cache\CacheFactory
     constructor:
       namespace: cookie_consent_config
-      defaultLifetime: 0
-  Psr\SimpleCache\CacheInterface.cookie_consent_service_options:
-    factory: SilverStripe\Core\Cache\CacheFactory
-    constructor:
-      namespace: cookie_consent_service_options
-      defaultLifetime: 0
+      defaultLifetime: 86400
