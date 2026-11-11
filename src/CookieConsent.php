@@ -24,6 +24,11 @@ class CookieConsent
         return Config::inst()->get('CookieConsent', 'enable_google_consent_mode');
     }
 
+    public static function isIframeManagerDisabled()
+    {
+        return (bool) Config::inst()->get('CookieConsent', 'disable_iframe_manager');
+    }
+
     public static function isConsentRegistrationEnabled()
     {
         return class_exists('ConsentRecord') && !Config::inst()->get('CookieConsent', 'enable_consent_logging') == false;
