@@ -43,7 +43,7 @@ class CookieCategoryViewModel extends ViewableData
 
         if (($this->Config['readOnly'] ?? false) !== true && $this->cookieViewModels !== []) {
             $categoryArray['autoClear']['cookies'] = array_map(
-                fn($cookieViewModel) => $cookieViewModel->toAutoClearArray(),
+                function ($cookieViewModel) { return $cookieViewModel->toAutoClearArray(); },
                 $this->cookieViewModels
             );
         }
