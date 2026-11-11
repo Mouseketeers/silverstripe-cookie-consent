@@ -45,9 +45,6 @@ export const cookieConsentService = {
     getServerSideConfiguration() {
         return window.cookieConsentConfig || {};
     },
-    getGuiOptions() {
-        return this.getConsentSettings().guiOptions;
-    },
     getConsentSettings() {
         const serverSideConfig = this.getServerSideConfiguration();
 
