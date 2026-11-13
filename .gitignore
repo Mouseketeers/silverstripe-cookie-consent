@@ -4,3 +4,5 @@ build-polish-translation.php
 memory-bank
 AGENTS.md
 docs/ai/
+
+.DS_Store
