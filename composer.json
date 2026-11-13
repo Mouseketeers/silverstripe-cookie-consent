@@ -26,10 +26,10 @@
     }
   },
   "suggest": {
-    "mouseketeers/silverstripe-consent-records": "Stores cookie consent choices (enable_consent_logging). Needs 2.2+ on SilverStripe 4 or 4.1+ on SilverStripe 5."
+    "mouseketeers/silverstripe-consent-records": "Stores cookie consent choices (enable_consent_logging). Needs 2.2+."
   },
   "conflict": {
-    "mouseketeers/silverstripe-consent-records": "<2.2 || >=3 <4.1"
+    "mouseketeers/silverstripe-consent-records": "<2.2"
   },
   "extra": {
     "expose": [
