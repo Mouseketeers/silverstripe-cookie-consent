@@ -191,16 +191,25 @@ export const cookieConsentService = {
             ConsentID: cookie.consentId || '',
             ConsentType: 'CookieConsent',
             ConsentData: consentData.join(', '),
-            URL: window.location.href
+            // No query string or hash: they can carry personal data and overflow the URL column.
+            URL: window.location.origin + window.location.pathname
         };
 
-        fetch(this.getServerSideConfiguration().consentRegistrationUrl, {
+        const url = this.getServerSideConfiguration().consentRegistrationUrl;
+        const send = () => fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(userConsent)
-        }).catch((error) => {
+        }).then((response) => {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+        });
+
+        // fetch only rejects on network errors, so HTTP errors are thrown above; retry once.
+        send().catch(() => new Promise((resolve) => setTimeout(resolve, 2000)).then(send)).catch((error) => {
             console.error('Failed to register consent', error);
         });
     },
