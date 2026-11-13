@@ -34,8 +34,10 @@
     }
   },
   "suggest": {
-    "mouseketeers/silverstripe-consent-records": "For consent logging, run: composer require mouseketeers/silverstripe-consent-records ^1.0",
-    "mouseketeers/silverstripe-consent-forms": "For consent forms, run: composer require mouseketeers/silverstripe-consent-forms ^1.0"
+    "mouseketeers/silverstripe-consent-records": "Stores cookie consent choices (enable_consent_logging). Needs ^4."
+  },
+  "conflict": {
+    "mouseketeers/silverstripe-consent-records": "<4"
   },
   "extra": {
     "expose": [
