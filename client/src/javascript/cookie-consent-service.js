@@ -161,36 +161,26 @@ export const cookieConsentService = {
             return;
         }
 
-        const consentData = [];
+        // Language-independent keys, so records can be queried; titles are translated and unreliable.
+        const acceptedCategories = preferences.acceptedCategories || [];
+        const consentData = {
+            accepted: acceptedCategories,
+            rejected: Object.keys(this.getConsentCategories() || {}).filter((key) => !acceptedCategories.includes(key)),
+            acceptedServices: preferences.acceptedServices || {},
+            rejectedServices: preferences.rejectedServices || {}
+        };
 
-        const acceptedCategoryTitles = this.getAcceptedCategoryTitles(preferences);
-
-        if (acceptedCategoryTitles.length > 0) {
-            consentData.push('Accepted Categories: ' + acceptedCategoryTitles.join(', '));
-        }
-
-        const rejectedCategoryTitles = this.getRejectedCategoryTitles(preferences);
-
-        if (rejectedCategoryTitles.length > 0) {
-            consentData.push('Rejected Categories: ' + rejectedCategoryTitles.join(', '));
-        }
-
-        const acceptedServiceLabels = this.getAcceptedServiceLabels(preferences);
-
-        if (acceptedServiceLabels.length > 0) {
-            consentData.push('Accepted Services: ' + acceptedServiceLabels.join(', '));
-        }
-
-        const rejectedServiceLabels = this.getRejectedServiceLabels(preferences);
-
-        if (rejectedServiceLabels.length > 0) {
-            consentData.push('Rejected Services: ' + rejectedServiceLabels.join(', '));
-        }
+        // The text the visitor was shown, as evidence of what they chose between.
+        const { translations, defaultLanguage } = this.getConsentSettings();
+        const modal = translations?.[defaultLanguage]?.consentModal || {};
+        const statement = [modal.title, modal.description].filter(Boolean).join('\n\n');
 
         const userConsent = {
             ConsentID: cookie.consentId || '',
             ConsentType: 'CookieConsent',
-            ConsentData: consentData.join(', '),
+            ConsentStatement: statement,
+            // A JSON string: the endpoint accepts scalars only.
+            ConsentData: JSON.stringify(consentData),
             // No query string or hash: they can carry personal data and overflow the URL column.
             URL: window.location.origin + window.location.pathname
         };
