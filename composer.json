@@ -34,10 +34,10 @@
     }
   },
   "suggest": {
-    "mouseketeers/silverstripe-consent-records": "Stores cookie consent choices (enable_consent_logging). Needs ^4."
+    "mouseketeers/silverstripe-consent-records": "Stores cookie consent choices (enable_consent_logging). Needs ^5."
   },
   "conflict": {
-    "mouseketeers/silverstripe-consent-records": "<4"
+    "mouseketeers/silverstripe-consent-records": "<5"
   },
   "extra": {
     "expose": [
