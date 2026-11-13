@@ -3,6 +3,7 @@
 namespace Mouseketeers\CookieConsent;
 
 use Mouseketeers\CookieConsent\Services\CookieConsentDataBuilder;
+use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\SiteConfig\SiteConfig;
 
@@ -38,6 +39,19 @@ class CookieConsent
     public static function isConsentRegistrationEnabled()
     {
         return class_exists(\Mouseketeers\ConsentRecords\ConsentRecord::class) && (bool) Config::inst()->get(self::class, 'enable_consent_logging');
+    }
+
+    /**
+     * URL the browser posts consent choices to, or null when consent-records is not installed.
+     * The path is owned by consent-records so a route change there needs no change here.
+     */
+    public static function getConsentRegistrationUrl()
+    {
+        $controller = \Mouseketeers\ConsentRecords\CookieConsentConfigurationController::class;
+
+        return class_exists($controller)
+            ? Director::baseURL() . $controller::singleton()->Link('register')
+            : null;
     }
 
     public static function getCookieRegistryPath()
