@@ -2,49 +2,52 @@
 
 namespace Mouseketeers\CookieConsent\Services;
 
+use Mouseketeers\CookieConsent\CookieConsent;
+use Psr\SimpleCache\CacheInterface;
 use SilverStripe\Core\Flushable;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\i18n\i18n;
 
 class CookieConsentConfigCache implements Flushable
 {
-    const CACHE_NAME = 'cookie_consent_config';
-
-    public static function getCache($checkRegistryVersion = true)
+    public static function getCache()
     {
-        return CookieConsentCacheHelper::getCache(self::CACHE_NAME, $checkRegistryVersion);
-    }
-
-    public static function getCacheKey()
-    {
-        return self::getJsCacheKey();
+        return Injector::inst()->get(CacheInterface::class . '.cookie_consent_config');
     }
 
     public static function getJsCacheKey()
     {
-        $locale = i18n::get_locale();
-        $siteConfig = SiteConfig::current_site_config();
-        $siteConfigId = $siteConfig ? (int) $siteConfig->ID : 0;
-
-        $registryVersion = CookieConsentCacheHelper::getRegistryVersion();
-
-        return sprintf('cookie_consent_config_js_%s_site_%s_registry_%s', $locale, $siteConfigId, $registryVersion);
+        return self::buildCacheKey('js');
     }
 
     public static function getDeclarationCacheKey()
     {
-        $locale = i18n::get_locale();
-        $siteConfig = SiteConfig::current_site_config();
-        $siteConfigId = $siteConfig ? (int) $siteConfig->ID : 0;
+        return self::buildCacheKey('declaration');
+    }
 
-        $registryVersion = CookieConsentCacheHelper::getRegistryVersion();
+    protected static function buildCacheKey($type)
+    {
+        return sprintf(
+            'cookie_consent_config_%s_%s_site_%d_registry_%s',
+            $type,
+            i18n::get_locale(),
+            SiteConfig::current_site_config()->ID,
+            self::getRegistryVersion()
+        );
+    }
 
-        return sprintf('cookie_consent_config_declaration_%s_site_%s_registry_%s', $locale, $siteConfigId, $registryVersion);
+    protected static function getRegistryVersion()
+    {
+        $jsonPath = CookieConsent::resolveCookieRegistryPath();
+        $fileMtime = $jsonPath !== null ? @filemtime($jsonPath) : false;
+
+        return $fileMtime !== false ? (string) $fileMtime : '0';
     }
 
     public static function clear()
     {
-        CookieConsentCacheHelper::clear(self::CACHE_NAME);
+        self::getCache()->clear();
     }
 
     public static function flush()

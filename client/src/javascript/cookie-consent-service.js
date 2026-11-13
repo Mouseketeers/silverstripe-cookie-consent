@@ -4,7 +4,6 @@ import '@orestbida/iframemanager/src/iframemanager';
 const externalMediaServices = {
     youtube: {
         embedUrl: 'https://www.youtube-nocookie.com/embed/{data-id}',
-        thumbnailUrl: 'https://i3.ytimg.com/vi/{data-id}/hqdefault.jpg',
         iframe: {
             allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen;',
         },
@@ -14,12 +13,6 @@ const externalMediaServices = {
         embedUrl: 'https://player.vimeo.com/video/{data-id}',
         iframe: {
             allow: 'fullscreen; picture-in-picture, allowfullscreen;',
-        },
-        thumbnailUrl: async (dataId, setThumbnail) => {
-            const url = `https://vimeo.com/api/v2/video/${dataId}.json`;
-            const response = await (await fetch(url)).json();
-            const thumbnailUrl = response[0]?.thumbnail_large;
-            thumbnailUrl && setThumbnail(thumbnailUrl);
         },
         languages: {}
     },
@@ -92,7 +85,9 @@ export const cookieConsentService = {
     },
 
     getConsentCategories() {
-        const { categories, externalMediaCategory, isIframeManagerDisabled } = this.getConsentSettings();
+        const settings = this.getConsentSettings();
+        const { externalMediaCategory, isIframeManagerDisabled } = settings;
+        const categories = this._withAutoClearPatterns(settings.categories);
 
         if (isIframeManagerDisabled) {
             return categories;
@@ -120,6 +115,22 @@ export const cookieConsentService = {
             }
         };
     },
+    // JSON cannot carry a RegExp, so wildcard cookies arrive as '/^(name)/' strings.
+    _withAutoClearPatterns(categories) {
+        return Object.fromEntries(Object.entries(categories).map(([key, category]) => [
+            key,
+            !category.autoClear ? category : {
+                ...category,
+                autoClear: {
+                    ...category.autoClear,
+                    cookies: category.autoClear.cookies.map(({ name, ...rest }) => {
+                        const pattern = name.match(/^\/(\^\(.+\))\/$/);
+                        return { ...rest, name: pattern ? new RegExp(pattern[1]) : name };
+                    })
+                }
+            }
+        ]));
+    },
     updateGtagConsent() {
         if (!this.isGoogleConsentModeEnabled()) {
             return;
@@ -129,7 +140,7 @@ export const cookieConsentService = {
             window.dataLayer.push(arguments);
         };
         window.gtag('consent', 'update', {
-            functionality_storage: CookieConsent.acceptedCategory('functionality') ? 'granted' : 'denied',
+            functionality_storage: CookieConsent.acceptedCategory('functional') ? 'granted' : 'denied',
             personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
             analytics_storage: CookieConsent.acceptedCategory('analytics') ? 'granted' : 'denied',
             ad_storage: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
@@ -183,7 +194,7 @@ export const cookieConsentService = {
             URL: window.location.href
         };
 
-        fetch('/consent/register', {
+        fetch(this.getServerSideConfiguration().consentRegistrationUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

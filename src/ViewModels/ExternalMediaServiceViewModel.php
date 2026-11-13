@@ -2,20 +2,12 @@
 
 namespace Mouseketeers\CookieConsent\ViewModels;
 
-use SilverStripe\Model\ModelData;
 use Mouseketeers\CookieConsent\CookieConsent;
-use Mouseketeers\CookieConsent\Models\ExternalMedia;
+use SilverStripe\Model\ModelData;
 
 class ExternalMediaServiceViewModel extends ModelData
 {
     public $Key;
-
-    public static function fromDataObject(ExternalMedia $media)
-    {
-        $vm = new self();
-        $vm->Key = $media->Name;
-        return $vm;
-    }
 
     public static function fromString($key)
     {
@@ -28,7 +20,7 @@ class ExternalMediaServiceViewModel extends ModelData
     {
         $mediaConfig = CookieConsent::getExternalMediaConfig();
         return [
-            'label' => $mediaConfig[$this->Key]['label']
+            'label' => $mediaConfig[$this->Key]['label'] ?? $this->Key
         ];
     }
 

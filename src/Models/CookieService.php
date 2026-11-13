@@ -4,13 +4,17 @@ namespace Mouseketeers\CookieConsent\Models;
 
 use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\Services\CookieConsentConfigCache;
-use Mouseketeers\CookieConsent\Services\CookieConsentServiceOptionsCache;
 use Mouseketeers\CookieConsent\ViewModels\CookieDescriptionViewModel;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\SiteConfig\SiteConfig;
 
 class CookieService extends DataObject
 {
+    // Registry category names that have no category of their own on the site.
+    const REGISTRY_CATEGORY_ALIASES = [
+        'necessary' => 'functional',
+        'security' => 'functional',
+    ];
 
     private static $table_name = 'CookieService';
 
@@ -87,10 +91,6 @@ class CookieService extends DataObject
 
         $registryDataServiceCookies = self::getCookieRegistryDataByServiceKey($registryData, $this->Name);
 
-        if (!is_array($registryDataServiceCookies)) {
-            return [];
-        }
-
         $registryDataCookieDescriptions = [];
         foreach ($registryDataServiceCookies as $registryCookieData) {
 
@@ -99,6 +99,8 @@ class CookieService extends DataObject
             }
 
             $normalizedRegistryCookieCategory = strtolower($registryCookieData['category'] ?? '');
+            $normalizedRegistryCookieCategory = self::REGISTRY_CATEGORY_ALIASES[$normalizedRegistryCookieCategory]
+                ?? $normalizedRegistryCookieCategory;
             if ($normalizedRegistryCookieCategory === '' || $normalizedRegistryCookieCategory !== $configCategory) {
                 continue;
             }
@@ -124,70 +126,45 @@ class CookieService extends DataObject
 
     public static function getCookieRegistryData()
     {
+        static $registries = [];
+
         $jsonPath = CookieConsent::resolveCookieRegistryPath();
         if (!$jsonPath || !file_exists($jsonPath)) {
             return [];
         }
 
-        $cache = CookieConsentConfigCache::getCache();
-        $cacheKey = self::getCookieRegistryCacheKey($jsonPath);
-        $cached = $cache->get($cacheKey);
-
-        if (is_array($cached)) {
-            return $cached;
+        if (!isset($registries[$jsonPath])) {
+            $data = json_decode((string) @file_get_contents($jsonPath), true);
+            $registries[$jsonPath] = is_array($data) ? $data : [];
         }
 
-        if (is_string($cached) && is_array($data = @unserialize($cached))) {
-            return $data;
-        }
-
-        $raw = @file_get_contents($jsonPath);
-        if (!is_string($raw) || !is_array($data = json_decode($raw, true))) {
-            return [];
-        }
-
-        $cache->set($cacheKey, serialize($data));
-
-        return $data;
-    }
-
-    protected static function getCookieRegistryCacheKey($jsonPath)
-    {
-        $fileMtime = @filemtime($jsonPath);
-        $version = $fileMtime !== false ? (string) $fileMtime : '0';
-
-        return sprintf('cookie_registry_data_%s', sha1($jsonPath . '|' . $version));
+        return $registries[$jsonPath];
     }
 
     protected static function getCookieRegistryDataByServiceKey(array $data, $serviceName)
     {
-
-        if (empty($serviceName)) {
-            return null;
-        }
-
         $normalizedSearch = self::normalizeServiceName($serviceName);
+        $matches = [];
 
+        // The registry lists some services twice under different spellings.
         foreach ($data as $jsonServiceName => $cookieEntries) {
-            if (self::normalizeServiceName($jsonServiceName) === $normalizedSearch) {
-                return $cookieEntries;
+            if (self::normalizeServiceName($jsonServiceName) === $normalizedSearch && is_array($cookieEntries)) {
+                $matches = array_merge($matches, $cookieEntries);
             }
         }
 
-        return null;
+        return $matches;
     }
 
     public function onAfterWrite()
     {
         parent::onAfterWrite();
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 
     public function onAfterDelete()
     {
         parent::onAfterDelete();
         CookieConsentConfigCache::clear();
-        CookieConsentServiceOptionsCache::clear();
     }
 }

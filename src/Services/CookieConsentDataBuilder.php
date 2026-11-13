@@ -2,11 +2,12 @@
 
 namespace Mouseketeers\CookieConsent\Services;
 
-use SilverStripe\Model\List\ArrayList;
 use Mouseketeers\CookieConsent\CookieConsent;
 use Mouseketeers\CookieConsent\ViewModels\CookieCategoryViewModel;
 use Mouseketeers\CookieConsent\ViewModels\CookieDescriptionViewModel;
 use Mouseketeers\CookieConsent\ViewModels\ExternalMediaServiceViewModel;
+use SilverStripe\Control\Director;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\i18n\i18n;
 
 class CookieConsentDataBuilder
@@ -46,6 +47,7 @@ class CookieConsentDataBuilder
             ],
             'isGoogleConsentModeEnabled' => CookieConsent::isGoogleConsentModeEnabled(),
             'isConsentRegistrationEnabled' => CookieConsent::isConsentRegistrationEnabled(),
+            'consentRegistrationUrl' => Director::baseURL() . 'consent/register',
             'isIframeManagerDisabled' => CookieConsent::isIframeManagerDisabled(),
             'externalMediaCategory' => $this->externalMediaCategory,
             'externalMediaServices' => [
@@ -62,7 +64,6 @@ class CookieConsentDataBuilder
         $selectedExternalMedia = CookieConsent::getSelectedExternalMedia();
         $services = CookieConsent::getCookieServices();
         $customCookies = CookieConsent::getCustomCookies();
-        $host = $_SERVER['HTTP_HOST'] ?? '';
 
         $categories = [];
 
@@ -82,29 +83,38 @@ class CookieConsentDataBuilder
             }
 
             foreach ($defaultCookies as $cookieName => $cookieConfig) {
-                $vm = CookieDescriptionViewModel::fromConfig($cookieName, $host, $cookieConfig);
-                $cookies->push($vm->forTemplate());
+                $vm = CookieDescriptionViewModel::fromConfig($cookieName, $cookieConfig);
+                $cookies->push($vm->toTemplateData());
                 $cookieViewModels[] = $vm;
             }
 
             // add cookies from selected services
-            if ($services) {
-                foreach ($services as $service) {
-                    foreach ($service->getCookieViewModelsByCategoryKey($categoryKey) as $cookieViewModel) {
-                        $cookies->push($cookieViewModel->forTemplate());
-                        $cookieViewModels[] = $cookieViewModel;
-                    }
+            foreach ($services as $service) {
+                foreach ($service->getCookieViewModelsByCategoryKey($categoryKey) as $cookieViewModel) {
+                    $cookies->push($cookieViewModel->toTemplateData());
+                    $cookieViewModels[] = $cookieViewModel;
                 }
             }
 
             // add custom cookies defined in the CMS
-            if ($customCookies) {
-                foreach ($customCookies as $customCookie) {
-                    if ($customCookie->Category === $categoryKey) {
-                        $vm = CookieDescriptionViewModel::fromDataObject($customCookie);
-                        $cookies->push($vm->forTemplate());
-                        $cookieViewModels[] = $vm;
-                    }
+            foreach ($customCookies as $customCookie) {
+                if ($customCookie->Category === $categoryKey) {
+                    $vm = CookieDescriptionViewModel::fromDataObject($customCookie);
+                    $cookies->push($vm->toTemplateData());
+                    $cookieViewModels[] = $vm;
+                }
+            }
+
+            // iframemanager sets one im_<service> cookie when a visitor allows a service
+            if ($categoryKey === $externalMediaCategory && !CookieConsent::isIframeManagerDisabled()) {
+                foreach ($selectedExternalMedia as $key) {
+                    $label = ExternalMediaServiceViewModel::fromString($key)->toCategoryServiceArray()['label'];
+                    $vm = CookieDescriptionViewModel::fromConfig('im_' . $key, [
+                        'description' => "Stores the visitor's choice to load external media content from {$label}.",
+                        'expiration' => '182 days',
+                    ]);
+                    $cookies->push($vm->toTemplateData());
+                    $cookieViewModels[] = $vm;
                 }
             }
 
@@ -231,7 +241,6 @@ class CookieConsentDataBuilder
 
             $resultCategories[] = [
                 'Title' => $categoryViewModel->Title,
-                'Content' => $categoryViewModel->Content,
                 'CookieDescriptions' => $cookieDescriptions,
             ];
         }
