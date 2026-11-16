@@ -30,11 +30,11 @@ class CookieDescriptionViewModel extends ModelData
         $vm->PrivacyPolicyURL = $registryData->privacyLink ?? '';
         $vm->Description = _t(
             'CookieConsent.RegistryCookies.' . $registryData->id . '.description',
-            $registryData->description ?? 'No description available.'
+            ($registryData->description ?? '') ?: 'No description available.'
         );
         $vm->Expiration = _t(
             'CookieConsent.RegistryCookies.' . $registryData->id . '.retentionPeriod',
-            $registryData->retentionPeriod ?? 'Unknown'
+            ($registryData->retentionPeriod ?? '') ?: 'Unknown'
         );
         $vm->Wildcard = $registryData->wildcardMatch ?? false;
 
@@ -59,8 +59,8 @@ class CookieDescriptionViewModel extends ModelData
     public static function fromConfig($cookieName, $config = [])
     {
         $vm = new self();
-        $defaultDescription = $config['description'] ?? 'No description available.';
-        $defaultExpiration = $config['expiration'] ?? 'Unknown';
+        $defaultDescription = ($config['description'] ?? '') ?: 'No description available.';
+        $defaultExpiration = ($config['expiration'] ?? '') ?: 'Unknown';
         // Never the request's Host header: this value is cached for all visitors.
         $provider = $config['provider'] ?? CookieConsent::getSiteConfig()->Title;
 
